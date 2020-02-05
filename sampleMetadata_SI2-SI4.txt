@@ -1,0 +1,44 @@
+sampleID	condition	replicate	technical_replicate_library_prep	technical_replicate_RNA_extraction	condition-replicate	SampleID-replicate	ATAC_analysisDir	notes
+01-TGFb-low	TGFb-low	rep1	rep1	rep1	TGFb-low-rep1	01-TGFb-low-rep1	/Volumes/emsanford1/SequencingResults/SI2_ATAC/processed_data/01-TGFb-low-rep1/	
+02-TGFb-med	TGFb-med	rep1	rep1	rep1	TGFb-med-rep1	02-TGFb-med-rep1	/Volumes/emsanford1/SequencingResults/SI2_ATAC/processed_data/02-TGFb-med-rep1/	
+03-RA-low	RA-low	rep1	rep1	rep1	RA-low-rep1	03-RA-low-rep1	/Volumes/emsanford1/SequencingResults/SI2_ATAC/processed_data/03-RA-low-rep1/	
+04-EtOH-highDensity	EtOH-highDensity	rep1	rep1	rep1	EtOH-highDensity-rep1	04-EtOH-highDensity-rep1	/Volumes/emsanford1/SequencingResults/SI2_ATAC/processed_data/04-EtOH-highDensity-rep1/	
+05-EtOH-nlDensity	EtOH-nlDensity	rep1	rep1	rep1	EtOH-nlDensity-rep1	05-EtOH-nlDensity-rep1	/Volumes/emsanford1/SequencingResults/SI2_ATAC/processed_data/05-EtOH-nlDensity-rep1/	
+06-RA-high	RA-high	rep1	rep1	rep1	RA-high-rep1	06-RA-high-rep1	/Volumes/emsanford1/SequencingResults/SI2_ATAC/processed_data/06-RA-high-rep1/	
+07-EtOH-halfDensity	EtOH-halfDensity	rep1	rep1	rep1	EtOH-halfDensity-rep1	07-EtOH-halfDensity-rep1	/Volumes/emsanford1/SequencingResults/SI2_ATAC/processed_data/07-EtOH-halfDensity-rep1/	
+08-TGFb-and-RA-low	TGFb-and-RA-low	rep1	rep1	rep1	TGFb-and-RA-low-rep1	08-TGFb-and-RA-low-rep1	/Volumes/emsanford1/SequencingResults/SI2_ATAC/processed_data/08-TGFb-and-RA-low-rep1/	
+09-TGFb-and-RA-med	TGFb-and-RA-med	rep1	rep1	rep1	TGFb-and-RA-med-rep1	09-TGFb-and-RA-med-rep1	/Volumes/emsanford1/SequencingResults/SI2_ATAC/processed_data/09-TGFb-and-RA-med-rep1/	
+10-TGFb-high	TGFb-high	rep1	rep1	rep1	TGFb-high-rep1	10-TGFb-high-rep1	/Volumes/emsanford1/SequencingResults/SI2_ATAC/processed_data/10-TGFb-high-rep1/	
+11-TGFb-and-RA-high	TGFb-and-RA-high	rep1	rep1	rep1	TGFb-and-RA-high-rep1	11-TGFb-and-RA-high-rep1	/Volumes/emsanford1/SequencingResults/SI2_ATAC/processed_data/11-TGFb-and-RA-high-rep1/	
+12-RA-med	RA-med	rep1	rep1	rep1	RA-med-rep1	12-RA-med-rep1	/Volumes/emsanford1/SequencingResults/SI2_ATAC/processed_data/12-RA-med-rep1/	
+13-TGFb-and-RA-low	TGFb-and-RA-low	rep2	rep1	rep1	TGFb-and-RA-low-rep2	13-TGFb-and-RA-low-rep2	/Volumes/emsanford1/SequencingResults/SI3_ATAC/processed_data/13-TGFb-and-RA-low-rep2/	
+14-EtOH-highDensity	EtOH-highDensity	rep2	rep1	rep1	EtOH-highDensity-rep2	14-EtOH-highDensity-rep2	/Volumes/emsanford1/SequencingResults/SI3_ATAC/processed_data/14-EtOH-highDensity-rep2/	
+15-EtOH-nlDensity	EtOH-nlDensity	rep2	rep1	rep1	EtOH-nlDensity-rep2	15-EtOH-nlDensity-rep2	/Volumes/emsanford1/SequencingResults/SI3_ATAC/processed_data/15-EtOH-nlDensity-rep2/	
+16-TGFb-med	TGFb-med	rep2	rep1	rep1	TGFb-med-rep2	16-TGFb-med-rep2	/Volumes/emsanford1/SequencingResults/SI3_ATAC/processed_data/16-TGFb-med-rep2/	
+17-RA-med	RA-med	rep2	rep1	rep1	RA-med-rep2	17-RA-med-rep2	/Volumes/emsanford1/SequencingResults/SI3_ATAC/processed_data/17-RA-med-rep2/	omit this sample from analysis. it had high rRNA contamination resulting in becoming an outlier in the PCA on gene rpm values
+18-TGFb-and-RA-med	TGFb-and-RA-med	rep2	rep1	rep1	TGFb-and-RA-med-rep2	18-TGFb-and-RA-med-rep2	/Volumes/emsanford1/SequencingResults/SI3_ATAC/processed_data/18-TGFb-and-RA-med-rep2/	omit this sample from analysis. it had high rRNA contamination resulting in becoming an outlier in the PCA on gene rpm values
+19-TGFb-low	TGFb-low	rep2	rep1	rep1	TGFb-low-rep2	19-TGFb-low-rep2	/Volumes/emsanford1/SequencingResults/SI3_ATAC/processed_data/19-TGFb-low-rep2/	
+20-EtOH-halfDensity	EtOH-halfDensity	rep2	rep1	rep1	EtOH-halfDensity-rep2	20-EtOH-halfDensity-rep2	/Volumes/emsanford1/SequencingResults/SI3_ATAC/processed_data/20-EtOH-halfDensity-rep2/	
+21-TGFb-and-RA-high	TGFb-and-RA-high	rep2	rep1	rep1	TGFb-and-RA-high-rep2	21-TGFb-and-RA-high-rep2	/Volumes/emsanford1/SequencingResults/SI3_ATAC/processed_data/21-TGFb-and-RA-high-rep2/	
+22-TGFb-high	TGFb-high	rep2	rep1	rep1	TGFb-high-rep2	22-TGFb-high-rep2	/Volumes/emsanford1/SequencingResults/SI3_ATAC/processed_data/22-TGFb-high-rep2/	
+23-RA-high	RA-high	rep2	rep1	rep1	RA-high-rep2	23-RA-high-rep2	/Volumes/emsanford1/SequencingResults/SI3_ATAC/processed_data/23-RA-high-rep2/	
+24-RA-low	RA-low	rep2	rep1	rep1	RA-low-rep2	24-RA-low-rep2	/Volumes/emsanford1/SequencingResults/SI3_ATAC/processed_data/24-RA-low-rep2/	
+25-EtOH-halfDensity	EtOH-halfDensity	rep3	rep1	rep1	EtOH-halfDensity-rep3	25-EtOH-halfDensity-rep3	/Volumes/emsanford1/SequencingResults/SI4_ATAC/processed_data/25-EtOH-halfDensity-rep3/	
+26-RA-med	RA-med	rep3	rep1	rep1	RA-med-rep3	26-RA-med-rep3	/Volumes/emsanford1/SequencingResults/SI4_ATAC/processed_data/26-RA-med-rep3/	
+27-EtOH-nlDensity	EtOH-nlDensity	rep3	rep1	rep1	EtOH-nlDensity-rep3	27-EtOH-nlDensity-rep3	/Volumes/emsanford1/SequencingResults/SI4_ATAC/processed_data/27-EtOH-nlDensity-rep3/	
+28-TGFb-and-RA-med	TGFb-and-RA-med	rep3	rep1	rep1	TGFb-and-RA-med-rep3	28-TGFb-and-RA-med-rep3	/Volumes/emsanford1/SequencingResults/SI4_ATAC/processed_data/28-TGFb-and-RA-med-rep3/	
+29-TGFb-and-RA-low	TGFb-and-RA-low	rep3	rep1	rep1	TGFb-and-RA-low-rep3	29-TGFb-and-RA-low-rep3	/Volumes/emsanford1/SequencingResults/SI4_ATAC/processed_data/29-TGFb-and-RA-low-rep3/	
+30-TGFb-med	TGFb-med	rep3	rep1	rep1	TGFb-med-rep3	30-TGFb-med-rep3	/Volumes/emsanford1/SequencingResults/SI4_ATAC/processed_data/30-TGFb-med-rep3/	
+31-TGFb-high	TGFb-high	rep3	rep1	rep1	TGFb-high-rep3	31-TGFb-high-rep3	/Volumes/emsanford1/SequencingResults/SI4_ATAC/processed_data/31-TGFb-high-rep3/	
+32-RA-high	RA-high	rep3	rep1	rep1	RA-high-rep3	32-RA-high-rep3	/Volumes/emsanford1/SequencingResults/SI4_ATAC/processed_data/32-RA-high-rep3/	
+33-TGFb-low	TGFb-low	rep3	rep1	rep1	TGFb-low-rep3	33-TGFb-low-rep3	/Volumes/emsanford1/SequencingResults/SI4_ATAC/processed_data/33-TGFb-low-rep3/	
+34-EtOH-highDensity	EtOH-highDensity	rep3	rep1	rep1	EtOH-highDensity-rep3	34-EtOH-highDensity-rep3	/Volumes/emsanford1/SequencingResults/SI4_ATAC/processed_data/34-EtOH-highDensity-rep3/	
+35-TGFb-and-RA-high	TGFb-and-RA-high	rep3	rep1	rep1	TGFb-and-RA-high-rep3	35-TGFb-and-RA-high-rep3	/Volumes/emsanford1/SequencingResults/SI4_ATAC/processed_data/35-TGFb-and-RA-high-rep3/	
+36-RA-low	RA-low	rep3	rep1	rep1	RA-low-rep3	36-RA-low-rep3	/Volumes/emsanford1/SequencingResults/SI4_ATAC/processed_data/36-RA-low-rep3/	
+46-EtOH-nlDensity	EtOH-nlDensity	rep2	rep2	rep1	EtOH-nlDensity-rep2	46-EtOH-nlDensity-rep2	/Volumes/emsanford1/SequencingResults/SI3_ATAC/processed_data/15-EtOH-nlDensity-rep2/	repeat library prep of sample 15
+47-RA-med	RA-med	rep2	rep2	rep1	RA-med-rep2	47-RA-med-rep2	/Volumes/emsanford1/SequencingResults/SI3_ATAC/processed_data/17-RA-med-rep2/	repeat library prep of sample 17 from extracted RNA
+48-TGFb-and-RA-med	TGFb-and-RA-med	rep2	rep2	rep1	TGFb-and-RA-med-rep2	48-TGFb-and-RA-med-rep2	/Volumes/emsanford1/SequencingResults/SI3_ATAC/processed_data/18-TGFb-and-RA-med-rep2/	repeat library prep of sample 18 from extracted RNA
+49-RA-med-second-RNA-extraction	RA-med	rep2	rep2	rep2	RA-med-rep2	49-RA-med-second-RNA-extraction-rep2	/Volumes/emsanford1/SequencingResults/SI3_ATAC/processed_data/17-RA-med-rep2/	repeat RNA extraction and library prep of sample 17
+50-TGFb-and-RA-med-second-RNA-extraction	TGFb-and-RA-med	rep2	rep2	rep2	TGFb-and-RA-med-rep2	50-TGFb-and-RA-med-second-RNA-extraction-rep2	/Volumes/emsanford1/SequencingResults/SI3_ATAC/processed_data/18-TGFb-and-RA-med-rep2/	repeat RNA extraction and library prep of sample 18
+51-RA-med	RA-med	rep2	rep1_rep2_sum	rep1_rep2_sum	RA-med-rep2	51-RA-med-rep2	/Volumes/emsanford1/SequencingResults/SI3_ATAC/processed_data/17-RA-med-rep2/	sum of counts from samples 47 and 49 (technical replicates)
+52-TGFb-and-RA-med	TGFb-and-RA-med	rep2	rep1_rep2_sum	rep1_rep2_sum	TGFb-and-RA-med-rep2	52-TGFb-and-RA-med-rep2	/Volumes/emsanford1/SequencingResults/SI3_ATAC/processed_data/18-TGFb-and-RA-med-rep2/	sum of counts from samples 48 and 50 (technical replicates)
