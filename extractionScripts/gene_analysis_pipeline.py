@@ -25,8 +25,8 @@ class ParamSet:
 
 		# paths to reference files
 		self.hg38_gtf_file                      = '"{0}"'.format(os.sep.join([refsDir, "hg38.gtf"]))  # Homo_sapiens.GRCh38.90.gtf.gz
-		self.ensg_to_hgnc_symbol_mapping        = '"{0}"'.format(os.sep.join([refsDir, "EnsgHgncSymbolMapping.gtf"]))  # we use the gene name from the gtf file if there's no HGNC symbol for it
-		self.ensg_to_hg38_canonical_tss_mapping = '"{0}"'.format(os.sep.join([refsDir, "EnsgToHg38CanonicalTssMapping.gtf"])) 
+		self.ensg_to_hgnc_symbol_mapping        = '"{0}"'.format(os.sep.join([refsDir, "EnsgHgncSymbolMapping.tsv"]))  # we use the gene name from the gtf file if there's no HGNC symbol for it
+		self.ensg_to_hg38_canonical_tss_mapping = '"{0}"'.format(os.sep.join([refsDir, "EnsgToHg38CanonicalTssMapping.tsv"])) 
 
 
 		# paths to scripts, we need to add quotes around them to pass as command line arguments because dropbox added a space to its own folder and we're using os.system to run commands
