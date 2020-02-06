@@ -16,7 +16,7 @@ class ParamSet:
 				 final_diffpeak_algorithm_min_normalized_fragments = 30, final_diffpeak_algorithm_min_fold_change = 1.5, 
 				 min_control_TPM = 0, use_default_param_string = False):
 		self.base_directory      						 	     = base_directory  # this should be the analysis root directory, which contains folders like "extractedData" and "plotScripts"
-		self.sample_metadata_file								 = base_directory + os.sep + "sampleMetadata_SI2-SI4.txt"
+		self.sample_metadata_file								 = '"{0}"'.format(base_directory + os.sep + "sampleMetadata_SI2-SI4.txt")
 		self.extractedDataDir 							 	     = extractedDataDir
 		self.plotsDir       							 	     = plotsDir
 		self.peak_merge_distance 						 		 = peak_merge_distance
@@ -271,7 +271,7 @@ if __name__ == '__main__':
 		# 										  initial_peak_width = 150,
 		# 										  final_diffpeak_algorithm_min_normalized_fragments = final_diffpeak_algorithm_min_normalized_fragments_list[ii],
 		# 										  final_diffpeak_algorithm_min_fold_change = final_diffpeak_algorithm_min_fold_change_list[ii])
-				
+
 		# for param_obj in param_object_list:
 		# 	print("Running parameter set:\n{0}".format(str(param_obj)))
 		# 	main(param_obj)
