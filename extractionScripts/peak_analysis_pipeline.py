@@ -235,9 +235,10 @@ def main(param_obj):
 		upregulated_peaks_fragCount_r_objects = glob.glob(param_obj.upreg_peak_cats_bed_file_prefix[1:-1] + "*.rds")
 		upregulated_peaks_fragCount_r_objects.append(param_obj.final_merged_differential_atac_frag_count_rds_file[1:-1])
 		for peak_r_object in upregulated_peaks_fragCount_r_objects:
-			cmd = "Rscript {0} {1} {2}".format(param_obj.path_to_chromVAR_motif_analysis_script, 
-										   '"{0}"'.format(peak_r_object), 
-										   '"{0}"'.format(peak_r_object.replace(param_obj.extractedDataDir, param_obj.plotsDir) + "_motifPlots_"))
+			cmd = "Rscript {0} {1} {2} {3}".format(param_obj.path_to_chromVAR_motif_analysis_script, 
+												   '"{0}"'.format(peak_r_object), 
+												   param_obj.most_variable_motifs_file
+												   '"{0}"'.format(peak_r_object.replace(param_obj.extractedDataDir, param_obj.plotsDir) + "_motifPlots_"))
 			run_command(cmd)
 
 	# are the super-additive peaks more likely to be close to super-multiplicative genes?

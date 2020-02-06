@@ -29,8 +29,8 @@ if (length(cmdargs) == 0) {
   selected.PWM.objects <- readRDS(here("extractedData", "peaks_categorized_by_mode_of_integration", "top72motifs_alldiffpeaks_robject.rds"))
 } else {
   fragmentCountsDiffPeaks <- read_rds(cmdargs[1])
-  outputPlotPrefix <- cmdargs[2]
-  selected.PWM.objects <- readRDS(cmdargs[3])
+  selected.PWM.objects <- readRDS(cmdargs[2])
+  outputPlotPrefix <- cmdargs[3]
 }
 
 fragmentCountsDiffPeaks <- addGCBias(fragmentCountsDiffPeaks, 

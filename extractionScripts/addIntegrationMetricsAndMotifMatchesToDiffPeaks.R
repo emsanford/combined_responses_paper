@@ -123,7 +123,7 @@ calcAdditivePredDiff <- function(peaktib, dosage) {
   normcts.ra    <- pull(peaktib, var = paste0("TGFb-", dosage, "-avgNormFragmentCounts"))
   normcts.tgfb  <- pull(peaktib, var = paste0("RA-", dosage, "-avgNormFragmentCounts"))
   normcts.etoh  <- pull(peaktib, var = `EtOH-nlDensity-avgNormFragmentCounts`)
-  print(sprintf("Pseudocts added to %d peaks", sum(normcts.etoh == 0)))
+  print(sprintf("Pseudocts added to %d peaks in the calc additive pred diff function", sum(normcts.etoh == 0)))
   normcts.etoh[normcts.etoh == 0] <- 0.5
   normcts.ra[normcts.ra == 0]     <- 0.5
   normcts.tgfb[normcts.tgfb == 0] <- 0.5
