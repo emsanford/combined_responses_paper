@@ -5,7 +5,7 @@ if (length(cmdargs) == 0) {
   sampleMetadataFile <- here('sampleMetadata_SI2-SI4.txt')
   outputFolder       <- here('extractedData', 'consensusPeakFiles', '')
 } else {
-  sampleMetadataFile <- read_tsv(cmdargs[1])
+  sampleMetadataFile <- cmdargs[1]
   outputFolder       <- cmdargs[2]
 }
 
