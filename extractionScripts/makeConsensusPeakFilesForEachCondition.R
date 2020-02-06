@@ -102,7 +102,7 @@ calculateAndWriteConsensusPeakSet <- function(conditionName, sampleMetadata, pea
   
   selectedSummitsToWrite <- unite(selectedSummitsSorted, 'peakID', c('sampleName', 'peakNum'), sep = "_peak_", remove = TRUE)
   
-  outputFile <- paste(outputFolder, gsub(' ', '-', conditionName), '.consensusSummits.bed', sep="")
+  outputFile <- paste0(outputFolder, '/', gsub(' ', '-', conditionName), '.consensusSummits.bed')
   write_tsv(selectedSummitsToWrite, outputFile, col_names=FALSE)
 }
 
