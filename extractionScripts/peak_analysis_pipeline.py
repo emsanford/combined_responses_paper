@@ -165,11 +165,11 @@ def main(param_obj):
 		run_command(cmd)
 
 	# make a bed file from the final differential peak file
-		if not os.path.exists(param_obj.final_differential_atac_peaks_bed_file[1:-1]):
-			cmd = 'Rscript {0} {1} {2}'.format(param_obj.path_to_createBedFileFromDiffpeakTable,
-											   param_obj.final_diffpeak_algorithm_output_file,
-											   param_obj.final_differential_atac_peaks_bed_file)
-			run_command(cmd)
+	if not os.path.exists(param_obj.final_differential_atac_peaks_bed_file[1:-1]):
+		cmd = 'Rscript {0} {1} {2}'.format(param_obj.path_to_createBedFileFromDiffpeakTable,
+										   param_obj.final_diffpeak_algorithm_output_file,
+										   param_obj.final_differential_atac_peaks_bed_file)
+		run_command(cmd)
 
 	# create a final fragmentCount rds file for which to do motif analysis
 	if not os.path.exists(param_obj.final_merged_differential_atac_frag_count_rds_file[1:-1]):
