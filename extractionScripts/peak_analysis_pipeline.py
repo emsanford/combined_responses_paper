@@ -36,7 +36,7 @@ class ParamSet:
 		# paths to input and output files
 		self.consensus_peak_file_dir                            = '"{0}"'.format(os.sep.join([extractedDataDir, "consensusPeakFiles"]))
 		self.merged_consensus_peak_file                         = '"{0}"'.format(os.sep.join([extractedDataDir, "mergedConsensusMacs2PeakFilesAllConditions.bed"]))
-		self.unmerged_differential_atac_peaks_bed_file          = '"{0}"'.format(os.sep.join([base_directory, "extractedData", "initialDifferentialAtacPeaks.bed"]))
+		self.unmerged_differential_atac_peaks_bed_file          = '"{0}"'.format(os.sep.join([base_directory, "extractedData", "initialDifferentialAtacPeaksWidth{0}_minNlCovg{1}_minFc{2}.bed".format(initial_peak_width, initial_diffpeak_algorithm_min_normalized_fragments, initial_diffpeak_algorithm_min_fold_change)]))
 		self.merged_differential_atac_peaks_bed_file            = '"{0}"'.format(os.sep.join([extractedDataDir, "differentialAtacPeaks_mergedist{0}.bed".format(peak_merge_distance)]))
 		self.merged_differential_atac_frag_count_rds_file       = '"{0}"'.format(os.sep.join([extractedDataDir, "merged_diffPeaks_fragment_counts_mergedist{0}.rds".format(peak_merge_distance)]))
 		self.atac_fragment_count_file_merged_consensus_peak_set = '"{0}"'.format(os.sep.join([extractedDataDir, "mergedConsensusPeakSetAtacFragmentCounts.rds"]))
@@ -160,9 +160,10 @@ def main(param_obj):
 
 	# annotate the new peak set with motif matches and additive / multiplicative predictions
 	if not os.path.exists(param_obj.annotated_diffpeaks_output_file[1:-1]):
-		cmd = "Rscript {0} {1} {2}".format(param_obj.path_to_peak_annotation_script, 
-										   param_obj.final_diffpeak_algorithm_output_file, 
-										   param_obj.annotated_diffpeaks_output_file)
+		cmd = "Rscript {0} {1} {2} {3}".format(param_obj.path_to_peak_annotation_script, 
+											   param_obj.final_diffpeak_algorithm_output_file,
+											   param_obj.merged_differential_atac_frag_count_rds_file
+											   param_obj.annotated_diffpeaks_output_file)
 		run_command(cmd)
 
 	# create the set of upregulated peaks from the annotated peak set
@@ -207,7 +208,7 @@ def main(param_obj):
 		for peak_r_object in upregulated_peaks_fragCount_r_objects:
 			cmd = "Rscript {0} {1} {2}".format(param_obj.path_to_chromVAR_motif_analysis_script, 
 										   '"{0}"'.format(peak_r_object), 
-										   '"{0}"'.format(peak_r_object + "_motifPlots_"))
+										   '"{0}"'.format(peak_r_object.replace(param_obj.extractedDataDir, param_obj.plotsDir) + "_motifPlots_"))
 			run_command(cmd)
 
 	# are the super-additive peaks more likely to be close to super-multiplicative genes?

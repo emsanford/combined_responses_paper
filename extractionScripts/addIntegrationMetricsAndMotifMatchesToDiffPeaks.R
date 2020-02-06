@@ -20,9 +20,12 @@ cmdargs = commandArgs(trailingOnly=TRUE)
 if (length(cmdargs) == 0) {
   diffPeakTib    <- read_tsv(here('extractedData', 'differentialAtacPeaks.tsv'))
   dpOutputTibLoc <- here('extractedData', 'differentialAtacPeaks.annotated.tsv')
+  fragmentCountsDiffPeaks <- read_rds(here('extractedData', 'atacFragmentCountsAllCondsDifferentialPeaks.rds'))
+  
 } else {
   diffPeakTib    <- read_tsv(cmdargs[1])
-  dpOutputTibLoc <- cmdargs[2]
+  fragmentCountsDiffPeaks <- read_rds(cmdargs[2])
+  dpOutputTibLoc <- cmdargs[3]
 }
 
 ## function definitions
@@ -171,7 +174,6 @@ for (dose in c("low", "med", "high")) {
 
 
 #load the fragmentCounts object
-fragmentCountsDiffPeaks <- read_rds(here('extractedData', 'atacFragmentCountsAllCondsDifferentialPeaks.rds'))
 fragmentCountsDiffPeaks <- addGCBias(fragmentCountsDiffPeaks, 
                                      genome = BSgenome.Hsapiens.UCSC.hg38)
 data("human_pwms_v2") #loads the curated cisBP motif set from the chromVar paper
