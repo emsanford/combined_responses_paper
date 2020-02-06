@@ -111,7 +111,7 @@ for (gene.to.plot in genes.to.plot) {
   ggsave(outputLoc, plot = p, width = 5.25, height = 4)
 }
 
-genes.to.plot <- genes_of_interest  # i cheat here and define genes_of_interest in another script in Rstudio to explore random categories of genes
+genes.to.plot <- genes.of.interest  # i cheat here and define genes.of.interest in another script in Rstudio to explore random categories of genes
 for (gene.to.plot in genes.to.plot) {
   outputLoc <- here("plots", "beeswarm_playground", paste0(gene.to.plot, "_beeswarm.svg"))
   p <- makeCompositeBeeswarmPlot(gene.to.plot, geneTib, tibforplot)

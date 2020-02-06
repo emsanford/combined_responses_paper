@@ -6,12 +6,6 @@ from pyprojroot import here
 
 
 class ParamSet:
-	# a parameter set will define the parameters we're testing in the sensitivity analysis
-	# these include:
-	#    x: the size for which to merge neighboring differential peaks together
-	#    x: the minimum normalized coverage for allowing a peak to be considered differential
-	#    x: the minimum fold change for allowing a peak to be considered differential
-	#    x: 
 	def __init__(self, base_directory, extractedDataDir, plotsDir, peak_merge_distance = 250, initial_peak_width = 150, 
 				 initial_diffpeak_algorithm_min_normalized_fragments = 10, initial_diffpeak_algorithm_min_fold_change = 1.1, 
 				 final_diffpeak_algorithm_min_normalized_fragments = 30, final_diffpeak_algorithm_min_fold_change = 1.5, 

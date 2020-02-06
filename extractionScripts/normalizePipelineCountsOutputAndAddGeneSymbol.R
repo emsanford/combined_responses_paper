@@ -7,11 +7,22 @@ library(refGenome)
 
 ######### here beginneth user-defined parameters #########
 
-meltedDataInputFile   <- here('extractedData', 'si2-si4_RNA-seq-pipeline-output-counts.tsv')
-gtfFileUsedByPipeline <- here('refs', 'hg38.gtf')
-ENSGtoGeneSymbolTable <- here('refs', 'EnsgHgncSymbolMapping.tsv')
-geneCanonicalTssTable <- read_tsv(here('refs', 'EnsgToHg38TssMapping.tsv'))
-outputFile            <- here('extractedData', 'si2-si4_RNA-seq-pipeline-output-normalized.tsv')
+cmdargs = commandArgs(trailingOnly=TRUE)
+if (length(cmdargs) == 0) {
+  pipelineGeneCountsInputFile <- here('extractedData', 'si2-si4_RNA-seq-pipeline-output-counts.tsv')
+  gtfFileUsedByPipeline       <- here('refs', 'hg38.gtf')
+  ENSGtoGeneSymbolTable       <- here('refs', 'EnsgHgncSymbolMapping.tsv')
+  geneCanonicalTssTable       <- read_tsv(here('refs', 'EnsgToHg38CanonicalTssMapping.tsv'))
+  outputFile                  <- here('extractedData', 'si2-si4_RNA-seq-pipeline-output-normalized.tsv')
+} else {
+  pipelineGeneCountsInputFile <- cmdargs[1]
+  gtfFileUsedByPipeline       <- cmdargs[2]
+  ENSGtoGeneSymbolTable       <- cmdargs[3]
+  geneCanonicalTssTable       <- read_tsv(cmdargs[4])
+  outputFile                  <- cmdargs[5]
+}
+
+
 techRepPair1toSum <- c('47-RA-med', '49-RA-med-second-RNA-extraction')
 techRepPair2toSum <- c('48-TGFb-and-RA-med', '50-TGFb-and-RA-med-second-RNA-extraction')
 sampleIdBlacklist <- c('17-RA-med', '18-TGFb-and-RA-med') # failed post-sequencing QC due to high rRNA contamination
@@ -24,7 +35,7 @@ lengthsPergeneid <- sum(width(IRanges::reduce(exonsBy(txdb, by = "gene"))))
 lengthtbl <- tibble(gene_id = names(lengthsPergeneid), length = lengthsPergeneid)
 
 # read in the "melted" HTSeq count table, sum technical replicates, remove blacklisted samples
-htseq.table.original <- read_tsv(meltedDataInputFile, col_names = T)
+htseq.table.original <- read_tsv(pipelineGeneCountsInputFile, col_names = T)
 htseq.table.rm.blacklisted <- filter(htseq.table.original, !sampleID %in% sampleIdBlacklist)
 htseq.table.techRepPair1Sum <- htseq.table.rm.blacklisted %>%
   filter(sampleID %in% techRepPair1toSum) %>%

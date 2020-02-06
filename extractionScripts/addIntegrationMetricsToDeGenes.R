@@ -152,7 +152,7 @@ for (dosage in dosages) {
   etohTPM <- deseqTib[["EtOH-nlDensity_avgTPM"]]
   
   print(sprintf("pseudocounts added to %d genes", sum(etohTPM == 0)))
-  etohTPM[etohTPM==0] <- 0.1
+  etohTPM[etohTPM==0] <- 0.0001
   
   raTPM   <- deseqTib[[paste0("RA-", dosage, "_avgTPM")]]
   tgfbTPM <- deseqTib[[paste0("TGFb-", dosage, "_avgTPM")]]
