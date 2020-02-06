@@ -16,6 +16,7 @@ if (length(cmdargs) == 0) {
                   here('extractedData', 'consensusPeakFiles', 'EtOH-nlDensity.consensusSummits.bed'),  
                   here('extractedData', 'consensusPeakFiles', 'EtOH-halfDensity.consensusSummits.bed'),  
                   here('extractedData', 'consensusPeakFiles', 'EtOH-highDensity.consensusSummits.bed'))
+  inputConsensusPeaksFolder <-  here('extractedData', 'consensusPeakFiles')
   outputMergedPeaksFile <- sprintf('"%s"', here('extractedData', 'mergedConsensusPeakFiles', 'allCondsMergedSummitWindows.bed'))
 } else {
   inputConsensusPeaksFolder <- cmdargs[1]
@@ -40,10 +41,10 @@ if (length(cmdargs) == 0) {
 mergeOrder <- map(mergeOrder, function (x) sprintf('"%s"', x)) #sprintf functions needed for command line parsing
 
 
-tempBedFile.forMerging  <- sprintf('"%s"', here('extractedData', 'mergedConsensusPeakFiles', 'tempMergedFile.bed'))
-tempBedFile.forMerging2 <- sprintf('"%s"', here('extractedData', 'mergedConsensusPeakFiles', 'tempMergedFile2.bed'))
-tempBedFile.forDiffs    <- sprintf('"%s"', here('extractedData', 'mergedConsensusPeakFiles', 'tempDiffPeaks.bed'))
-tempBedFile.forSorting  <- sprintf('"%s"', here('extractedData', 'mergedConsensusPeakFiles', 'tempMergedSortedFile.bed'))
+tempBedFile.forMerging  <- sprintf('"%s"', paste0(inputConsensusPeaksFolder, '/', 'tempMergedFile.bed'))
+tempBedFile.forMerging2 <- sprintf('"%s"', paste0(inputConsensusPeaksFolder, '/', 'tempMergedFile2.bed'))
+tempBedFile.forDiffs    <- sprintf('"%s"', paste0(inputConsensusPeaksFolder, '/', 'tempDiffPeaks.bed'))
+tempBedFile.forSorting  <- sprintf('"%s"', paste0(inputConsensusPeaksFolder, '/', 'tempMergedSortedFile.bed'))
 #step 1: merge overlapping segments in the first BED file
 system(paste('bedtools', 'merge', '-c', '4,5', '-o', 'collapse,max', '-i', mergeOrder[1], '>', tempBedFile.forSorting))  
 #next steps: in order, add new conditions to existing peaks, only if they don't already overlap a current peak
