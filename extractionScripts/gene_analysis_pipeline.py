@@ -34,7 +34,7 @@ class ParamSet:
 		self.path_to_runDESeqOnConditionSet                        = '"{0}"'.format(os.sep.join([base_directory, "extractionScripts", "runDESeqOnConditionSet.R"]))
 		self.path_to_zzzzzzz          = '"{0}"'.format(os.sep.join([base_directory, "plotScripts", "makeAdjacentSuperadditivePeakAssocModeOfIntegrationPlots.R"]))
 
-		self.subdirectories = [plotsDir, extractedDataDir, self.consensus_peak_file_dir[1:-1]]
+		self.subdirectories = [plotsDir, extractedDataDir, refsDir]
 
 
 	def __str__(self):
