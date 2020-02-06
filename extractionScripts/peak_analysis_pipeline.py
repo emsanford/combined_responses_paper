@@ -237,7 +237,7 @@ def main(param_obj):
 		for peak_r_object in upregulated_peaks_fragCount_r_objects:
 			cmd = "Rscript {0} {1} {2} {3}".format(param_obj.path_to_chromVAR_motif_analysis_script, 
 												   '"{0}"'.format(peak_r_object), 
-												   param_obj.most_variable_motifs_file
+												   param_obj.most_variable_motifs_file,
 												   '"{0}"'.format(peak_r_object.replace(param_obj.extractedDataDir, param_obj.plotsDir) + "_motifPlots_"))
 			run_command(cmd)
 
