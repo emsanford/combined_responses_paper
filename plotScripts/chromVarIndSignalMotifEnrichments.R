@@ -26,46 +26,15 @@ cmdargs = commandArgs(trailingOnly=TRUE)
 if (length(cmdargs) == 0) {
   fragmentCountsDiffPeaks <- read_rds(here('extractedData', 'atacFragmentCountsAllCondsDifferentialPeaks.rds'))
   outputPlotPrefix <- here("extractedData", "peaks_categorized_by_mode_of_integration", "plots_upreg_alldiff_peaks_")
+  selected.PWM.objects <- readRDS(here("extractedData", "peaks_categorized_by_mode_of_integration", "top72motifs_alldiffpeaks_robject.rds"))
 } else {
   fragmentCountsDiffPeaks <- read_rds(cmdargs[1])
   outputPlotPrefix <- cmdargs[2]
+  selected.PWM.objects <- readRDS(cmdargs[3])
 }
-
-
-
-# fragmentCountsDiffPeaks <- read_rds(here('extractedData', 'peaks_categorized_by_mode_of_integration', 'upreg_add_peaks.rds'))
-# outputPlotPrefix <- here("extractedData", "peaks_categorized_by_mode_of_integration", "plots_upreg_add_peaks_")
-# fragmentCountsDiffPeaks <- read_rds(here('extractedData', 'peaks_categorized_by_mode_of_integration', 'upreg_subadd_peaks.rds'))
-# outputPlotPrefix <- here("extractedData", "peaks_categorized_by_mode_of_integration", "plots_upreg_subadd_peaks_")
-
-# fragmentCountsDiffPeaks1 <- read_rds(here('extractedData', 'peaks_categorized_by_mode_of_integration', 'upreg_superadd_peaks.rds'))
-# outputPlotPrefix <- here("extractedData", "peaks_categorized_by_mode_of_integration", "plots_upreg_superadd_peaks_")
-# fragmentCountsDiffPeaks2 <- read_rds(here('extractedData', 'peaks_categorized_by_mode_of_integration', 'upreg_add_peaks.rds'))
-# fragmentCountsDiffPeaks <- rbind(fragmentCountsDiffPeaks1, fragmentCountsDiffPeaks2[1:28,])  ## be sure to fix this "dirtying the super-add peaks" short-fix
-
-selected.PWM.objects <- readRDS(here("extractedData", "peaks_categorized_by_mode_of_integration", "top72motifs_alldiffpeaks_robject.rds"))
 
 fragmentCountsDiffPeaks <- addGCBias(fragmentCountsDiffPeaks, 
                                      genome = BSgenome.Hsapiens.UCSC.hg38)
-##### select the top 72 most variable motifs from the data set #####
-# set.seed(2019)
-# data("human_pwms_v2") #loads the curated cisBP motif set from the chromVar paper
-# motifSet <- human_pwms_v2 #loads the curated cisBP motif set from the chromVar paper
-# motif_ix <- matchMotifs(motifSet, fragmentCountsDiffPeaks, 
-#                         genome = BSgenome.Hsapiens.UCSC.hg38)
-# dev <- computeDeviations(object = fragmentCountsDiffPeaks, annotations = motif_ix)
-# variability <- computeVariability(dev)
-# plotVariability(variability, use_plotly = FALSE)
-# tvar <- as.tibble(variability)
-# 
-# top_n_motifs_to_keep <- 72
-# TF.names.variabilitycutoff <- arrange(tvar, -variability)$name[1:top_n_motifs_to_keep]
-# PWM.object.indices.bool <- sapply(strsplit(names(motifSet), "_"), function (x) x[3]) %in% TF.names.variabilitycutoff
-# PWM.object.indices.num  <- which(PWM.object.indices.bool)
-# PWM.object.indices.num.1h <- PWM.object.indices.num[1:36]
-# PWM.object.indices.num.2h <- PWM.object.indices.num[37:72]
-# selected.PWM.objects <- motifSet[PWM.object.indices.num]
-################################################################################################################  
 
 # now, use the selected PWM objects to test for motif deviations in a subset of the data: controls and TGFB only, controls and RA only
 allSampleNames <- colnames(fragmentCountsDiffPeaks)

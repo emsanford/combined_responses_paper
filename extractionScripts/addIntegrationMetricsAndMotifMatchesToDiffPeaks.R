@@ -20,11 +20,10 @@ cmdargs = commandArgs(trailingOnly=TRUE)
 if (length(cmdargs) == 0) {
   diffPeakTib    <- read_tsv(here('extractedData', 'differentialAtacPeaks.tsv'))
   dpOutputTibLoc <- here('extractedData', 'differentialAtacPeaks.annotated.tsv')
-  fragmentCountsDiffPeaks <- read_rds(here('extractedData', 'atacFragmentCountsAllCondsDifferentialPeaks.rds'))
-  
+  selected.PWM.objects <- read_rds(here('extractedData', 'most_variable_motifs_Robject.rds'))
 } else {
   diffPeakTib    <- read_tsv(cmdargs[1])
-  fragmentCountsDiffPeaks <- read_rds(cmdargs[2])
+  selected.PWM.objects <- read_rds(cmdargs[2])
   dpOutputTibLoc <- cmdargs[3]
 }
 
@@ -172,27 +171,10 @@ for (dose in c("low", "med", "high")) {
   dpOutputTib[[paste0('peakMultiplicativePredFcResidual-', dose)]] <- peak.mult.pred.diff
 }
 
-
-#load the fragmentCounts object
-fragmentCountsDiffPeaks <- addGCBias(fragmentCountsDiffPeaks, 
-                                     genome = BSgenome.Hsapiens.UCSC.hg38)
-data("human_pwms_v2") #loads the curated cisBP motif set from the chromVar paper
-motifSet <- human_pwms_v2 #loads the curated cisBP motif set from the chromVar paper
-motif_ix <- matchMotifs(motifSet, fragmentCountsDiffPeaks, 
-                        genome = BSgenome.Hsapiens.UCSC.hg38)
-dev <- computeDeviations(object = fragmentCountsDiffPeaks, annotations = motif_ix)
-variability <- computeVariability(dev)
-plotVariability(variability, use_plotly = FALSE)
-tvar <- as.tibble(variability)
-top_n_motifs_to_keep <- 72
-TF.names.variabilitycutoff <- arrange(tvar, -variability)$name[1:top_n_motifs_to_keep]
-PWM.object.indices <- sapply(strsplit(names(motifSet), "_"), function (x) x[3]) %in% TF.names.variabilitycutoff
-selected.PWM.objects <- motifSet[PWM.object.indices]
-
 diffpeak_gr <- GRanges(seqnames = dpOutputTib$chrom, 
                        ranges = IRanges(start = dpOutputTib$startLocs,
                                         end   = dpOutputTib$endLocs))
-library(BSgenome.Hsapiens.UCSC.hg38)
+
 # note: details on match scores are here https://github.com/jhkorhonen/MOODS/wiki/Brief-theoretical-introduction
 # "Intuitively, this score compares the probability that the model specified by the original PWM generated the sequence 
 # versus the probability that the background model generated the sequence"

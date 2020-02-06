@@ -39,10 +39,13 @@ class ParamSet:
 		self.merged_consensus_peak_file                         = '"{0}"'.format(os.sep.join([extractedDataDir, "mergedConsensusMacs2PeakFilesAllConditions.bed"]))
 		self.unmerged_differential_atac_peaks_bed_file          = '"{0}"'.format(os.sep.join([base_directory, "extractedData", "initialDifferentialAtacPeaksWidth{0}_minNlCovg{1}_minFc{2}.bed".format(initial_peak_width, initial_diffpeak_algorithm_min_normalized_fragments, initial_diffpeak_algorithm_min_fold_change)]))
 		self.merged_differential_atac_peaks_bed_file            = '"{0}"'.format(os.sep.join([extractedDataDir, "differentialAtacPeaks_mergedist{0}.bed".format(peak_merge_distance)]))
-		self.merged_differential_atac_frag_count_rds_file       = '"{0}"'.format(os.sep.join([extractedDataDir, "merged_diffPeaks_fragment_counts_mergedist{0}.rds".format(peak_merge_distance)]))
+		self.final_differential_atac_peaks_bed_file             = '"{0}"'.format(os.sep.join([extractedDataDir, "differentialAtacPeaks_final_{0}.bed".format(param_summary_string)]))
 		self.atac_fragment_count_file_merged_consensus_peak_set = '"{0}"'.format(os.sep.join([extractedDataDir, "mergedConsensusPeakSetAtacFragmentCounts.rds"]))
+		self.merged_differential_atac_frag_count_rds_file       = '"{0}"'.format(os.sep.join([extractedDataDir, "merged_diffPeaks_fragment_counts_mergedist{0}.rds".format(peak_merge_distance)]))
+		self.final_merged_differential_atac_frag_count_rds_file = '"{0}"'.format(os.sep.join([extractedDataDir, "final_diffPeaks_fragment_counts_{0}.rds".format(param_summary_string)]))
 		self.initial_diffpeak_algorithm_output_file             = '"{0}"'.format(os.sep.join([extractedDataDir, "initialDifferentialAtacPeaksWidth{0}_minNlCovg{1}_minFc{2}.tsv".format(initial_peak_width, initial_diffpeak_algorithm_min_normalized_fragments, initial_diffpeak_algorithm_min_fold_change)]))
 		self.final_diffpeak_algorithm_output_file               = '"{0}"'.format(os.sep.join([extractedDataDir, "differentialAtacPeaks_{0}.tsv".format(param_summary_string)]))
+		self.most_variable_motifs_file                          = '"{0}"'.format(os.sep.join([extractedDataDir, "mostVariableMotifs_{0}.rds".format(param_summary_string)]))
 		self.annotated_diffpeaks_output_file                    = '"{0}"'.format(os.sep.join([extractedDataDir, "differentialAtacPeaks_{0}.annotated.tsv".format(param_summary_string)]))
 		self.upregulated_diffpeaks_output_file                  = '"{0}"'.format(os.sep.join([extractedDataDir, "differentialAtacPeaks_{0}.annotated.upregulated.tsv".format(param_summary_string)]))
 		self.initial_peak_fdr_grid_plot_path_prefix             = '"{0}"'.format(os.sep.join([plotsDir, "initial_fdr_grid_{0}".format(param_summary_string)]))
@@ -59,6 +62,7 @@ class ParamSet:
 		self.path_to_createFragCountMatx                         = '"{0}"'.format(os.sep.join([base_directory, "extractionScripts", "createAtacFragmentCountMatrix.R"]))
 		self.path_to_fdrBasedDiffPeakCalling                     = '"{0}"'.format(os.sep.join([base_directory, "extractionScripts", "runEmpiricalFdrBasedDifferentialPeakSelection.R"]))
 		self.path_to_createBedFileFromDiffpeakTable              = '"{0}"'.format(os.sep.join([base_directory, "extractionScripts", "createBedFileFromDiffpeakTable.R"]))
+		self.path_to_makeMostVariableMotifSet                    = '"{0}"'.format(os.sep.join([base_directory, "extractionScripts", "makeMostVariableMotifSet.R"]))
 		self.path_to_peak_annotation_script                      = '"{0}"'.format(os.sep.join([base_directory, "extractionScripts", "addIntegrationMetricsAndMotifMatchesToDiffPeaks.R"]))
 		self.path_to_create_upregulated_peaks_script             = '"{0}"'.format(os.sep.join([base_directory, "extractionScripts", "createMasterSetOfUpregulatedPeaks.R"]))
 		self.path_to_peak_integration_category_histograms_script = '"{0}"'.format(os.sep.join([base_directory, "plotScripts", "peakIntegrationSummaryPieChartsAndHistograms.R"]))
@@ -160,11 +164,34 @@ def main(param_obj):
 													   param_obj.final_peak_fdr_grid_plot_path_prefix)
 		run_command(cmd)
 
+	# make a bed file from the final differential peak file
+		if not os.path.exists(param_obj.final_differential_atac_peaks_bed_file[1:-1]):
+			cmd = 'Rscript {0} {1} {2}'.format(param_obj.path_to_createBedFileFromDiffpeakTable,
+											   param_obj.final_diffpeak_algorithm_output_file,
+											   param_obj.final_differential_atac_peaks_bed_file)
+			run_command(cmd)
+
+	# create a final fragmentCount rds file for which to do motif analysis
+	if not os.path.exists(param_obj.final_merged_differential_atac_frag_count_rds_file[1:-1]):
+		cmd = "Rscript {0} {1} {2} {3} {4}".format(param_obj.path_to_createFragCountMatx, 
+												   param_obj.final_differential_atac_peaks_bed_file,
+												   param_obj.initial_peak_width,
+												   param_obj.final_merged_differential_atac_frag_count_rds_file,
+												   "VariableWidth")
+		run_command(cmd)
+
+	# make the list of the most variable motifs in the differential peak set
+	if not os.path.exists(param_obj.most_variable_motifs_file[1:-1]):
+		cmd = "Rscript {0} {1} {2}".format(param_obj.path_to_makeMostVariableMotifSet, 
+										   param_obj.final_merged_differential_atac_frag_count_rds_file,
+										   param_obj.most_variable_motifs_file)
+		run_command(cmd)
+
 	# annotate the new peak set with motif matches and additive / multiplicative predictions
 	if not os.path.exists(param_obj.annotated_diffpeaks_output_file[1:-1]):
 		cmd = "Rscript {0} {1} {2} {3}".format(param_obj.path_to_peak_annotation_script, 
 											   param_obj.final_diffpeak_algorithm_output_file,
-											   param_obj.merged_differential_atac_frag_count_rds_file,
+											   param_obj.most_variable_motifs_file,
 											   param_obj.annotated_diffpeaks_output_file)
 		run_command(cmd)
 
