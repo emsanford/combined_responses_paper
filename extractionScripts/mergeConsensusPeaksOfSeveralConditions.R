@@ -1,3 +1,5 @@
+library("tidyverse")
+library("here")
 # requires bedtools to be installed on the command line
 
 cmdargs = commandArgs(trailingOnly=TRUE)

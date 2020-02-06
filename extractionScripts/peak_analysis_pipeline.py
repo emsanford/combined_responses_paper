@@ -252,38 +252,46 @@ if __name__ == '__main__':
 	do_parameter_sweep = False
 
 	if do_parameter_sweep:
-		basedir = str(here())
-		extractedDataDir = os.sep.join([basedir, "extractedData", "sensitivityAnalysis"])
-		plotsDir = os.sep.join([basedir, "plots", "sensitivityAnalysis"])
+		# basedir = str(here())
+		# extractedDataDir = os.sep.join([basedir, "extractedData", "sensitivityAnalysis"])
+		# plotsDir = os.sep.join([basedir, "plots", "sensitivityAnalysis"])
 
-		peak_merge_distances = [0, 250, 375, 500]           # also try [0, 150, 250, 500]
-		initial_peak_width           = 150                          # also try 225 later, for motif analysis
-		final_diffpeak_algorithm_min_normalized_fragments_list = [10, 30]   # do 10, 20, 30, 40
-		final_diffpeak_algorithm_min_fold_change_list          = [1.1, 1.5]  # do 1,1, 1.5, 2, 4
-		param_object_list = []
+		# peak_merge_distances = [0, 250, 375, 500]           # also try [0, 150, 250, 500]
+		# initial_peak_width           = 150                          # also try 225 later, for motif analysis
+		# final_diffpeak_algorithm_min_normalized_fragments_list = [10, 30]   # do 10, 20, 30, 40
+		# final_diffpeak_algorithm_min_fold_change_list          = [1.1, 1.5]  # do 1,1, 1.5, 2, 4
+		# param_object_list = []
 
-		for pmd in peak_merge_distances:
-			for ii in [0, 1]:
-				param_object_list.append(ParamSet(basedir, 
-												  extractedDataDir,
-												  plotsDir
-												  peak_merge_distance = pmd, 
-												  initial_peak_width = 150,
-												  final_diffpeak_algorithm_min_normalized_fragments = final_diffpeak_algorithm_min_normalized_fragments_list[ii],
-												  final_diffpeak_algorithm_min_fold_change = final_diffpeak_algorithm_min_fold_change_list[ii], 
-			for param_obj in param_object_list:
-				print("Running parameter set:\n{0}".format(str(param_obj)))
-				main(param_obj)
+		# for pmd in peak_merge_distances:
+		# 	for ii in [0, 1]:
+		# 		param_object_list.append(ParamSet(basedir, 
+		# 										  extractedDataDir,
+		# 										  plotsDir,
+		# 										  peak_merge_distance = pmd, 
+		# 										  initial_peak_width = 150,
+		# 										  final_diffpeak_algorithm_min_normalized_fragments = final_diffpeak_algorithm_min_normalized_fragments_list[ii],
+		# 										  final_diffpeak_algorithm_min_fold_change = final_diffpeak_algorithm_min_fold_change_list[ii])
+				
+		# for param_obj in param_object_list:
+		# 	print("Running parameter set:\n{0}".format(str(param_obj)))
+		# 	main(param_obj)
+		pass
 	else:
 		# this parameter object stores the default parameters that we chose after parameter sweeps
+		basedir = str(here())
+		extractedDataDir = os.sep.join([basedir, "extractedData"])
+		plotsDir = os.sep.join([basedir, "plots"])
+
 		param_obj = ParamSet(basedir, 
+							 extractedDataDir,
+							 plotsDir,
 							 peak_merge_distance = 250, 
 							 initial_peak_width = 150,
 							 initial_diffpeak_algorithm_min_normalized_fragments = 10,
 							 initial_diffpeak_algorithm_min_fold_change = 1.1, 
 							 final_diffpeak_algorithm_min_normalized_fragments = 30,
 							 final_diffpeak_algorithm_min_fold_change = 1.5, 
-							 min_control_TPM = 1)
+							 min_control_TPM = 0)
 		main(param_obj)
 
 	
