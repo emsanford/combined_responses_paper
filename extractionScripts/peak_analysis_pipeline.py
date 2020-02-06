@@ -66,7 +66,7 @@ class ParamSet:
 		self.path_to_join_peak_to_gene_tib                       = '"{0}"'.format(os.sep.join([base_directory, "extractionScripts", "joinNearbyPeaksToGenes.R"]))
 		self.path_to_make_peak_near_gene_analysis_plots          = '"{0}"'.format(os.sep.join([base_directory, "plotScripts", "makeAdjacentSuperadditivePeakAssocModeOfIntegrationPlots.R"]))
 
-		self.subdirectories 							 		 = [self.consensus_peak_file_dir[1:-1]]
+		self.subdirectories 							 		 = [plotsDir, extractedDataDir, self.consensus_peak_file_dir[1:-1]]
 
 
 	def __str__(self):
