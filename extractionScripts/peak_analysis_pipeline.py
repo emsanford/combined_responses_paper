@@ -162,7 +162,7 @@ def main(param_obj):
 	if not os.path.exists(param_obj.annotated_diffpeaks_output_file[1:-1]):
 		cmd = "Rscript {0} {1} {2} {3}".format(param_obj.path_to_peak_annotation_script, 
 											   param_obj.final_diffpeak_algorithm_output_file,
-											   param_obj.merged_differential_atac_frag_count_rds_file
+											   param_obj.merged_differential_atac_frag_count_rds_file,
 											   param_obj.annotated_diffpeaks_output_file)
 		run_command(cmd)
 
