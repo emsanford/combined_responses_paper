@@ -53,7 +53,7 @@ calcMultiplicativePeakMutualExclusivityScore <- function(etohCts, raCts, tgfbCts
     etohCts <- etohCts + 0.5
     raCts   <- raCts + 0.5
     tgfbCts <- tgfbCts + 0.5
-    print("pseudocounts added to a peak")
+    print("pseudocounts added to each peak in the mutual exclusivity score function")
   } 
   raFoldChange   <- raCts / etohCts
   tgfbFoldChange <- tgfbCts / etohCts

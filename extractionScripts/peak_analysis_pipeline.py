@@ -1,6 +1,7 @@
 import os
 import glob
 import re
+import time
 from pyprojroot import here
 
 
@@ -80,6 +81,7 @@ class ParamSet:
 		return(obj_string)
 
 def run_command(cmd):
+	time.sleep(1)  # but in this buffer to help avoid the problem where a new process tries to run before its output file is fully written
 	print(cmd)
 	os.system(cmd)
 
