@@ -233,7 +233,7 @@ def main(param_obj):
 	# outputPlotPrefix, "raw_dev_score_by_tf_name.svg"
 	if not os.path.exists(param_obj.merged_differential_atac_frag_count_rds_file[1:-1] + "_motifPlots_raw_dev_score_by_tf_name.svg"):
 		upregulated_peaks_fragCount_r_objects = glob.glob(param_obj.upreg_peak_cats_bed_file_prefix[1:-1] + "*.rds")
-		upregulated_peaks_fragCount_r_objects.append(param_obj.merged_differential_atac_frag_count_rds_file[1:-1])
+		upregulated_peaks_fragCount_r_objects.append(param_obj.final_merged_differential_atac_frag_count_rds_file[1:-1])
 		for peak_r_object in upregulated_peaks_fragCount_r_objects:
 			cmd = "Rscript {0} {1} {2}".format(param_obj.path_to_chromVAR_motif_analysis_script, 
 										   '"{0}"'.format(peak_r_object), 
