@@ -1,8 +1,21 @@
-# script constants
-
 library("tidyverse")
-sampleMetadataFile <- here('sampleMetadata_SI2-SI4.txt')
-outputFolder       <- here('extractedData', 'consensusPeakFiles', '')
+
+cmdargs = commandArgs(trailingOnly=TRUE)
+if (length(cmdargs) == 0) {
+  sampleMetadataFile <- here('sampleMetadata_SI2-SI4.txt')
+  outputFolder       <- here('extractedData', 'consensusPeakFiles', '')
+} else {
+  sampleMetadataFile <- read_tsv(cmdargs[1])
+  outputFolder       <- cmdargs[2]
+}
+
+sampleMetadata <- read_tsv(sampleMetadataFile, col_names=TRUE)
+# In future work, can potentially add the ability to map the sample metadata to cloud-based storage of the ATAC pipeline output files below
+sampleMetadata <- mutate(sampleMetadata, macs2summits = paste(ATAC_analysisDir, 'macs2_output_windowSize150/', `SampleID-replicate`, '_summits.blacklistFiltered.bed', sep=""))
+conditionsToFindConsensusPeaksFor <- sampleMetadata %>% dplyr::select(condition) %>% unique() %>% as_vector()
+peakMergeWindowSize <- 150
+nReps <- 3
+summitWindowExtensionRadius <- 75
 
 # function for determining consensus peak set for a condition with three replicates
 calculateAndWriteConsensusPeakSet <- function(conditionName, sampleMetadata, peakMergeWindowSize, summitWindowExtensionRadius, nReps) {
@@ -110,16 +123,7 @@ getIndicesWithinWindowSize <- function(summitStartLocs, currentIndex, windowSize
   return(indicesWithinWindow)
 }
 
-
-# Script runs below. In future can specify parameters as command line arguments
-
-sampleMetadata <- read_tsv(sampleMetadataFile, col_names=TRUE)
-sampleMetadata <- mutate(sampleMetadata, macs2summits = paste(ATAC_analysisDir, 'macs2_output_windowSize150/', `SampleID-replicate`, '_summits.blacklistFiltered.bed', sep=""))
-conditionsToFindConsensusPeaksFor <- sampleMetadata %>% filter(!condition %in% c('TGFb to RA', 'RA to TGFb')) %>% select(condition) %>% unique() %>% as_vector()
-peakMergeWindowSize <- 150
-nReps <- 3
-summitWindowExtensionRadius <- 75
-
+# Script runs in loop below. 
 for (condition in conditionsToFindConsensusPeaksFor) {
   calculateAndWriteConsensusPeakSet(condition, sampleMetadata, peakMergeWindowSize, summitWindowExtensionRadius, nReps)
 }

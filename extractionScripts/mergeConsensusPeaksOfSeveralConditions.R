@@ -1,21 +1,42 @@
 # requires bedtools to be installed on the command line
 
-mergeOrder <- c(here('extractedData', 'consensusPeakFiles', 'TGFb-and-RA-low.consensusSummits.bed'),  
-                here('extractedData', 'consensusPeakFiles', 'TGFb-and-RA-med.consensusSummits.bed'),  
-                here('extractedData', 'consensusPeakFiles', 'TGFb-and-RA-high.consensusSummits.bed'),  
-                here('extractedData', 'consensusPeakFiles', 'TGFb-low.consensusSummits.bed'),  
-                here('extractedData', 'consensusPeakFiles', 'TGFb-med.consensusSummits.bed'),  
-                here('extractedData', 'consensusPeakFiles', 'TGFb-high.consensusSummits.bed'),  
-                here('extractedData', 'consensusPeakFiles', 'RA-low.consensusSummits.bed'),  
-                here('extractedData', 'consensusPeakFiles', 'RA-med.consensusSummits.bed'),  
-                here('extractedData', 'consensusPeakFiles', 'RA-high.consensusSummits.bed'),  
-                here('extractedData', 'consensusPeakFiles', 'EtOH-nlDensity.consensusSummits.bed'),  
-                here('extractedData', 'consensusPeakFiles', 'EtOH-halfDensity.consensusSummits.bed'),  
-                here('extractedData', 'consensusPeakFiles', 'EtOH-highDensity.consensusSummits.bed'))
+cmdargs = commandArgs(trailingOnly=TRUE)
+if (length(cmdargs) == 0) {
+  mergeOrder <- c(here('extractedData', 'consensusPeakFiles', 'TGFb-and-RA-low.consensusSummits.bed'),  
+                  here('extractedData', 'consensusPeakFiles', 'TGFb-and-RA-med.consensusSummits.bed'),  
+                  here('extractedData', 'consensusPeakFiles', 'TGFb-and-RA-high.consensusSummits.bed'),  
+                  here('extractedData', 'consensusPeakFiles', 'TGFb-low.consensusSummits.bed'),  
+                  here('extractedData', 'consensusPeakFiles', 'TGFb-med.consensusSummits.bed'),  
+                  here('extractedData', 'consensusPeakFiles', 'TGFb-high.consensusSummits.bed'),  
+                  here('extractedData', 'consensusPeakFiles', 'RA-low.consensusSummits.bed'),  
+                  here('extractedData', 'consensusPeakFiles', 'RA-med.consensusSummits.bed'),  
+                  here('extractedData', 'consensusPeakFiles', 'RA-high.consensusSummits.bed'),  
+                  here('extractedData', 'consensusPeakFiles', 'EtOH-nlDensity.consensusSummits.bed'),  
+                  here('extractedData', 'consensusPeakFiles', 'EtOH-halfDensity.consensusSummits.bed'),  
+                  here('extractedData', 'consensusPeakFiles', 'EtOH-highDensity.consensusSummits.bed'))
+  outputMergedPeaksFile <- sprintf('"%s"', here('extractedData', 'mergedConsensusPeakFiles', 'allCondsMergedSummitWindows.bed'))
+} else {
+  inputConsensusPeaksFolder <- cmdargs[1]
+  outputMergedPeaksFile <- sprintf('"%s"', cmdargs[2])
+  
+  mergeOrder <- c(paste0(inputConsensusPeaksFolder, '/', 'TGFb-and-RA-low.consensusSummits.bed'),  
+                  paste0(inputConsensusPeaksFolder, '/', 'TGFb-and-RA-med.consensusSummits.bed'),  
+                  paste0(inputConsensusPeaksFolder, '/', 'TGFb-and-RA-high.consensusSummits.bed'),  
+                  paste0(inputConsensusPeaksFolder, '/', 'TGFb-low.consensusSummits.bed'),  
+                  paste0(inputConsensusPeaksFolder, '/', 'TGFb-med.consensusSummits.bed'),  
+                  paste0(inputConsensusPeaksFolder, '/', 'TGFb-high.consensusSummits.bed'),  
+                  paste0(inputConsensusPeaksFolder, '/', 'RA-low.consensusSummits.bed'),  
+                  paste0(inputConsensusPeaksFolder, '/', 'RA-med.consensusSummits.bed'),  
+                  paste0(inputConsensusPeaksFolder, '/', 'RA-high.consensusSummits.bed'),  
+                  paste0(inputConsensusPeaksFolder, '/', 'EtOH-nlDensity.consensusSummits.bed'),  
+                  paste0(inputConsensusPeaksFolder, '/', 'EtOH-halfDensity.consensusSummits.bed'),  
+                  paste0(inputConsensusPeaksFolder, '/', 'EtOH-highDensity.consensusSummits.bed'))
+}
+
+
 
 mergeOrder <- map(mergeOrder, function (x) sprintf('"%s"', x)) #sprintf functions needed for command line parsing
 
-outputMergedPeaksFile <- sprintf('"%s"', here('extractedData', 'mergedConsensusPeakFiles', 'allCondsMergedSummitWindows.bed'))
 
 tempBedFile.forMerging  <- sprintf('"%s"', here('extractedData', 'mergedConsensusPeakFiles', 'tempMergedFile.bed'))
 tempBedFile.forMerging2 <- sprintf('"%s"', here('extractedData', 'mergedConsensusPeakFiles', 'tempMergedFile2.bed'))

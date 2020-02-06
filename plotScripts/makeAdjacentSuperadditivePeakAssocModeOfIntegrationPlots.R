@@ -12,7 +12,7 @@ if (length(cmdargs) == 0) {
   siUpregGenes        <- read_tsv(here('extractedData', 'DeSeqOutputAllConds.annotated.upregulatedGeneSet.tsv'))
   siUpregJoinedPeaks  <- read_tsv(here('extractedData', 'joinedTableUpregPeaksNearUpregGenes.tsv'))
   min.ControlTPM      <- 0
-  selected.peak.category.arg <- "superadditive"
+  selected.peak.category.arg <- "subadditive"
   outputloc.prefix <- here('plots', paste0('selected_', selected.peak.category.arg,'_peak_stats_near_upreg_genesets_'))
 } else {
   siUpregGenes       <- read_tsv(cmdargs[1])
