@@ -26,7 +26,7 @@ class ParamSet:
 		# paths to input and output files
 		self.rnaseq_pipeline_counts_output_file      = '"{0}"'.format(os.sep.join([extractedDataDir, "si2-si4_RNA-seq-pipeline-output-counts.tsv"]))
 		self.gene_counts_file_with_normalized_values = '"{0}"'.format(os.sep.join([extractedDataDir, "si2-si4_RNA-seq-pipeline-output-normalized.tsv"]))
-		self.gene_counts_matrix_for_deseq            = '"{0}"'.format(os.sep.join([rna_seq_matrix_dir, "counts.RNA-seq-matrix.min-count-filtered.rds"]))
+		self.gene_counts_matrix_for_deseq            = '"{0}"'.format(os.sep.join([self.rna_seq_matrix_dir, "counts.RNA-seq-matrix.min-count-filtered.rds"]))
 		self.deseq_output_table                      = '"{0}"'.format(os.sep.join([extractedDataDir, "DeSeqOutputAllConds.tsv"]))
 		self.annotated_deseq_output_table            = '"{0}"'.format(os.sep.join([extractedDataDir, "DeSeqOutputAllConds.annotated.tsv"]))
 		self.upregulated_genes_table                 = '"{0}"'.format(os.sep.join([extractedDataDir, "DeSeqOutputAllConds.annotated.upregulatedGeneSet.tsv"]))
