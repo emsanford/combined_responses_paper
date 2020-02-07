@@ -77,7 +77,7 @@ def main(param_obj, run_all_steps = False):
 													   param_obj.gene_counts_file_with_normalized_values)
 		run_command(cmd)
 
-	matrix_output_files = glob.glob(self.rna_seq_matrix_dir + '/*.rds')
+	matrix_output_files = glob.glob(param_obj.rna_seq_matrix_dir + '/*.rds')
 	if run_all_steps or not len(matrix_output_files) != 3:
 		cmd = 'Rscript {0} {1} {2}'.format(param_obj.makeGeneExpressionMatrixWithMinCounts,
 										   param_obj.gene_counts_file_with_normalized_values,
