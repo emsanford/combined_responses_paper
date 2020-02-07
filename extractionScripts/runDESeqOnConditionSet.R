@@ -31,7 +31,7 @@ dds <- DESeqDataSetFromMatrix(countData = count.matrix,
 dds <- DESeq(dds)
 
 
-deSeqTibble <- -1
+deSeqTibble <- NULL
 for (experimentalCondition in unique(relevantMetadata$condition)) {
   if (experimentalCondition != controlCondition) {
     res <- results(dds, contrast=c("condition", experimentalCondition, controlCondition))
@@ -41,11 +41,8 @@ for (experimentalCondition in unique(relevantMetadata$condition)) {
 
     print(sprintf("num differentially expressed genes in %s with current parameters: %d", experimentalCondition, sum(isDeGene)))
     
-    if (deSeqTibble == -1) {
-      deSeqTibble <- restib
-    } else {
-      deSeqTibble <- rbind(deSeqTibble, restib)
-    }
+    deSeqTibble <- rbind(deSeqTibble, restib)
+    
   }
 }
 
