@@ -1,10 +1,18 @@
 library(tidyverse)
 library(here)
 
-geneTib        <- read_tsv(here('extractedData', 'DeSeqOutputAllConds.annotated.tsv'))
-samplemetadata <- read_tsv(here('sampleMetadata_SI2-SI4.txt'))
+cmdargs = commandArgs(trailingOnly=TRUE)
+if (length(cmdargs) == 0) {
+  geneTib        <- read_tsv(here('extractedData', 'DeSeqOutputAllConds.annotated.tsv'))
+  samplemetadata <- read_tsv(here('sampleMetadata_SI2-SI4.txt'))
+  outputFolder   <- here("plots", "beeswarm_playground")
+} else {
+  geneTib        <- read_tsv(cmdargs[1])
+  samplemetadata <- read_tsv(cmdargs[2])
+  outputFolder   <- cmdargs[3]
+}
+                       
 relevantmetadata <- filter(samplemetadata, as.integer(substr(sampleID,1,2)) %in% c(1:16, 19:36, 51, 52))  # discard RNA-seq samples that failed library prep (17, 18) or extra samples from second run (46-50) 
-
 
 makeCompositeBeeswarmPlot <- function(geneToPlot, geneTib, tpmLongFormatTib) {
   filt.tib <- filter(geneTib, gene_name == geneToPlot)
@@ -104,19 +112,19 @@ tibforplot[tibforplot[["replicate"]] == "rep3", "order"] <- tibforplot[tibforplo
 
 genes.to.plot <- c('EPHB2', 'MAP3K1', 'GPRC5A', 'RIPK4') 
 for (gene.to.plot in genes.to.plot) {
-  outputLoc <- here("plots", "beeSwarmPlotsForPaperFigs", paste0(gene.to.plot, "_beeswarm.svg"))
+  outputLoc <- paste0(outputFolder, paste0(gene.to.plot, "_beeswarm.svg"))
   p <- makeCompositeBeeswarmPlot(gene.to.plot, geneTib, tibforplot)
   # optional: remove things from the plots that we will edit in illustrator. (re-add them later in illustrator)
   # p <- p + theme(axis.text.y = element_blank()) + ylab("") + xlab("")
   ggsave(outputLoc, plot = p, width = 5.25, height = 4)
 }
 
-genes.to.plot <- genes.of.interest  # i cheat here and define genes.of.interest in another script in Rstudio to explore random categories of genes
-for (gene.to.plot in genes.to.plot) {
-  outputLoc <- here("plots", "beeswarm_playground", paste0(gene.to.plot, "_beeswarm.svg"))
-  p <- makeCompositeBeeswarmPlot(gene.to.plot, geneTib, tibforplot)
-  # optional: remove things from the plots that we will edit in illustrator. (re-add them later in illustrator)
-  # p <- p + theme(axis.text.y = element_blank()) + ylab("") + xlab("")
-  ggsave(outputLoc, plot = p, width = 5.25, height = 4)
-}
+# genes.to.plot <- genes.of.interest  # i cheat here. uncomment this block and define genes.of.interest in another script in Rstudio to explore random categories of genes
+# for (gene.to.plot in genes.to.plot) {
+#   outputLoc <- paste0(outputFolder, paste0(gene.to.plot, "_beeswarm.svg"))
+#   p <- makeCompositeBeeswarmPlot(gene.to.plot, geneTib, tibforplot)
+#   # optional: remove things from the plots that we will edit in illustrator. (re-add them later in illustrator)
+#   # p <- p + theme(axis.text.y = element_blank()) + ylab("") + xlab("")
+#   ggsave(outputLoc, plot = p, width = 5.25, height = 4)
+# }
 

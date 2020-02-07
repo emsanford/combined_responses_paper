@@ -1,10 +1,18 @@
 library(tidyverse)
 library(here)
 
-siUpregGenes   <- read_tsv(here('extractedData', 'DeSeqOutputAllConds.annotated.upregulatedGeneSet.tsv'))
-addPredFcDiffMin <- 1
-minTpmDiff <- 2
-output_location = here('plots', 'cvalsEachDoseForSetOfGenes.svg')
+cmdargs = commandArgs(trailingOnly=TRUE)
+if (length(cmdargs) == 0) {
+  siUpregGenes     <- read_tsv(here('extractedData', 'DeSeqOutputAllConds.annotated.upregulatedGeneSet.tsv'))
+  addPredFcDiffMin <- 1
+  minTpmDiff       <- 2
+  output_location <- here('plots', 'cvalsEachDoseForSetOfGenes.svg')
+} else {
+  siUpregGenes     <- read_tsv(cmdargs[1])
+  addPredFcDiffMin <- as.numeric(cmdargs[2])
+  minTpmDiff       <- as.numeric(cmdargs[3])
+  output_location <- cmdargs[4]
+}
 
 
 tfp <- siUpregGenes %>% 

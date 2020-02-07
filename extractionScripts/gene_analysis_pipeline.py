@@ -6,22 +6,32 @@ from pyprojroot import here
 
 
 class ParamSet:
-	def __init__(self, base_directory, extractedDataDir, plotsDir, refsDir, deseq_qval = 0.05, deseq_min_log2_fold_change = 2, use_default_param_string = False):
-		self.base_directory      	 	= base_directory  # this should be the analysis root directory, which contains folders like "extractedData" and "plotScripts"
-		self.sample_metadata_file		= '"{0}"'.format(base_directory + os.sep + "sampleMetadata_SI2-SI4.txt")
-		self.extractedDataDir 			= extractedDataDir
-		self.plotsDir       			= plotsDir
-		self.refsDir                    = refsDir
-		self.deseq_qval 				= deseq_qval
-		self.deseq_min_log2_fold_change = deseq_min_log2_fold_change
+	def __init__(self, base_directory, extractedDataDir, plotsDir, refsDir,
+				 deseq_qval = 0.05, deseq_min_log2_fold_change = 2,
+				 addPredFcDiffMin_integration_histogram = 0.2, minTpmDiff_integration_histogram = 1,
+				 addPredFcDiffMin_cValByDoseGeneSetPlot =   1, minTpmDiff_cValByDoseGeneSetPlot = 2,
+				 use_default_param_string = False):
+		self.base_directory      	 	            = base_directory  # this should be the analysis root directory, which contains folders like "extractedData" and "plotScripts"
+		self.sample_metadata_file		            = '"{0}"'.format(base_directory + os.sep + "sampleMetadata_SI2-SI4.txt")
+		self.extractedDataDir 			            = extractedDataDir
+		self.plotsDir       			            = plotsDir
+		self.refsDir                                = refsDir
+		self.deseq_qval 				            = deseq_qval
+		self.deseq_min_log2_fold_change             = deseq_min_log2_fold_change
+		self.addPredFcDiffMin_integration_histogram = addPredFcDiffMin_integration_histogram
+		self.minTpmDiff_integration_histogram       = minTpmDiff_integration_histogram
+		self.addPredFcDiffMin_cValByDoseGeneSetPlot = addPredFcDiffMin_cValByDoseGeneSetPlot
+		self.minTpmDiff_cValByDoseGeneSetPlot       = minTpmDiff_cValByDoseGeneSetPlot
 
 		param_summary_string = "qval{0}_minlfc{1}".format(deseq_qval, deseq_min_log2_fold_change)
 		if use_default_param_string:
 			param_summary_string = "defaultParams"
 
 		# directories that need to exist for saving results
-		self.rna_seq_matrix_dir = os.sep.join([extractedDataDir, "rnaSeqMatrixFormatted"])
-		self.subdirectories = [plotsDir, extractedDataDir, refsDir, self.rna_seq_matrix_dir]
+		self.rna_seq_matrix_dir  = os.sep.join([extractedDataDir, "rnaSeqMatrixFormatted"])
+		self.bee_swarm_plots_dir = os.sep.join([plotsDir, "beeSwarmPlots"])
+		self.integration_summary_plots_dir = os.sep.join([plotsDir, "gene_integration_summary_plots"])
+		self.subdirectories = [plotsDir, extractedDataDir, refsDir, self.rna_seq_matrix_dir, self.bee_swarm_plots_dir, self.integration_summary_plots_dir]
 
 		# paths to input and output files
 		self.rnaseq_pipeline_counts_output_file      = '"{0}"'.format(os.sep.join([extractedDataDir, "si2-si4_RNA-seq-pipeline-output-counts.tsv"]))
@@ -30,13 +40,12 @@ class ParamSet:
 		self.deseq_output_table                      = '"{0}"'.format(os.sep.join([extractedDataDir, "DeSeqOutputAllConds.tsv"]))
 		self.annotated_deseq_output_table            = '"{0}"'.format(os.sep.join([extractedDataDir, "DeSeqOutputAllConds.annotated.tsv"]))
 		self.upregulated_genes_table                 = '"{0}"'.format(os.sep.join([extractedDataDir, "DeSeqOutputAllConds.annotated.upregulatedGeneSet.tsv"]))
-
+		self.cValChangesWithDosePlot                 = '"{0}"'.format(os.sep.join([plotsDir, "cValChangesWithDosePlot.svg"]))
 
 		# paths to reference files
-		self.hg38_gtf_file                      = '"{0}"'.format(os.sep.join([refsDir, "hg38.gtf"]))  # Homo_sapiens.GRCh38.90.gtf.gz
-		self.ensg_to_hgnc_symbol_mapping        = '"{0}"'.format(os.sep.join([refsDir, "EnsgHgncSymbolMapping.tsv"]))  # we use the gene name from the gtf file if there's no HGNC symbol for it
+		self.hg38_gtf_file                      = '"{0}"'.format(os.sep.join([refsDir, "hg38.gtf"]))                   # gtf file version: Homo_sapiens.GRCh38.90.gtf.gz
+		self.ensg_to_hgnc_symbol_mapping        = '"{0}"'.format(os.sep.join([refsDir, "EnsgHgncSymbolMapping.tsv"]))  # we use the gene name from the gtf file if there's no matching HGNC symbol
 		self.ensg_to_hg38_canonical_tss_mapping = '"{0}"'.format(os.sep.join([refsDir, "EnsgToHg38CanonicalTssMapping.tsv"])) 
-
 
 		# paths to scripts, we need to add quotes around them to pass as command line arguments because dropbox added a space to its own folder and we're using os.system to run commands
 		self.path_to_normalizePipelineCountsOutputAndAddGeneSymbol = '"{0}"'.format(os.sep.join([base_directory, "extractionScripts", "normalizePipelineCountsOutputAndAddGeneSymbol.R"]))
@@ -44,6 +53,10 @@ class ParamSet:
 		self.path_to_runDESeqOnConditionSet                        = '"{0}"'.format(os.sep.join([base_directory, "extractionScripts", "runDESeqOnConditionSet.R"]))
 		self.path_to_addIntegrationMetricsToDeGenes                = '"{0}"'.format(os.sep.join([base_directory, "extractionScripts", "addIntegrationMetricsToDeGenes.R"]))
 		self.path_to_createMasterSetOfUpregulatedGenes             = '"{0}"'.format(os.sep.join([base_directory, "extractionScripts", "createMasterSetOfUpregulatedGenes.R"]))
+		self.path_to_makeGeneBeeswarmPlot                          = '"{0}"'.format(os.sep.join([base_directory, "plotScripts", "makeGeneBeeswarmPlot.R"]))
+		self.path_to_geneIntegrationSummaryPieChartsAndHistograms  = '"{0}"'.format(os.sep.join([base_directory, "plotScripts", "geneIntegrationSummaryPieChartsAndHistograms.R"]))
+		self.path_to_createCvalChangesWithDosePlot                 = '"{0}"'.format(os.sep.join([base_directory, "plotScripts", "createCvalChangesWithDosePlot.R"]))
+
 
 		self.path_to_zzzzzzz          = '"{0}"'.format(os.sep.join([base_directory, "plotScripts", "makeAdjacentSuperadditivePeakAssocModeOfIntegrationPlots.R"]))
 
@@ -108,6 +121,30 @@ def main(param_obj, run_all_steps = False):
 										   param_obj.upregulated_genes_table)
 		run_command(cmd)
 
+	bee_swarm_plot_paths = glob.glob(param_obj.bee_swarm_plots_dir + '/*.svg')
+	if run_all_steps or len(bee_swarm_plot_paths) == 0:
+		cmd = 'Rscript {0} {1} {2} {3}'.format(param_obj.path_to_makeGeneBeeswarmPlot,
+											   param_obj.annotated_deseq_output_table,
+											   param_obj.sample_metadata_file,
+											   '"{0}"'.format(param_obj.bee_swarm_plots_dir))
+		run_command(cmd)
+
+	integration_summary_plot_paths = glob.glob(param_obj.integration_summary_plots_dir + '/*.svg')
+	if run_all_steps or len(integration_summary_plot_paths) == 0:
+		cmd = 'Rscript {0} {1} {2} {3} {4}'.format(param_obj.path_to_geneIntegrationSummaryPieChartsAndHistograms,
+												   param_obj.upregulated_genes_table,
+												   param_obj.addPredFcDiffMin_integration_histogram,
+												   param_obj.minTpmDiff_integration_histogram,
+												   '"{0}"'.format(param_obj.integration_summary_plots_dir))
+		run_command(cmd)
+
+	if run_all_steps or not os.path.exists(param_obj.cValChangesWithDosePlot[1:-1]):
+		cmd = 'Rscript {0} {1} {2} {3} {4}'.format(param_obj.path_to_createCvalChangesWithDosePlot,
+												   param_obj.upregulated_genes_table,
+												   param_obj.addPredFcDiffMin_cValByDoseGeneSetPlot,
+												   param_obj.minTpmDiff_cValByDoseGeneSetPlot,
+												   param_obj.cValChangesWithDosePlot)
+		run_command(cmd)
 	
 
 if __name__ == '__main__':
