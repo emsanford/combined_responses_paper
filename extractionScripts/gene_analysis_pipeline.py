@@ -43,6 +43,8 @@ class ParamSet:
 		self.makeGeneExpressionMatrixWithMinCounts                 = '"{0}"'.format(os.sep.join([base_directory, "extractionScripts", "makeGeneExpressionMatrixWithMinCounts.R"]))
 		self.path_to_runDESeqOnConditionSet                        = '"{0}"'.format(os.sep.join([base_directory, "extractionScripts", "runDESeqOnConditionSet.R"]))
 		self.path_to_addIntegrationMetricsToDeGenes                = '"{0}"'.format(os.sep.join([base_directory, "extractionScripts", "addIntegrationMetricsToDeGenes.R"]))
+		self.path_to_createMasterSetOfUpregulatedGenes             = '"{0}"'.format(os.sep.join([base_directory, "extractionScripts", "createMasterSetOfUpregulatedGenes.R"]))
+
 		self.path_to_zzzzzzz          = '"{0}"'.format(os.sep.join([base_directory, "plotScripts", "makeAdjacentSuperadditivePeakAssocModeOfIntegrationPlots.R"]))
 
 
@@ -100,12 +102,17 @@ def main(param_obj, run_all_steps = False):
 											   param_obj.annotated_deseq_output_table)
 		run_command(cmd)
 
+	if run_all_steps or not os.path.exists(param_obj.upregulated_genes_table[1:-1]):
+		cmd = 'Rscript {0} {1} {2}'.format(param_obj.path_to_createMasterSetOfUpregulatedGenes,
+										   param_obj.annotated_deseq_output_table,
+										   param_obj.upregulated_genes_table)
+		run_command(cmd)
 
 	
 
 if __name__ == '__main__':
 	do_parameter_sweep = False
-	run_all_steps      = True
+	run_all_steps      = False
 
 	if do_parameter_sweep:
 		pass
