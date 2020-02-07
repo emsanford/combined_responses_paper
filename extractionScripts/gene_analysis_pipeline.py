@@ -19,9 +19,18 @@ class ParamSet:
 		if use_default_param_string:
 			param_summary_string = "defaultParams"
 
+		# directories that need to exist for saving results
+		self.rna_seq_matrix_dir = os.sep.join([extractedDataDir, "rnaSeqMatrixFormatted"])
+		self.subdirectories = [plotsDir, extractedDataDir, refsDir, self.rna_seq_matrix_dir]
+
 		# paths to input and output files
 		self.rnaseq_pipeline_counts_output_file      = '"{0}"'.format(os.sep.join([extractedDataDir, "si2-si4_RNA-seq-pipeline-output-counts.tsv"]))
 		self.gene_counts_file_with_normalized_values = '"{0}"'.format(os.sep.join([extractedDataDir, "si2-si4_RNA-seq-pipeline-output-normalized.tsv"]))
+		self.gene_counts_matrix_for_deseq            = '"{0}"'.format(os.sep.join([rna_seq_matrix_dir, "counts.RNA-seq-matrix.min-count-filtered.rds"]))
+		self.deseq_output_table                      = '"{0}"'.format(os.sep.join([extractedDataDir, "DeSeqOutputAllConds.tsv"]))
+		self.annotated_deseq_output_table            = '"{0}"'.format(os.sep.join([extractedDataDir, "DeSeqOutputAllConds.annotated.tsv"]))
+		self.upregulated_genes_table                 = '"{0}"'.format(os.sep.join([extractedDataDir, "DeSeqOutputAllConds.annotated.upregulatedGeneSet.tsv"]))
+
 
 		# paths to reference files
 		self.hg38_gtf_file                      = '"{0}"'.format(os.sep.join([refsDir, "hg38.gtf"]))  # Homo_sapiens.GRCh38.90.gtf.gz
@@ -31,10 +40,10 @@ class ParamSet:
 
 		# paths to scripts, we need to add quotes around them to pass as command line arguments because dropbox added a space to its own folder and we're using os.system to run commands
 		self.path_to_normalizePipelineCountsOutputAndAddGeneSymbol = '"{0}"'.format(os.sep.join([base_directory, "extractionScripts", "normalizePipelineCountsOutputAndAddGeneSymbol.R"]))
+		self.makeGeneExpressionMatrixWithMinCounts                 = '"{0}"'.format(os.sep.join([base_directory, "extractionScripts", "makeGeneExpressionMatrixWithMinCounts.R"]))
 		self.path_to_runDESeqOnConditionSet                        = '"{0}"'.format(os.sep.join([base_directory, "extractionScripts", "runDESeqOnConditionSet.R"]))
 		self.path_to_zzzzzzz          = '"{0}"'.format(os.sep.join([base_directory, "plotScripts", "makeAdjacentSuperadditivePeakAssocModeOfIntegrationPlots.R"]))
 
-		self.subdirectories = [plotsDir, extractedDataDir, refsDir]
 
 
 	def __str__(self):
@@ -67,11 +76,27 @@ def main(param_obj, run_all_steps = False):
 													   param_obj.ensg_to_hg38_canonical_tss_mapping,
 													   param_obj.gene_counts_file_with_normalized_values)
 		run_command(cmd)
+
+	matrix_output_files = glob.glob(self.rna_seq_matrix_dir + '/*.rds')
+	if run_all_steps or not len(matrix_output_files) != 3:
+		cmd = 'Rscript {0} {1} {2}'.format(param_obj.makeGeneExpressionMatrixWithMinCounts,
+										   param_obj.gene_counts_file_with_normalized_values,
+										   '"{0}"'.format(param_obj.rna_seq_matrix_dir))
+		run_command(cmd)
+	
+	if run_all_steps or not os.path.exists(param_obj.deseq_output_table[1:-1]):
+		cmd = 'Rscript {0} {1} {2}'.format(param_obj.path_to_runDESeqOnConditionSet,
+										   param_obj.gene_counts_matrix_for_deseq,
+										   param_obj.sample_metadata_file,
+										   param_obj.deseq_output_table)
+		run_command(cmd)
+
+
 	
 
 if __name__ == '__main__':
 	do_parameter_sweep = False
-	run_all_steps      = True
+	run_all_steps      = False
 
 	if do_parameter_sweep:
 		pass

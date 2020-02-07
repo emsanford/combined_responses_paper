@@ -3,14 +3,23 @@ library("DESeq2")
 library(GenomicRanges)
 
 controlCondition <- "EtOH-nlDensity"
-sampleMetadata <- read_tsv(here('sampleMetadata_SI2-SI4.txt'), col_names=TRUE)
 qval <- 0.05
 min.abs.log2fc <- 0.5
-outputFile <- here('extractedData', 'DeSeqOutputAllConds.tsv')
+
+cmdargs = commandArgs(trailingOnly=TRUE)
+if (length(cmdargs) == 0) {
+  count.matrix <- readRDS(here('extractedData', 'rnaSeqMatrixFormatted', 'counts.RNA-seq-matrix.min-count-filtered.rds'))
+  sampleMetadata <- read_tsv(here('sampleMetadata_SI2-SI4.txt'), col_names=TRUE)
+  outputFile <- here('extractedData', 'DeSeqOutputAllConds.tsv')
+} else {
+  count.matrix <- readRDS(cmdargs[1])
+  sampleMetadata <- read_tsv(cmdargs[2])
+  outputFile <- cmdargs[3]
+}
+
 
 blacklistedSamples <- c('46-EtOH-nlDensity')  # '46-EtOH-nlDensity' is a technical replicate of sample 15. remove for differential expression analysis as including it could artificially decrease variance
 
-count.matrix <- readRDS(here('extractedData', 'rnaSeqMatrixFormatted', 'counts.RNA-seq-matrix.min-count-filtered.rds'))
 count.matrix <- count.matrix[, !colnames(count.matrix) %in% blacklistedSamples]
 relevantMetadata <- filter(sampleMetadata, !sampleID %in% blacklistedSamples) %>% filter(sampleID %in% colnames(count.matrix))
 dds <- DESeqDataSetFromMatrix(countData = count.matrix,
