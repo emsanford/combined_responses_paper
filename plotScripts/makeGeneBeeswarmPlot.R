@@ -112,7 +112,7 @@ tibforplot[tibforplot[["replicate"]] == "rep3", "order"] <- tibforplot[tibforplo
 
 genes.to.plot <- c('EPHB2', 'MAP3K1', 'GPRC5A', 'RIPK4') 
 for (gene.to.plot in genes.to.plot) {
-  outputLoc <- paste0(outputFolder, paste0(gene.to.plot, "_beeswarm.svg"))
+  outputLoc <- paste0(outputFolder, '/', paste0(gene.to.plot, "_beeswarm.svg"))
   p <- makeCompositeBeeswarmPlot(gene.to.plot, geneTib, tibforplot)
   # optional: remove things from the plots that we will edit in illustrator. (re-add them later in illustrator)
   # p <- p + theme(axis.text.y = element_blank()) + ylab("") + xlab("")

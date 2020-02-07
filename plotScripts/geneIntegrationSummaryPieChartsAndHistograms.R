@@ -28,17 +28,17 @@ stackedBarHistogram.location.prefix <- paste0(output.folder, '/gene_integration_
 n_upreg_genes <- nrow(siUpregGenes)
 ####### first, make pie charts for the categorical description for each upregulated gene
 svg(filename=paste0(piechart.location.prefix, "low_dose_", "n", n_upreg_genes, ".svg"),width=8,height=8)
-pieplot.low  <- pie(table(siUpregGenes$`integrationCategory-low-dose`), main = "low dose")
+pieplot.low  <- pie(table(siUpregGenes$`integrationCategory-low-dose`), main = paste0("low dose, N =", n_upreg_genes))
 print(pieplot.low)
 dev.off()
 
 svg(filename=paste0(piechart.location.prefix, "med_dose_", "n", n_upreg_genes, ".svg"),width=8,height=8)
-pieplot.med  <- pie(table(siUpregGenes$`integrationCategory-med-dose`), main = "med dose")
+pieplot.med  <- pie(table(siUpregGenes$`integrationCategory-med-dose`), main = paste0("med dose, N =", n_upreg_genes))
 print(pieplot.med)
 dev.off()
 
 svg(filename=paste0(piechart.location.prefix, "high_dose_", "n", n_upreg_genes, ".svg"),width=8,height=8)
-pieplot.high <- pie(table(siUpregGenes$`integrationCategory-high-dose`), main = "high dose")
+pieplot.high <- pie(table(siUpregGenes$`integrationCategory-high-dose`), main = paste0("high dose, N =", n_upreg_genes))
 print(pieplot.high)
 dev.off()
 
@@ -69,15 +69,24 @@ assignValuesToHistBin <- function(values, bin.midpoints, bin.radius) {
   return(outputVec)
 }
 
+# first loop: get the maximum bin y value to standardize the y axis limits when making plots
+bin.step.size   <- 0.10
+mid.point.shift <- bin.step.size / 2
+bin.midpoints <- seq(-2.5 + bin.step.size, 5, by = bin.step.size) - mid.point.shift
+bin.radius    <- (bin.midpoints[2] - bin.midpoints[1]) / 2
 
+max.bin.vals <- c()
+for (dosage in c("low", "med", "high")) {
+  hist.values <- pull(filtSiUpregGenes, paste0("integrationConstant-", dosage))
+  bin.values  <- assignValuesToHistBin(hist.values, bin.midpoints, bin.radius)
+  max.bin.val <- max(table(bin.values))
+  max.bin.vals <- c(max.bin.vals, max.bin.val)
+}
+
+# second loop: make the stacked bar histograms
 for (dosage in c("low", "med", "high")) {
   categorical.values <- pull(filtSiUpregGenes, paste0("integrationCategory-", dosage ,"-dose"))
   hist.values        <- pull(filtSiUpregGenes, paste0("integrationConstant-", dosage))
-  
-  bin.step.size   <- 0.10
-  mid.point.shift <- bin.step.size / 2
-  bin.midpoints <- seq(-3, 5, by = bin.step.size) - mid.point.shift
-  bin.radius    <- (bin.midpoints[2] - bin.midpoints[1]) / 2
   
   mapped.categorical.values <- mapCatsToReducesCatSet(categorical.values)
   bin.values <- assignValuesToHistBin(hist.values, bin.midpoints, bin.radius)
@@ -91,8 +100,10 @@ for (dosage in c("low", "med", "high")) {
     xlab("integration constant value for a gene") +
     ylab("number of genes") +
     ggtitle(paste0("Distribution of integration constants for upregulated genes\n", dosage, " dose")) +
-    geom_vline(xintercept = 0) + geom_vline(xintercept = 1) 
-  print(stackedBarHist)
+    geom_vline(xintercept = 0) + geom_vline(xintercept = 1) +
+    ylim(0, max(max.bin.vals) * 1.05) + 
+    xlim(min(bin.midpoints) - bin.radius, max(bin.midpoints) + bin.radius)
+  
   ggsave(paste0(stackedBarHistogram.location.prefix, "upregGeneIntegrationConstants_", dosage, "_dose.svg"), width = 8, height = 4)
 }
   
