@@ -105,7 +105,7 @@ def main(param_obj, run_all_steps = False):
 
 if __name__ == '__main__':
 	do_parameter_sweep = False
-	run_all_steps      = False
+	run_all_steps      = True
 
 	if do_parameter_sweep:
 		pass
