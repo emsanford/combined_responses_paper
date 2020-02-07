@@ -1,11 +1,21 @@
 library("tidyverse")
+library(here)
 
 ##########################################################################################
-deseqTib  <- read_tsv(here('extractedData', 'DeSeqOutputAllConds.tsv'))
-outputTib <- deseqTib
-outputLoc <- here('extractedData', 'DeSeqOutputAllConds.annotated.tsv')
 
-samplemetadata   <- read_tsv(here('sampleMetadata_SI2-SI4.txt'))
+
+cmdargs = commandArgs(trailingOnly=TRUE)
+if (length(cmdargs) == 0) {
+  deseqTib  <- read_tsv(here('extractedData', 'DeSeqOutputAllConds.tsv'))
+  samplemetadata   <- read_tsv(here('sampleMetadata_SI2-SI4.txt'))
+  outputLoc <- here('extractedData', 'DeSeqOutputAllConds.annotated.tsv')
+} else {
+  deseqTib <- read_tsv(cmdargs[1])
+  samplemetadata <- read_tsv(cmdargs[2])
+  outputLoc <- cmdargs[3]
+}
+
+outputTib <- deseqTib  # we will progressively add to this tibble
 relevantmetadata <- filter(samplemetadata, as.integer(substr(sampleID,1,2)) %in% c(1:16, 19:36, 51, 52))  # discard RNA-seq samples that failed library prep (17, 18) or extra samples from second run (46-50) 
 
 # We assign a categorical variable to signal integration type

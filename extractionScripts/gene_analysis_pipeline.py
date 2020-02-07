@@ -42,6 +42,7 @@ class ParamSet:
 		self.path_to_normalizePipelineCountsOutputAndAddGeneSymbol = '"{0}"'.format(os.sep.join([base_directory, "extractionScripts", "normalizePipelineCountsOutputAndAddGeneSymbol.R"]))
 		self.makeGeneExpressionMatrixWithMinCounts                 = '"{0}"'.format(os.sep.join([base_directory, "extractionScripts", "makeGeneExpressionMatrixWithMinCounts.R"]))
 		self.path_to_runDESeqOnConditionSet                        = '"{0}"'.format(os.sep.join([base_directory, "extractionScripts", "runDESeqOnConditionSet.R"]))
+		self.path_to_addIntegrationMetricsToDeGenes                = '"{0}"'.format(os.sep.join([base_directory, "extractionScripts", "addIntegrationMetricsToDeGenes.R"]))
 		self.path_to_zzzzzzz          = '"{0}"'.format(os.sep.join([base_directory, "plotScripts", "makeAdjacentSuperadditivePeakAssocModeOfIntegrationPlots.R"]))
 
 
@@ -85,10 +86,18 @@ def main(param_obj, run_all_steps = False):
 		run_command(cmd)
 	
 	if run_all_steps or not os.path.exists(param_obj.deseq_output_table[1:-1]):
-		cmd = 'Rscript {0} {1} {2}'.format(param_obj.path_to_runDESeqOnConditionSet,
-										   param_obj.gene_counts_matrix_for_deseq,
-										   param_obj.sample_metadata_file,
-										   param_obj.deseq_output_table)
+		cmd = 'Rscript {0} {1} {2} {3} {4}'.format(param_obj.path_to_runDESeqOnConditionSet,
+												   param_obj.gene_counts_matrix_for_deseq,
+												   param_obj.sample_metadata_file,
+												   param_obj.gene_counts_file_with_normalized_values,
+												   param_obj.deseq_output_table)
+		run_command(cmd)
+
+	if run_all_steps or not os.path.exists(param_obj.annotated_deseq_output_table[1:-1]):
+		cmd = 'Rscript {0} {1} {2} {3}'.format(param_obj.path_to_addIntegrationMetricsToDeGenes,
+											   param_obj.deseq_output_table,
+											   param_obj.sample_metadata_file,
+											   param_obj.annotated_deseq_output_table)
 		run_command(cmd)
 
 

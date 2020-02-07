@@ -1,6 +1,7 @@
 library("tidyverse")
 library("DESeq2")
 library(GenomicRanges)
+library(here)
 
 controlCondition <- "EtOH-nlDensity"
 qval <- 0.05
@@ -10,11 +11,13 @@ cmdargs = commandArgs(trailingOnly=TRUE)
 if (length(cmdargs) == 0) {
   count.matrix <- readRDS(here('extractedData', 'rnaSeqMatrixFormatted', 'counts.RNA-seq-matrix.min-count-filtered.rds'))
   sampleMetadata <- read_tsv(here('sampleMetadata_SI2-SI4.txt'), col_names=TRUE)
+  pipeline.output.table <- read_tsv(here('extractedData', 'si2-si4_RNA-seq-pipeline-output-normalized.tsv'), col_names=T)
   outputFile <- here('extractedData', 'DeSeqOutputAllConds.tsv')
 } else {
   count.matrix <- readRDS(cmdargs[1])
   sampleMetadata <- read_tsv(cmdargs[2])
-  outputFile <- cmdargs[3]
+  pipeline.output.table <- read_tsv(cmdargs[3])
+  outputFile <- cmdargs[4]
 }
 
 
@@ -61,8 +64,6 @@ myspread <- function(df, key, value) {
 wideDeSeqTib <- deSeqTibble %>% dplyr::select(-baseMean, -pval) %>% myspread(condition, c(padj, log2fc, isDeGene))
 
 # we want to get the average TPM across replicates for a condition
-pipeline.output.table <- read_tsv(here('extractedData', 'si2-si4_RNA-seq-pipeline-output-normalized.tsv'), col_names=T)
-
 pipeline.output.table.with.condition <- relevantMetadata %>% 
   dplyr::select(sampleID, condition) %>%
   inner_join(pipeline.output.table) %>%
