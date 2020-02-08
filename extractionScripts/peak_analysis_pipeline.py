@@ -225,7 +225,7 @@ def main(param_obj):
 
 	# use chromVAR to do motif analysis at the different categories of upregulated peaks
 	# outputPlotPrefix, "raw_dev_score_by_tf_name.svg"
-	if not os.path.exists(param_obj.merged_differential_atac_frag_count_rds_file[1:-1] + "_motifPlots_raw_dev_score_by_tf_name.svg"):
+	if not os.path.exists(param_obj.merged_differential_atac_frag_count_rds_file[1:-1].replace(param_obj.extractedDataDir, param_obj.plotsDir) + "_motifPlots_raw_dev_score_by_tf_name.svg"):
 		upregulated_peaks_fragCount_r_objects = glob.glob(param_obj.upreg_peak_cats_bed_file_prefix[1:-1] + "*.rds")
 		upregulated_peaks_fragCount_r_objects.append(param_obj.final_merged_differential_atac_frag_count_rds_file[1:-1])
 		for peak_r_object in upregulated_peaks_fragCount_r_objects:
