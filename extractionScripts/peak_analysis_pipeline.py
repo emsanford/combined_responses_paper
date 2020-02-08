@@ -9,7 +9,7 @@ class ParamSet:
 	def __init__(self, base_directory, extractedDataDir, plotsDir, peak_merge_distance = 250, initial_peak_width = 150, 
 				 initial_diffpeak_algorithm_min_normalized_fragments = 10, initial_diffpeak_algorithm_min_fold_change = 1.1, 
 				 final_diffpeak_algorithm_min_normalized_fragments = 30, final_diffpeak_algorithm_min_fold_change = 1.5, 
-				 min_control_TPM = 0, use_default_param_string = False):
+				 use_default_param_string = False):
 		self.base_directory      						 	     = base_directory  # this should be the analysis root directory, which contains folders like "extractedData" and "plotScripts"
 		self.sample_metadata_file								 = '"{0}"'.format(base_directory + os.sep + "sampleMetadata_SI2-SI4.txt")
 		self.extractedDataDir 							 	     = extractedDataDir
@@ -20,7 +20,6 @@ class ParamSet:
 		self.initial_diffpeak_algorithm_min_fold_change          = initial_diffpeak_algorithm_min_fold_change		
 		self.final_diffpeak_algorithm_min_normalized_fragments   = final_diffpeak_algorithm_min_normalized_fragments
 		self.final_diffpeak_algorithm_min_fold_change            = final_diffpeak_algorithm_min_fold_change
-		self.min_control_TPM         					 = min_control_TPM
 		param_summary_string = "mergedist{0}_peakwidth{1}_minNormFrags{2}_minFoldChange{3}".format(peak_merge_distance, 
 																								   initial_peak_width,
 																								   final_diffpeak_algorithm_min_normalized_fragments, 
@@ -84,7 +83,7 @@ def run_command(cmd):
 	os.system(cmd)
 
 
-def main(param_obj):
+def main(param_obj, run_all_steps = False):
 	# make sub-directories if they don't already exist
 	for dirname in param_obj.subdirectories:
 		if not os.path.exists(dirname):
@@ -92,21 +91,21 @@ def main(param_obj):
 
 	# make consensus peaks file
 	consensus_peak_files = glob.glob(param_obj.consensus_peak_file_dir[1:-1] + "/*.bed")
-	if len(consensus_peak_files) != 12:
+	if run_all_steps or len(consensus_peak_files) != 12:
 		cmd = 'Rscript {0} {1} {2}'.format(param_obj.path_to_makeConsensusPeakFilesForEachCond,
 										   param_obj.sample_metadata_file,
 										   param_obj.consensus_peak_file_dir)
 		run_command(cmd)
 
 	# merge consensus peak files
-	if not os.path.exists(param_obj.merged_consensus_peak_file[1:-1]):
+	if run_all_steps or not os.path.exists(param_obj.merged_consensus_peak_file[1:-1]):
 		cmd = 'Rscript {0} {1} {2}'.format(param_obj.path_to_mergeConsensusPeaksOfSeveralConditions,
 										   param_obj.consensus_peak_file_dir,
 										   param_obj.merged_consensus_peak_file)
 		run_command(cmd)
 
 	# make atac frag count file for consensus peak file
-	if not os.path.exists(param_obj.atac_fragment_count_file_merged_consensus_peak_set[1:-1]):
+	if run_all_steps or not os.path.exists(param_obj.atac_fragment_count_file_merged_consensus_peak_set[1:-1]):
 		cmd = "Rscript {0} {1} {2} {3} {4}".format(param_obj.path_to_createFragCountMatx,
 										   param_obj.merged_consensus_peak_file,
 										   param_obj.initial_peak_width, 
@@ -116,7 +115,7 @@ def main(param_obj):
 		run_command(cmd)
 
 	# run diff peak algorithm with initial FDR-based parameters
-	if not os.path.exists(param_obj.initial_diffpeak_algorithm_output_file[1:-1]):
+	if run_all_steps or not os.path.exists(param_obj.initial_diffpeak_algorithm_output_file[1:-1]):
 		cmd = "Rscript {0} {1} {2} {3} {4} {5}".format(param_obj.path_to_fdrBasedDiffPeakCalling, 
 													   param_obj.initial_diffpeak_algorithm_min_normalized_fragments, 
 													   param_obj.initial_diffpeak_algorithm_min_fold_change,
@@ -126,7 +125,7 @@ def main(param_obj):
 		run_command(cmd)
 
 	# make a bed file from the differential peak file
-	if not os.path.exists(param_obj.unmerged_differential_atac_peaks_bed_file[1:-1]):
+	if run_all_steps or not os.path.exists(param_obj.unmerged_differential_atac_peaks_bed_file[1:-1]):
 		cmd = 'Rscript {0} {1} {2}'.format(param_obj.path_to_createBedFileFromDiffpeakTable,
 										   param_obj.initial_diffpeak_algorithm_output_file,
 										   param_obj.unmerged_differential_atac_peaks_bed_file)
@@ -134,12 +133,12 @@ def main(param_obj):
 
 
 	# make a merged peak file with the specified merge distance (note, we could in theory use the master peak list for this rather than the original FDR 0.01 peak list)
-	if not os.path.exists(param_obj.merged_differential_atac_peaks_bed_file[1:-1]):
+	if run_all_steps or not os.path.exists(param_obj.merged_differential_atac_peaks_bed_file[1:-1]):
 		cmd = "bedtools merge -d {0} -i {1} > {2}".format(param_obj.peak_merge_distance, param_obj.unmerged_differential_atac_peaks_bed_file, param_obj.merged_differential_atac_peaks_bed_file)
 		run_command(cmd)
 
 	# make a new fragment count matrix for the merged initial differential peak file
-	if not os.path.exists(param_obj.merged_differential_atac_frag_count_rds_file[1:-1]):
+	if run_all_steps or not os.path.exists(param_obj.merged_differential_atac_frag_count_rds_file[1:-1]):
 		cmd = "Rscript {0} {1} {2} {3} {4}".format(param_obj.path_to_createFragCountMatx,
 										   param_obj.merged_differential_atac_peaks_bed_file,
 										   param_obj.initial_peak_width, 
@@ -149,7 +148,7 @@ def main(param_obj):
 		run_command(cmd)
 
 	# run a new FDR-based differential peak analysis on the new peak set 
-	if not os.path.exists(param_obj.final_diffpeak_algorithm_output_file[1:-1]):
+	if run_all_steps or not os.path.exists(param_obj.final_diffpeak_algorithm_output_file[1:-1]):
 		cmd = "Rscript {0} {1} {2} {3} {4} {5}".format(param_obj.path_to_fdrBasedDiffPeakCalling, 
 													   param_obj.final_diffpeak_algorithm_min_normalized_fragments, 
 													   param_obj.final_diffpeak_algorithm_min_fold_change,
@@ -159,14 +158,14 @@ def main(param_obj):
 		run_command(cmd)
 
 	# make a bed file from the final differential peak file
-	if not os.path.exists(param_obj.final_differential_atac_peaks_bed_file[1:-1]):
+	if run_all_steps or not os.path.exists(param_obj.final_differential_atac_peaks_bed_file[1:-1]):
 		cmd = 'Rscript {0} {1} {2}'.format(param_obj.path_to_createBedFileFromDiffpeakTable,
 										   param_obj.final_diffpeak_algorithm_output_file,
 										   param_obj.final_differential_atac_peaks_bed_file)
 		run_command(cmd)
 
 	# create a final fragmentCount rds file for which to do motif analysis
-	if not os.path.exists(param_obj.final_merged_differential_atac_frag_count_rds_file[1:-1]):
+	if run_all_steps or not os.path.exists(param_obj.final_merged_differential_atac_frag_count_rds_file[1:-1]):
 		cmd = "Rscript {0} {1} {2} {3} {4}".format(param_obj.path_to_createFragCountMatx, 
 												   param_obj.final_differential_atac_peaks_bed_file,
 												   param_obj.initial_peak_width,
@@ -175,14 +174,14 @@ def main(param_obj):
 		run_command(cmd)
 
 	# make the list of the most variable motifs in the differential peak set
-	if not os.path.exists(param_obj.most_variable_motifs_file[1:-1]):
+	if run_all_steps or not os.path.exists(param_obj.most_variable_motifs_file[1:-1]):
 		cmd = "Rscript {0} {1} {2}".format(param_obj.path_to_makeMostVariableMotifSet, 
 										   param_obj.final_merged_differential_atac_frag_count_rds_file,
 										   param_obj.most_variable_motifs_file)
 		run_command(cmd)
 
 	# annotate the new peak set with motif matches and additive / multiplicative predictions
-	if not os.path.exists(param_obj.annotated_diffpeaks_output_file[1:-1]):
+	if run_all_steps or not os.path.exists(param_obj.annotated_diffpeaks_output_file[1:-1]):
 		cmd = "Rscript {0} {1} {2} {3}".format(param_obj.path_to_peak_annotation_script, 
 											   param_obj.final_diffpeak_algorithm_output_file,
 											   param_obj.most_variable_motifs_file,
@@ -190,14 +189,14 @@ def main(param_obj):
 		run_command(cmd)
 
 	# create the set of upregulated peaks from the annotated peak set
-	if not os.path.exists(param_obj.upregulated_diffpeaks_output_file[1:-1]):
+	if run_all_steps or not os.path.exists(param_obj.upregulated_diffpeaks_output_file[1:-1]):
 		cmd = "Rscript {0} {1} {2}".format(param_obj.path_to_create_upregulated_peaks_script, 
 										   param_obj.annotated_diffpeaks_output_file, 
 										   param_obj.upregulated_diffpeaks_output_file)
 		run_command(cmd)
 
 	# make the peak signal integration histogram and pie charts for this parameter set
-	if not os.path.exists(param_obj.integration_histogram_path_prefix[1:-1] + "_med_dose.svg"):
+	if run_all_steps or not os.path.exists(param_obj.integration_histogram_path_prefix[1:-1] + "_med_dose.svg"):
 		cmd = "Rscript {0} {1} {2}".format(param_obj.path_to_peak_integration_category_histograms_script, 
 										   param_obj.upregulated_diffpeaks_output_file, 
 										   param_obj.integration_histogram_path_prefix)
@@ -205,7 +204,7 @@ def main(param_obj):
 
 	# make bed files for sub-additive, additive, and super-additive peaks
 	upregulated_peaks_files = glob.glob(param_obj.upreg_peak_cats_bed_file_prefix[1:-1] + "*.bed")
-	if len(upregulated_peaks_files) == 0:
+	if run_all_steps or len(upregulated_peaks_files) == 0:
 		cmd = "Rscript {0} {1} {2}".format(param_obj.path_to_make_bed_files_for_each_category, 
 										   param_obj.upregulated_diffpeaks_output_file, 
 										   param_obj.upreg_peak_cats_bed_file_prefix)
@@ -213,7 +212,7 @@ def main(param_obj):
 
 	# make new fragment counts files for each peakset
 	upregulated_peaks_fragCount_r_objects = glob.glob(param_obj.upreg_peak_cats_bed_file_prefix[1:-1] + "*.rds")
-	if len(upregulated_peaks_fragCount_r_objects) == 0:
+	if run_all_steps or len(upregulated_peaks_fragCount_r_objects) == 0:
 		for upreg_peak_file in upregulated_peaks_files:
 			output_filename = upreg_peak_file + ".rds"
 			cmd = "Rscript {0} {1} {2} {3} {4}".format(param_obj.path_to_createFragCountMatx,
@@ -226,7 +225,7 @@ def main(param_obj):
 	# use chromVAR to do motif analysis at the different categories of upregulated peaks
 	# outputPlotPrefix, "raw_dev_score_by_tf_name.svg"
 	motif_enrichment_plots = glob.glob(param_obj.plotsDir + os.sep + "*motifPlots*dev_score*.svg")
-	if len(motif_enrichment_plots) == 0:
+	if run_all_steps or len(motif_enrichment_plots) == 0:
 		upregulated_peaks_fragCount_r_objects = glob.glob(param_obj.upreg_peak_cats_bed_file_prefix[1:-1] + "*.rds")
 		upregulated_peaks_fragCount_r_objects.append(param_obj.final_merged_differential_atac_frag_count_rds_file[1:-1])
 		for peak_r_object in upregulated_peaks_fragCount_r_objects:
@@ -239,7 +238,7 @@ def main(param_obj):
 	# are the super-additive peaks more likely to be close to super-multiplicative genes?
 	path_to_upregulated_gene_table = '"{0}"'.format(r"/Users/emsanford/Dropbox (RajLab)/Shared_Eric/SIgnal_Integration/Analysis_SI2-SI4/extractedData/DeSeqOutputAllConds.annotated.upregulatedGeneSet.tsv")
 	# make new joined peak tib
-	if not os.path.exists(param_obj.joined_gene_and_peak_table_file[1:-1]):
+	if run_all_steps or not os.path.exists(param_obj.joined_gene_and_peak_table_file[1:-1]):
 		cmd = "Rscript {0} {1} {2} {3}".format(param_obj.path_to_join_peak_to_gene_tib,
 											   path_to_upregulated_gene_table,
 											   param_obj.upregulated_diffpeaks_output_file,
@@ -247,11 +246,10 @@ def main(param_obj):
 		run_command(cmd)
 	# use the new joined peak tib to make the "special peak types near genes" plots
 	peaks_near_genes_analysis_plots = glob.glob(param_obj.peaks_near_genes_plots_path_prefix[1:-1] + "*.svg")
-	if len(peaks_near_genes_analysis_plots) == 0:
+	if run_all_steps or len(peaks_near_genes_analysis_plots) == 0:
 		cmd = "Rscript {0} {1} {2} {3} {4} {5}".format(param_obj.path_to_make_peak_near_gene_analysis_plots,
 													   path_to_upregulated_gene_table,
 													   param_obj.joined_gene_and_peak_table_file,
-													   param_obj.min_control_TPM,
 													   param_obj.peaks_near_genes_plots_path_prefix + "superadditivePeaks_",
 													   "superadditive")
 		run_command(cmd)
@@ -259,7 +257,6 @@ def main(param_obj):
 		cmd = "Rscript {0} {1} {2} {3} {4} {5}".format(param_obj.path_to_make_peak_near_gene_analysis_plots,
 													   path_to_upregulated_gene_table,
 													   param_obj.joined_gene_and_peak_table_file,
-													   param_obj.min_control_TPM,
 													   param_obj.peaks_near_genes_plots_path_prefix + "additivePeaks_",
 													   "additive")
 		run_command(cmd)
@@ -267,7 +264,6 @@ def main(param_obj):
 		cmd = "Rscript {0} {1} {2} {3} {4} {5}".format(param_obj.path_to_make_peak_near_gene_analysis_plots,
 													   path_to_upregulated_gene_table,
 													   param_obj.joined_gene_and_peak_table_file,
-													   param_obj.min_control_TPM,
 													   param_obj.peaks_near_genes_plots_path_prefix + "subadditivePeaks_",
 													   "subadditive")
 		run_command(cmd)
@@ -275,7 +271,6 @@ def main(param_obj):
 		cmd = "Rscript {0} {1} {2} {3} {4} {5}".format(param_obj.path_to_make_peak_near_gene_analysis_plots,
 													   path_to_upregulated_gene_table,
 													   param_obj.joined_gene_and_peak_table_file,
-													   param_obj.min_control_TPM,
 													   param_obj.peaks_near_genes_plots_path_prefix + "subadditivePeaks_",
 													   "all")
 		run_command(cmd)
@@ -284,6 +279,7 @@ def main(param_obj):
 
 if __name__ == '__main__':
 	do_parameter_sweep = False
+	run_all_steps = False
 
 	if do_parameter_sweep:
 		# basedir = str(here())
@@ -324,9 +320,8 @@ if __name__ == '__main__':
 							 initial_diffpeak_algorithm_min_normalized_fragments = 10,
 							 initial_diffpeak_algorithm_min_fold_change = 1.1, 
 							 final_diffpeak_algorithm_min_normalized_fragments = 30,
-							 final_diffpeak_algorithm_min_fold_change = 1.5, 
-							 min_control_TPM = 0)
-		main(param_obj)
+							 final_diffpeak_algorithm_min_fold_change = 1.5)
+		main(param_obj, run_all_steps = run_all_steps)
 
 	
 

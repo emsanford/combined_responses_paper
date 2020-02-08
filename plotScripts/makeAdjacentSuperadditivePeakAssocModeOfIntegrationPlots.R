@@ -15,15 +15,13 @@ if (length(cmdargs) == 0) {
   # siUpregJoinedPeaks  <- read_tsv(here('extractedData', 'joinedTableAllDiffPeaksNearUpregGenes.tsv'))
   siUpregJoinedPeaks  <- read_tsv(here('extractedData', 'joinedTableAllDiffPeaksNearUpregGenes.tsv'))
   # siUpregJoinedPeaks  <- siUpregJoinedPeaks %>% filter(peak_integrationEffectDir == "both up")
-  min.ControlTPM      <- 0
   selected.peak.category.arg <- "superadditive"
   outputloc.prefix <- here('plots', paste0('selected_', selected.peak.category.arg,'_peak_stats_near_upreg_genesets_'))
 } else {
   siUpregGenes       <- read_tsv(cmdargs[1])
   siUpregJoinedPeaks <- read_tsv(cmdargs[2])
-  min.ControlTPM     <- as.numeric(cmdargs[3])
-  outputloc.prefix   <- cmdargs[4]
-  selected.peak.category.arg <- cmdargs[5] 
+  outputloc.prefix   <- cmdargs[3]
+  selected.peak.category.arg <- cmdargs[4] 
 }
 
 if (selected.peak.category.arg == "superadditive") {
