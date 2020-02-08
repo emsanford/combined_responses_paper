@@ -272,6 +272,14 @@ def main(param_obj):
 													   "subadditive")
 		run_command(cmd)
 
+		cmd = "Rscript {0} {1} {2} {3} {4} {5}".format(param_obj.path_to_make_peak_near_gene_analysis_plots,
+													   path_to_upregulated_gene_table,
+													   param_obj.joined_gene_and_peak_table_file,
+													   param_obj.min_control_TPM,
+													   param_obj.peaks_near_genes_plots_path_prefix + "subadditivePeaks_",
+													   "all")
+		run_command(cmd)
+
 	
 
 if __name__ == '__main__':
