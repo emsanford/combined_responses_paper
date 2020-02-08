@@ -271,7 +271,7 @@ def main(param_obj, run_all_steps = False):
 		cmd = "Rscript {0} {1} {2} {3} {4}".format(param_obj.path_to_make_peak_near_gene_analysis_plots,
 												   path_to_upregulated_gene_table,
 												   param_obj.joined_gene_and_peak_table_file,
-												   param_obj.peaks_near_genes_plots_path_prefix + "subadditivePeaks_",
+												   param_obj.peaks_near_genes_plots_path_prefix + "allUpregPeaks_",
 												   "all")
 		run_command(cmd)
 
