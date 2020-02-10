@@ -134,7 +134,7 @@ calcAdditivePredDiff <- function(peaktib, dosage) {
   addpred.cts   <- normcts.ra + normcts.tgfb - normcts.etoh
   addpred.fc    <- addpred.cts / normcts.etoh 
   both.fc <- pull(peaktib, var = paste0("TGFb-and-RA-", dosage, "-avgNormFragmentCounts")) / normcts.etoh
-  fc.pred.diff <- addpred.fc - both.fc 
+  fc.pred.diff <- both.fc - addpred.fc 
   return(fc.pred.diff)
 }
 
@@ -152,7 +152,7 @@ calcMultiplicativePredDiff <- function(peaktib, dosage) {
   multpred.cts   <- normcts.etoh * (normcts.ra / normcts.etoh) * (normcts.tgfb / normcts.etoh)
   multpred.fc    <- multpred.cts / normcts.etoh 
   both.fc <- pull(peaktib, var = paste0("TGFb-and-RA-", dosage, "-avgNormFragmentCounts")) / normcts.etoh
-  fc.pred.diff <- multpred.fc - both.fc 
+  fc.pred.diff <- both.fc - multpred.fc 
   return(fc.pred.diff)
 }
 

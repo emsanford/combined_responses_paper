@@ -11,8 +11,8 @@ library(BSgenome.Hsapiens.UCSC.hg38)
 register(MulticoreParam(4, progressbar = TRUE))
 
 # manually_include_these_motifs <- c("ENSG00000126778_LINE2315_SIX1_I", "ENSG00000102974_LINE747_CTCF_D_N67")  # from homer de novo motif analysis on upregulated peaks
-manually_include_these_motifs <- c("SIX1", "CTCF")  # from homer de novo motif analysis on upregulated peaks
-
+# manually_include_these_motifs <- c("SIX1", "CTCF")  # from homer de novo motif analysis on upregulated peaks
+manually_include_these_motifs <- c()
 
 cmdargs = commandArgs(trailingOnly=TRUE)
 if (length(cmdargs) == 0) {
