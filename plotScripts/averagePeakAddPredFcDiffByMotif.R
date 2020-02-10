@@ -18,6 +18,8 @@ corresponding.avg.d.scores <- c()
 corresponding.median.d.scores <- c()
 peak.d.values <- pull(filtupregpeaks, "peakAdditivePredFcResidual-med")
 n.peaks <- length(peak.d.values)
+indmotifplots <- list()
+counter <- 1
 for (motif.col.name in motif.col.names) {
   motif.match.indices <- which(filtupregpeaks[, motif.col.name] > 0)
   print(sprintf("%s, in %0.3f percent of %d motifs", motif.col.name, length(motif.match.indices) / n.peaks, n.peaks))
@@ -25,7 +27,13 @@ for (motif.col.name in motif.col.names) {
   this.median.d       <- median(peak.d.values[motif.match.indices])
   corresponding.avg.d.scores    <- c(corresponding.avg.d.scores, this.avg.d)
   corresponding.median.d.scores <- c(corresponding.median.d.scores, this.median.d)
+  p <- qplot(peak.d.values[motif.match.indices]) + ggtitle(strsplit(motif.col.name, "_")[[1]][1]) + ylab("counts")
+  indmotifplots[[counter]] <- p
+  counter <- counter + 1
+  print(p)
 }
+
+print(indmotifplots[1])
 
 tfp <- tibble(motif_name = motif.names, avg_d_val = corresponding.avg.d.scores, median_d_val = corresponding.median.d.scores)
 
