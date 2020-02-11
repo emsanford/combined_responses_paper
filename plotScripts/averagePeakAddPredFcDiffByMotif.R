@@ -7,11 +7,10 @@ library(tidyverse)
 
 upregpeaks <- read_tsv("/Users/emsanford/Dropbox (RajLab)/Shared_Eric/SIgnal_Integration/Analysis_SI2-SI4_github_testing/signal_integration_paper_scripts/extractedData/differentialAtacPeaks_mergedist250_peakwidth150_minNormFrags30_minFoldChange1.5.annotated.upregulated.tsv")
 
-use.d.scores.within.this.quantile.range <- 0.00
+use.d.scores.within.this.quantile.range <- 0.01
 lower_d_filter <- quantile(upregpeaks$`peakAdditivePredFcResidual-med`, use.d.scores.within.this.quantile.range)
 upper_d_filter <- quantile(upregpeaks$`peakAdditivePredFcResidual-med`, 1 - use.d.scores.within.this.quantile.range)
-filtupregpeaks <- upregpeaks %>% filter(`peakAdditivePredFcResidual-med` > lower_d_filter, `peakAdditivePredFcResidual-med` < upper_d_filter,
-                                        `peak_integrationCategory-med-dose` %in% superadditive.peak.categories)
+filtupregpeaks <- upregpeaks %>% filter(`peakAdditivePredFcResidual-med` > lower_d_filter, `peakAdditivePredFcResidual-med` < upper_d_filter)
 
 motif.col.names     <- colnames(filtupregpeaks)[which(grepl("_motifMatchScore", colnames(filtupregpeaks)))]
 motif.names <- sapply(strsplit(motif.col.names, "_"), function(x) x[[1]])

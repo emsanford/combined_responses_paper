@@ -10,6 +10,7 @@ class ParamSet:
 				 deseq_qval = 0.05, deseq_min_log2_fold_change = 2,
 				 addPredFcDiffMin_integration_histogram = 0.2, minTpmDiff_integration_histogram = 1,
 				 addPredFcDiffMin_cValByDoseGeneSetPlot =   1, minTpmDiff_cValByDoseGeneSetPlot = 2,
+				 mixture_fraction_null_dist_histogram = 0.6,
 				 use_default_param_string = False):
 		self.base_directory      	 	            = base_directory  # this should be the analysis root directory, which contains folders like "extractedData" and "plotScripts"
 		self.sample_metadata_file		            = '"{0}"'.format(base_directory + os.sep + "sampleMetadata_SI2-SI4.txt")
@@ -22,6 +23,7 @@ class ParamSet:
 		self.minTpmDiff_integration_histogram       = minTpmDiff_integration_histogram
 		self.addPredFcDiffMin_cValByDoseGeneSetPlot = addPredFcDiffMin_cValByDoseGeneSetPlot
 		self.minTpmDiff_cValByDoseGeneSetPlot       = minTpmDiff_cValByDoseGeneSetPlot
+		self.mixture_fraction_null_dist_histogram   = mixture_fraction_null_dist_histogram
 
 		param_summary_string = "qval{0}_minlfc{1}".format(deseq_qval, deseq_min_log2_fold_change)
 		if use_default_param_string:
@@ -31,7 +33,9 @@ class ParamSet:
 		self.rna_seq_matrix_dir  = os.sep.join([extractedDataDir, "rnaSeqMatrixFormatted"])
 		self.bee_swarm_plots_dir = os.sep.join([plotsDir, "beeSwarmPlots"])
 		self.integration_summary_plots_dir = os.sep.join([plotsDir, "gene_integration_summary_plots"])
-		self.subdirectories = [plotsDir, extractedDataDir, refsDir, self.rna_seq_matrix_dir, self.bee_swarm_plots_dir, self.integration_summary_plots_dir]
+		self.integration_summary_null_distribution_plots_dir = os.sep.join([plotsDir, "gene_integration_summary_plots", "null_distributions"])
+		self.subdirectories = [plotsDir, extractedDataDir, refsDir, self.rna_seq_matrix_dir, self.bee_swarm_plots_dir, self.integration_summary_plots_dir,
+							   self.integration_summary_null_distribution_plots_dir]
 
 		# paths to input and output files
 		self.rnaseq_pipeline_counts_output_file      = '"{0}"'.format(os.sep.join([extractedDataDir, "si2-si4_RNA-seq-pipeline-output-counts.tsv"]))
@@ -55,6 +59,7 @@ class ParamSet:
 		self.path_to_createMasterSetOfUpregulatedGenes             = '"{0}"'.format(os.sep.join([base_directory, "extractionScripts", "createMasterSetOfUpregulatedGenes.R"]))
 		self.path_to_makeGeneBeeswarmPlot                          = '"{0}"'.format(os.sep.join([base_directory, "plotScripts", "makeGeneBeeswarmPlot.R"]))
 		self.path_to_geneIntegrationSummaryPieChartsAndHistograms  = '"{0}"'.format(os.sep.join([base_directory, "plotScripts", "geneIntegrationSummaryPieChartsAndHistograms.R"]))
+		self.path_to_makeNullDistributionCorDvalue                 = '"{0}"'.format(os.sep.join([base_directory, "plotScripts", "makeNullDistributionCorDvalue.R"]))
 		self.path_to_createCvalChangesWithDosePlot                 = '"{0}"'.format(os.sep.join([base_directory, "plotScripts", "createCvalChangesWithDosePlot.R"]))
 
 
@@ -138,6 +143,38 @@ def main(param_obj, run_all_steps = False):
 												   '"{0}"'.format(param_obj.integration_summary_plots_dir))
 		run_command(cmd)
 
+	integration_summary_null_histogram_paths = glob.glob(param_obj.integration_summary_null_distribution_plots_dir + '/*.svg')
+	if run_all_steps or len(integration_summary_null_histogram_paths) == 0:
+		cmd = 'Rscript {0} {1} {2} {3} {4} {5} {6} {7}'.format(param_obj.path_to_makeNullDistributionCorDvalue,
+															   param_obj.upregulated_genes_table,
+															   param_obj.addPredFcDiffMin_integration_histogram,
+															   param_obj.minTpmDiff_integration_histogram,
+															   "genes",
+															   "additive",
+															   param_obj.mixture_fraction_null_dist_histogram,
+															   '"{0}"'.format(param_obj.integration_summary_null_distribution_plots_dir))
+		run_command(cmd)
+
+		cmd = 'Rscript {0} {1} {2} {3} {4} {5} {6} {7}'.format(param_obj.path_to_makeNullDistributionCorDvalue,
+															   param_obj.upregulated_genes_table,
+															   param_obj.addPredFcDiffMin_integration_histogram,
+															   param_obj.minTpmDiff_integration_histogram,
+															   "genes",
+															   "multiplicative",
+															   param_obj.mixture_fraction_null_dist_histogram,
+															   '"{0}"'.format(param_obj.integration_summary_null_distribution_plots_dir))
+		run_command(cmd)
+
+		cmd = 'Rscript {0} {1} {2} {3} {4} {5} {6} {7}'.format(param_obj.path_to_makeNullDistributionCorDvalue,
+															   param_obj.upregulated_genes_table,
+															   param_obj.addPredFcDiffMin_integration_histogram,
+															   param_obj.minTpmDiff_integration_histogram,
+															   "genes",
+															   "mixture",
+															   param_obj.mixture_fraction_null_dist_histogram,
+															   '"{0}"'.format(param_obj.integration_summary_null_distribution_plots_dir))
+		run_command(cmd)
+
 	if run_all_steps or not os.path.exists(param_obj.cValChangesWithDosePlot[1:-1]):
 		cmd = 'Rscript {0} {1} {2} {3} {4}'.format(param_obj.path_to_createCvalChangesWithDosePlot,
 												   param_obj.upregulated_genes_table,
@@ -166,7 +203,9 @@ if __name__ == '__main__':
 							 refsDir,
 							 deseq_qval = 0.05, 
 							 deseq_min_log2_fold_change = 2, 
-							 use_default_param_string = True)
+							 use_default_param_string = True,
+							 addPredFcDiffMin_integration_histogram = 0.2, 
+							 minTpmDiff_integration_histogram = 1,)
 		main(param_obj, run_all_steps = run_all_steps)
 
 	
