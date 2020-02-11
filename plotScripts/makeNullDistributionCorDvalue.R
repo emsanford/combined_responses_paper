@@ -182,11 +182,13 @@ for (dose in c("low", "med", "high")) {
     filter(raw.add.mult.diff >= min.raw.val.diff.for.c.histogram,
            fc.add.mult.diff >= min.fc.diff.mult.add.for.c.histogram) %>% 
       ggplot(aes(cval)) +
-        geom_histogram() + xlim(-2.5, 5) + 
+        geom_histogram(bins = 100) + xlim(-2.5, 5) + 
       ggtitle(paste0("cvals from ", add.vs.mult.null.model, " null model, ", dose, " dose", ",\nminAddMultFcDiff = ", 
-                     min.fc.diff.mult.add.for.c.histogram, ", min raw value diff ", min.raw.val.diff.for.c.histogram))
+                     min.fc.diff.mult.add.for.c.histogram, ", min raw value diff ", min.raw.val.diff.for.c.histogram)) +
+      theme_minimal()
   ggsave(paste0(output.file.prefix, "cval_plot_", dose, "_dose.svg"), plot = p1)
   
-  p2 <- qplot(new.dvals.all) + xlim(-2.5, 5) + ggtitle(paste0("dvals from ", add.vs.mult.null.model, " null model, ", dose, " dose"))
+  p2 <- qplot(new.dvals.all, bins = 100) + xlim(-2.5, 5) + ggtitle(paste0("dvals from ", add.vs.mult.null.model, " null model, ", dose, " dose")) +
+    theme_minimal()
   ggsave(paste0(output.file.prefix, "dval_plot_", dose, "_dose.svg"), plot = p2)
 }
