@@ -8,7 +8,9 @@ from pyprojroot import here
 class ParamSet:
 	def __init__(self, base_directory, extractedDataDir, plotsDir, peak_merge_distance = 250, initial_peak_width = 150, 
 				 initial_diffpeak_algorithm_min_normalized_fragments = 10, initial_diffpeak_algorithm_min_fold_change = 1.1, 
-				 final_diffpeak_algorithm_min_normalized_fragments = 30, final_diffpeak_algorithm_min_fold_change = 1.5, 
+				 final_diffpeak_algorithm_min_normalized_fragments = 30, final_diffpeak_algorithm_min_fold_change = 1.5,
+				 addPredFcDiffMin_integration_histogram = 0.2, minNormFragCtDiff_integration_histogram = 1,
+				 mixture_fraction_null_dist_histogram = 0.6, 
 				 use_default_param_string = False):
 		self.base_directory      						 	     = base_directory  # this should be the analysis root directory, which contains folders like "extractedData" and "plotScripts"
 		self.sample_metadata_file								 = '"{0}"'.format(base_directory + os.sep + "sampleMetadata_SI2-SI4.txt")
@@ -20,6 +22,9 @@ class ParamSet:
 		self.initial_diffpeak_algorithm_min_fold_change          = initial_diffpeak_algorithm_min_fold_change		
 		self.final_diffpeak_algorithm_min_normalized_fragments   = final_diffpeak_algorithm_min_normalized_fragments
 		self.final_diffpeak_algorithm_min_fold_change            = final_diffpeak_algorithm_min_fold_change
+		self.addPredFcDiffMin_integration_histogram              = addPredFcDiffMin_integration_histogram
+		self.minNormFragCtDiff_integration_histogram             = minNormFragCtDiff_integration_histogram
+		self.mixture_fraction_null_dist_histogram                = mixture_fraction_null_dist_histogram
 		param_summary_string = "mergedist{0}_peakwidth{1}_minNormFrags{2}_minFoldChange{3}".format(peak_merge_distance, 
 																								   initial_peak_width,
 																								   final_diffpeak_algorithm_min_normalized_fragments, 
@@ -27,8 +32,14 @@ class ParamSet:
 		if use_default_param_string:
 			param_summary_string = "defaultParams"
 
-		# paths to input and output files
+		# paths to folders containing output files
 		self.consensus_peak_file_dir                            = '"{0}"'.format(os.sep.join([extractedDataDir, "consensusPeakFiles"]))
+		self.integration_summary_plots_dir                       = os.sep.join([plotsDir, "peak_integration_summary_plots"])
+		self.integration_summary_null_distribution_plots_dir     = os.sep.join([plotsDir, "peak_integration_summary_plots", "null_distributions"])
+		self.subdirectories 							 		 = [plotsDir, extractedDataDir, self.consensus_peak_file_dir[1:-1], 
+																	self.integration_summary_plots_dir, self.integration_summary_null_distribution_plots_dir]
+
+		# paths to input and output files
 		self.merged_consensus_peak_file                         = '"{0}"'.format(os.sep.join([extractedDataDir, "mergedConsensusMacs2PeakFilesAllConditions.bed"]))
 		self.unmerged_differential_atac_peaks_bed_file          = '"{0}"'.format(os.sep.join([base_directory, "extractedData", "initialDifferentialAtacPeaksWidth{0}_minNlCovg{1}_minFc{2}.bed".format(initial_peak_width, initial_diffpeak_algorithm_min_normalized_fragments, initial_diffpeak_algorithm_min_fold_change)]))
 		self.merged_differential_atac_peaks_bed_file            = '"{0}"'.format(os.sep.join([extractedDataDir, "differentialAtacPeaks_mergedist{0}.bed".format(peak_merge_distance)]))
@@ -43,7 +54,7 @@ class ParamSet:
 		self.upregulated_diffpeaks_output_file                  = '"{0}"'.format(os.sep.join([extractedDataDir, "differentialAtacPeaks_{0}.annotated.upregulated.tsv".format(param_summary_string)]))
 		self.initial_peak_fdr_grid_plot_path_prefix             = '"{0}"'.format(os.sep.join([plotsDir, "initial_fdr_grid_{0}".format(param_summary_string)]))
 		self.final_peak_fdr_grid_plot_path_prefix               = '"{0}"'.format(os.sep.join([plotsDir, "final_fdr_grid_{0}".format(param_summary_string)]))
-		self.integration_histogram_path_prefix                  = '"{0}"'.format(os.sep.join([plotsDir, "cval_histogram_{0}".format(param_summary_string)]))
+		self.integration_histogram_path_prefix                  = '"{0}"'.format(os.sep.join([self.integration_summary_plots_dir, "cval_histogram_{0}".format(param_summary_string)]))
 		self.upreg_peak_cats_bed_file_prefix                    = '"{0}"'.format(os.sep.join([extractedDataDir, "upregulated_peaks_{0}".format(param_summary_string)]))
 		self.joined_gene_and_peak_table_file                    = '"{0}"'.format(os.sep.join([extractedDataDir, "upregJoinedPeakGeneTib_{0}.tsv".format(param_summary_string)]))
 		self.peaks_near_genes_plots_path_prefix                 = '"{0}"'.format(os.sep.join([plotsDir, "peaks_near_genes_{0}".format(param_summary_string)]))
@@ -59,12 +70,12 @@ class ParamSet:
 		self.path_to_peak_annotation_script                      = '"{0}"'.format(os.sep.join([base_directory, "extractionScripts", "addIntegrationMetricsAndMotifMatchesToDiffPeaks.R"]))
 		self.path_to_create_upregulated_peaks_script             = '"{0}"'.format(os.sep.join([base_directory, "extractionScripts", "createMasterSetOfUpregulatedPeaks.R"]))
 		self.path_to_peak_integration_category_histograms_script = '"{0}"'.format(os.sep.join([base_directory, "plotScripts", "peakIntegrationSummaryPieChartsAndHistograms.R"]))
+		self.path_to_makeNullDistributionCorDvalue               = '"{0}"'.format(os.sep.join([base_directory, "plotScripts", "makeNullDistributionCorDvalue.R"]))
 		self.path_to_make_bed_files_for_each_category            = '"{0}"'.format(os.sep.join([base_directory, "extractionScripts", "createBedFilesForPeakIntegrationCategories.R"]))
 		self.path_to_chromVAR_motif_analysis_script              = '"{0}"'.format(os.sep.join([base_directory, "plotScripts", "chromVarIndSignalMotifEnrichments.R"]))
 		self.path_to_join_peak_to_gene_tib                       = '"{0}"'.format(os.sep.join([base_directory, "extractionScripts", "joinNearbyPeaksToGenes.R"]))
 		self.path_to_make_peak_near_gene_analysis_plots          = '"{0}"'.format(os.sep.join([base_directory, "plotScripts", "makeAdjacentSuperadditivePeakAssocModeOfIntegrationPlots.R"]))
 
-		self.subdirectories 							 		 = [plotsDir, extractedDataDir, self.consensus_peak_file_dir[1:-1]]
 
 
 	def __str__(self):
@@ -200,6 +211,38 @@ def main(param_obj, run_all_steps = False):
 		cmd = "Rscript {0} {1} {2}".format(param_obj.path_to_peak_integration_category_histograms_script, 
 										   param_obj.upregulated_diffpeaks_output_file, 
 										   param_obj.integration_histogram_path_prefix)
+		run_command(cmd)
+
+	integration_summary_null_histogram_paths = glob.glob(param_obj.integration_summary_null_distribution_plots_dir + '/*.svg')
+	if run_all_steps or len(integration_summary_null_histogram_paths) == 0:
+		cmd = 'Rscript {0} {1} {2} {3} {4} {5} {6} {7}'.format(param_obj.path_to_makeNullDistributionCorDvalue,
+															   param_obj.upregulated_diffpeaks_output_file,
+															   param_obj.addPredFcDiffMin_integration_histogram,
+															   param_obj.minNormFragCtDiff_integration_histogram,
+															   "peaks",
+															   "additive",
+															   param_obj.mixture_fraction_null_dist_histogram,
+															   '"{0}"'.format(param_obj.integration_summary_null_distribution_plots_dir))
+		run_command(cmd)
+
+		cmd = 'Rscript {0} {1} {2} {3} {4} {5} {6} {7}'.format(param_obj.path_to_makeNullDistributionCorDvalue,
+															   param_obj.upregulated_diffpeaks_output_file,
+															   param_obj.addPredFcDiffMin_integration_histogram,
+															   param_obj.minNormFragCtDiff_integration_histogram,
+															   "peaks",
+															   "multiplicative",
+															   param_obj.mixture_fraction_null_dist_histogram,
+															   '"{0}"'.format(param_obj.integration_summary_null_distribution_plots_dir))
+		run_command(cmd)
+
+		cmd = 'Rscript {0} {1} {2} {3} {4} {5} {6} {7}'.format(param_obj.path_to_makeNullDistributionCorDvalue,
+															   param_obj.upregulated_diffpeaks_output_file,
+															   param_obj.addPredFcDiffMin_integration_histogram,
+															   param_obj.minNormFragCtDiff_integration_histogram,
+															   "peaks",
+															   "mixture",
+															   param_obj.mixture_fraction_null_dist_histogram,
+															   '"{0}"'.format(param_obj.integration_summary_null_distribution_plots_dir))
 		run_command(cmd)
 
 	# make bed files for sub-additive, additive, and super-additive peaks
