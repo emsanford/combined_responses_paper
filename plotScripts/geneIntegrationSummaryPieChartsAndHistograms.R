@@ -27,18 +27,20 @@ stackedBarHistogram.location.prefix <- paste0(output.folder, '/gene_integration_
 
 n_upreg_genes <- nrow(siUpregGenes)
 ####### first, make pie charts for the categorical description for each upregulated gene
+factor.order.gene.categories <- c("sub-additive", "additive", "between-add-and-mult", "multiplicative", "super-multiplicative", "ambiguous")
+
 svg(filename=paste0(piechart.location.prefix, "low_dose_", "n", n_upreg_genes, ".svg"),width=8,height=8)
-pieplot.low  <- pie(table(siUpregGenes$`integrationCategory-low-dose`), main = paste0("low dose, N =", n_upreg_genes))
+pieplot.low  <- pie(table(factor(siUpregGenes$`integrationCategory-low-dose`, levels = factor.order.gene.categories)), main = paste0("low dose, N =", n_upreg_genes))
 print(pieplot.low)
 dev.off()
 
 svg(filename=paste0(piechart.location.prefix, "med_dose_", "n", n_upreg_genes, ".svg"),width=8,height=8)
-pieplot.med  <- pie(table(siUpregGenes$`integrationCategory-med-dose`), main = paste0("med dose, N =", n_upreg_genes))
+pieplot.med  <- pie(table(factor(siUpregGenes$`integrationCategory-med-dose`, levels = factor.order.gene.categories)), main = paste0("med dose, N =", n_upreg_genes))
 print(pieplot.med)
 dev.off()
 
 svg(filename=paste0(piechart.location.prefix, "high_dose_", "n", n_upreg_genes, ".svg"),width=8,height=8)
-pieplot.high <- pie(table(siUpregGenes$`integrationCategory-high-dose`), main = paste0("high dose, N =", n_upreg_genes))
+pieplot.high <- pie(table(factor(siUpregGenes$`integrationCategory-high-dose`, levels = factor.order.gene.categories)), main = paste0("high dose, N =", n_upreg_genes))
 print(pieplot.high)
 dev.off()
 
