@@ -224,10 +224,10 @@ def main(param_obj, run_all_steps = False):
 	# make the venn diagrams of number of differential peaks and genes for each signal treatment
 	venn_diagram_paths = glob.glob(param_obj.venn_diagrams_directory + os.sep + '*.svg')
 	if run_all_steps or len(venn_diagram_paths) == 0:
-		cmd = "Rscript {0} {1} {2}".format(param_obj.path_to_diff_peak_and_gene_venn_diagram_script, 
-										   param_obj.path_to_annotated_gene_table, 
-										   param_obj.annotated_diffpeaks_output_file,
-										   '"{0}{1}"'.format(param_obj.venn_diagrams_directory, os.sep))
+		cmd = "Rscript {0} {1} {2} {3}".format(param_obj.path_to_diff_peak_and_gene_venn_diagram_script, 
+											   param_obj.path_to_annotated_gene_table, 
+											   param_obj.annotated_diffpeaks_output_file,
+											   '"{0}{1}"'.format(param_obj.venn_diagrams_directory, os.sep))
 		run_command(cmd)
 
 	integration_summary_null_histogram_paths = glob.glob(param_obj.integration_summary_null_distribution_plots_dir + '/*.svg')
