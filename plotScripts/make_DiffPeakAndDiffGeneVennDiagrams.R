@@ -3,6 +3,7 @@ library(here)
 library(VennDiagram)
 library(venneuler)
 
+futile.logger::flog.threshold(futile.logger::ERROR, name = "VennDiagramLogger")
 
 cmdargs = commandArgs(trailingOnly=TRUE)
 if (length(cmdargs) == 0) {

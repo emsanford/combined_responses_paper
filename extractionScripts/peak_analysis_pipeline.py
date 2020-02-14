@@ -43,7 +43,8 @@ class ParamSet:
 		self.integration_summary_plots_dir                       = os.sep.join([plotsDir, "peak_integration_summary_plots"])
 		self.integration_summary_null_distribution_plots_dir     = os.sep.join([plotsDir, "peak_integration_summary_plots", "null_distributions"])
 		self.subdirectories 							 		 = [plotsDir, extractedDataDir, self.consensus_peak_file_dir[1:-1], 
-																	self.integration_summary_plots_dir, self.integration_summary_null_distribution_plots_dir]
+																	self.integration_summary_plots_dir, self.integration_summary_null_distribution_plots_dir,
+																	self.venn_diagrams_directory]
 
 		# paths to input and output files
 		self.merged_consensus_peak_file                         = '"{0}"'.format(os.sep.join([extractedDataDir, "mergedConsensusMacs2PeakFilesAllConditions.bed"]))
