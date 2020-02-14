@@ -9,7 +9,7 @@ class ParamSet:
 	def __init__(self, base_directory, extractedDataDir, plotsDir, peak_merge_distance = 250, initial_peak_width = 150, 
 				 initial_diffpeak_algorithm_min_normalized_fragments = 10, initial_diffpeak_algorithm_min_fold_change = 1.1, 
 				 final_diffpeak_algorithm_min_normalized_fragments = 30, final_diffpeak_algorithm_min_fold_change = 1.5,
-				 addPredFcDiffMin_integration_histogram = 0.2, minNormFragCtDiff_integration_histogram = 1,
+				 addPredFcDiffMin_integration_histogram = 0.0, minNormFragCtDiff_integration_histogram = 0,
 				 mixture_fraction_null_dist_histogram = 0.6, 
 				 use_default_param_string = False):
 		self.base_directory      						 	     = base_directory  # this should be the analysis root directory, which contains folders like "extractedData" and "plotScripts"

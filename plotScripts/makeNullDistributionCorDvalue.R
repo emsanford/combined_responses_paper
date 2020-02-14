@@ -9,8 +9,8 @@ max.n.sample.attempts.to.be.higher.than.control <- 100000
 cmdargs = commandArgs(trailingOnly=TRUE)
 if (length(cmdargs) == 0) {
   dist.for.peaks.vs.genes  <- "genes" 
-  min.fc.diff.mult.add.for.c.histogram <- 0.2
-  min.raw.val.diff.for.c.histogram       <- 1
+  min.fc.diff.mult.add.for.c.histogram   <- 0
+  min.raw.val.diff.for.c.histogram       <- 0
   add.vs.mult.null.model   <- "mixture" # choose "additive" or "multiplicative" or "mixture"
   add.mult.mixture.frac.add <- 0.60
   # input files -- use upregulated peaks or genes

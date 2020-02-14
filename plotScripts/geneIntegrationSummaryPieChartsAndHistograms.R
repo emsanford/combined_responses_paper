@@ -4,8 +4,8 @@ library(here)
 cmdargs = commandArgs(trailingOnly=TRUE)
 if (length(cmdargs) == 0) {
   siUpregGenes     <- read_tsv(here('extractedData', 'DeSeqOutputAllConds.annotated.upregulatedGeneSet.tsv'))
-  addPredFcDiffMin <- 0.20
-  minTpmDiff       <- 1
+  addPredFcDiffMin <- 0
+  minTpmDiff       <- 0
   output.folder    <- here('plots', 'gene_integration_summary_plots')
 } else {
   siUpregGenes     <- read_tsv(cmdargs[1])
@@ -72,16 +72,16 @@ assignValuesToHistBin <- function(values, bin.midpoints, bin.radius) {
 }
 
 # first loop: get the maximum bin y value to standardize the y axis limits when making plots
-bin.step.size   <- 0.10
+bin.step.size   <- 0.125
 mid.point.shift <- bin.step.size / 2
-bin.midpoints <- seq(-2.5 + bin.step.size, 5, by = bin.step.size) - mid.point.shift
+bin.midpoints <- seq(-3 + bin.step.size, 5, by = bin.step.size) - mid.point.shift
 bin.radius    <- (bin.midpoints[2] - bin.midpoints[1]) / 2
 
 max.bin.vals <- c()
 for (dosage in c("low", "med", "high")) {
   hist.values <- pull(filtSiUpregGenes, paste0("integrationConstant-", dosage))
   bin.values  <- assignValuesToHistBin(hist.values, bin.midpoints, bin.radius)
-  max.bin.val <- max(table(bin.values))
+  max.bin.val <- max(table(bin.values)[2:(length(table(bin.values)) - 2)]) # do not select the edges for y limits, we will use "broken bars" to illustrate their N
   max.bin.vals <- c(max.bin.vals, max.bin.val)
 }
 
@@ -101,7 +101,7 @@ for (dosage in c("low", "med", "high")) {
     # ylim(0, 45) +
     xlab("integration constant value for a gene") +
     ylab("number of genes") +
-    ggtitle(paste0("Distribution of integration constants for upregulated genes\n", dosage, " dose")) +
+    ggtitle(paste0("Distribution of integration constants for upregulated genes\n", dosage, " dose, left-val ", table(bin.values)[1], ", right-val ", table(bin.values)[length(table(bin.values))])) +
     geom_vline(xintercept = 0) + geom_vline(xintercept = 1) +
     ylim(0, max(max.bin.vals) * 1.05) + 
     xlim(min(bin.midpoints) - bin.radius, max(bin.midpoints) + bin.radius)

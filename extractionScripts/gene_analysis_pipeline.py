@@ -204,8 +204,8 @@ if __name__ == '__main__':
 							 deseq_qval = 0.05, 
 							 deseq_min_log2_fold_change = 2, 
 							 use_default_param_string = True,
-							 addPredFcDiffMin_integration_histogram = 0.2, 
-							 minTpmDiff_integration_histogram = 1,)
+							 addPredFcDiffMin_integration_histogram = 0, 
+							 minTpmDiff_integration_histogram = 0,)
 		main(param_obj, run_all_steps = run_all_steps)
 
 	
