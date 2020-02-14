@@ -221,7 +221,7 @@ def main(param_obj, run_all_steps = False):
 		run_command(cmd)
 
 	# make the venn diagrams of number of differential peaks and genes for each signal treatment
-	venn_diagram_paths = glob.glob(param_obj.venn_diagrams + '/*.svg')
+	venn_diagram_paths = glob.glob(param_obj.venn_diagrams_directory + os.sep + '*.svg')
 	if run_all_steps or len(venn_diagram_paths) == 0:
 		cmd = "Rscript {0} {1} {2}".format(param_obj.path_to_diff_peak_and_gene_venn_diagram_script, 
 										   param_obj.path_to_annotated_gene_table, 
