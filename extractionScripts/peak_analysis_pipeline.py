@@ -32,8 +32,14 @@ class ParamSet:
 		if use_default_param_string:
 			param_summary_string = "defaultParams"
 
+		# paths to files that should already exist (from runnin gene analysis pipeline)
+		self.path_to_annotated_gene_table   = '"{0}"'.format(extractedDataDir + os.sep + "DeSeqOutputAllConds.annotated.tsv")
+		self.path_to_upregulated_gene_table = '"{0}"'.format(extractedDataDir + os.sep + "DeSeqOutputAllConds.annotated.upregulatedGeneSet.tsv")
+
+
 		# paths to folders containing output files
 		self.consensus_peak_file_dir                             = '"{0}"'.format(os.sep.join([extractedDataDir, "consensusPeakFiles"]))
+		self.venn_diagrams_directory                             = os.sep.join([plotsDir, "venn_diagrams"])
 		self.integration_summary_plots_dir                       = os.sep.join([plotsDir, "peak_integration_summary_plots"])
 		self.integration_summary_null_distribution_plots_dir     = os.sep.join([plotsDir, "peak_integration_summary_plots", "null_distributions"])
 		self.subdirectories 							 		 = [plotsDir, extractedDataDir, self.consensus_peak_file_dir[1:-1], 
@@ -70,6 +76,7 @@ class ParamSet:
 		self.path_to_peak_annotation_script                      = '"{0}"'.format(os.sep.join([base_directory, "extractionScripts", "addIntegrationMetricsAndMotifMatchesToDiffPeaks.R"]))
 		self.path_to_create_upregulated_peaks_script             = '"{0}"'.format(os.sep.join([base_directory, "extractionScripts", "createMasterSetOfUpregulatedPeaks.R"]))
 		self.path_to_peak_integration_category_histograms_script = '"{0}"'.format(os.sep.join([base_directory, "plotScripts", "peakIntegrationSummaryPieChartsAndHistograms.R"]))
+		self.path_to_diff_peak_and_gene_venn_diagram_script      = '"{0}"'.format(os.sep.join([base_directory, "plotScripts", "make_DiffPeakAndDiffGeneVennDiagrams.R"]))
 		self.path_to_makeNullDistributionCorDvalue               = '"{0}"'.format(os.sep.join([base_directory, "plotScripts", "makeNullDistributionCorDvalue.R"]))
 		self.path_to_make_bed_files_for_each_category            = '"{0}"'.format(os.sep.join([base_directory, "extractionScripts", "createBedFilesForPeakIntegrationCategories.R"]))
 		self.path_to_chromVAR_motif_analysis_script              = '"{0}"'.format(os.sep.join([base_directory, "plotScripts", "chromVarIndSignalMotifEnrichments.R"]))
@@ -213,6 +220,15 @@ def main(param_obj, run_all_steps = False):
 										   param_obj.integration_histogram_path_prefix)
 		run_command(cmd)
 
+	# make the venn diagrams of number of differential peaks and genes for each signal treatment
+	venn_diagram_paths = glob.glob(param_obj.venn_diagrams + '/*.svg')
+	if run_all_steps or len(venn_diagram_paths) == 0:
+		cmd = "Rscript {0} {1} {2}".format(param_obj.path_to_diff_peak_and_gene_venn_diagram_script, 
+										   param_obj.path_to_annotated_gene_table, 
+										   param_obj.annotated_diffpeaks_output_file,
+										   '"{0}{1}"'.format(param_obj.venn_diagrams_directory, os.sep))
+		run_command(cmd)
+
 	integration_summary_null_histogram_paths = glob.glob(param_obj.integration_summary_null_distribution_plots_dir + '/*.svg')
 	if run_all_steps or len(integration_summary_null_histogram_paths) == 0:
 		cmd = 'Rscript {0} {1} {2} {3} {4} {5} {6} {7}'.format(param_obj.path_to_makeNullDistributionCorDvalue,
@@ -279,11 +295,10 @@ def main(param_obj, run_all_steps = False):
 			run_command(cmd)
 
 	# are the super-additive peaks more likely to be close to super-multiplicative genes?
-	path_to_upregulated_gene_table = '"{0}"'.format(r"/Users/emsanford/Dropbox (RajLab)/Shared_Eric/SIgnal_Integration/Analysis_SI2-SI4/extractedData/DeSeqOutputAllConds.annotated.upregulatedGeneSet.tsv")
 	# make new joined peak tib
 	if run_all_steps or not os.path.exists(param_obj.joined_gene_and_peak_table_file[1:-1]):
 		cmd = "Rscript {0} {1} {2} {3}".format(param_obj.path_to_join_peak_to_gene_tib,
-											   path_to_upregulated_gene_table,
+											   param_obj.path_to_upregulated_gene_table,
 											   param_obj.upregulated_diffpeaks_output_file,
 											   param_obj.joined_gene_and_peak_table_file)
 		run_command(cmd)
@@ -291,28 +306,28 @@ def main(param_obj, run_all_steps = False):
 	peaks_near_genes_analysis_plots = glob.glob(param_obj.peaks_near_genes_plots_path_prefix[1:-1] + "*.svg")
 	if run_all_steps or len(peaks_near_genes_analysis_plots) == 0:
 		cmd = "Rscript {0} {1} {2} {3} {4}".format(param_obj.path_to_make_peak_near_gene_analysis_plots,
-												   path_to_upregulated_gene_table,
+												   param_obj.path_to_upregulated_gene_table,
 												   param_obj.joined_gene_and_peak_table_file,
 												   param_obj.peaks_near_genes_plots_path_prefix + "superadditivePeaks_",
 												   "superadditive")
 		run_command(cmd)
 
 		cmd = "Rscript {0} {1} {2} {3} {4}".format(param_obj.path_to_make_peak_near_gene_analysis_plots,
-												   path_to_upregulated_gene_table,
+												   param_obj.path_to_upregulated_gene_table,
 												   param_obj.joined_gene_and_peak_table_file,
 												   param_obj.peaks_near_genes_plots_path_prefix + "additivePeaks_",
 												   "additive")
 		run_command(cmd)
 
 		cmd = "Rscript {0} {1} {2} {3} {4}".format(param_obj.path_to_make_peak_near_gene_analysis_plots,
-												   path_to_upregulated_gene_table,
+												   param_obj.path_to_upregulated_gene_table,
 												   param_obj.joined_gene_and_peak_table_file,
 												   param_obj.peaks_near_genes_plots_path_prefix + "subadditivePeaks_",
 												   "subadditive")
 		run_command(cmd)
 
 		cmd = "Rscript {0} {1} {2} {3} {4}".format(param_obj.path_to_make_peak_near_gene_analysis_plots,
-												   path_to_upregulated_gene_table,
+												   param_obj.path_to_upregulated_gene_table,
 												   param_obj.joined_gene_and_peak_table_file,
 												   param_obj.peaks_near_genes_plots_path_prefix + "allUpregPeaks_",
 												   "all")
