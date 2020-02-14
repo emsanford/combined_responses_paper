@@ -8,7 +8,7 @@ from pyprojroot import here
 class ParamSet:
 	def __init__(self, base_directory, extractedDataDir, plotsDir, refsDir,
 				 deseq_qval = 0.05, deseq_min_log2_fold_change = 2,
-				 addPredFcDiffMin_integration_histogram = 0.2, minTpmDiff_integration_histogram = 1,
+				 addPredFcDiffMin_integration_histogram =   0, minTpmDiff_integration_histogram = 0,
 				 addPredFcDiffMin_cValByDoseGeneSetPlot =   1, minTpmDiff_cValByDoseGeneSetPlot = 2,
 				 mixture_fraction_null_dist_histogram = 0.6,
 				 use_default_param_string = False):
