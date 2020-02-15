@@ -2,7 +2,9 @@ library(tidyverse)
 library(here)
 library(VGAM)  # required for rfoldnorm function
 
-n.iterations.per.input.observation <- 5  # if 1, null distribution will have the same number of observations as the input data, if 2 it'll be 2x, etc...
+source(here('extractionScripts', 'util.R'))
+
+n.iterations.per.input.observation <- 10  # if 1, null distribution will have the same number of observations as the input data, if 2 it'll be 2x, etc...
 n.experiment.replicates <- 3
 max.n.sample.attempts.to.be.higher.than.control <- 100000
 
@@ -12,21 +14,20 @@ if (length(cmdargs) == 0) {
   min.fc.diff.mult.add.for.c.histogram   <- 0
   min.raw.val.diff.for.c.histogram       <- 0
   add.vs.mult.null.model   <- "mixture" # choose "additive" or "multiplicative" or "mixture"
-  add.mult.mixture.frac.add <- 0.60
   # input files -- use upregulated peaks or genes
   input.table  <- read_tsv(here("extractedData", "DeSeqOutputAllConds.annotated.upregulatedGeneSet.tsv"))
   # input.table  <- read_tsv(here("extractedData", "differentialAtacPeaks_mergedist250_peakwidth150_minNormFrags30_minFoldChange1.5.annotated.upregulated.tsv"))
   output.file.prefix <- here("plots", "null_distributions",
-                             sprintf("null_distribution_upreg_%s_%s_model_%0.2f_", dist.for.peaks.vs.genes, add.vs.mult.null.model, add.mult.mixture.frac.add))
+                             sprintf("null_distribution_upreg_%s_%s_model_", dist.for.peaks.vs.genes, add.vs.mult.null.model))
 } else {
   input.table                            <- read_tsv(cmdargs[1])
   min.fc.diff.mult.add.for.c.histogram   <- as.numeric(cmdargs[2])
   min.raw.val.diff.for.c.histogram       <- as.numeric(cmdargs[3])
   dist.for.peaks.vs.genes                <- cmdargs[4]  # choose "peaks" or "genes"
   add.vs.mult.null.model                 <- cmdargs[5]  # choose "additive" or "multiplicative" or "mixture"
-  add.mult.mixture.frac.add              <- as.numeric(cmdargs[6])
-  output.file.prefix                     <- paste0(cmdargs[7], '/', sprintf("null_distribution_upreg_%s_%s_model_%0.2f_", dist.for.peaks.vs.genes, add.vs.mult.null.model, add.mult.mixture.frac.add))
+  output.file.prefix                     <- paste0(cmdargs[6], '/', sprintf("null_distribution_upreg_%s_%s_model_", dist.for.peaks.vs.genes, add.vs.mult.null.model))
 }
+
 
 # using the estimates for the mean and CV from our data set, draw a new set of observations under the constraint that the values for 
 # tgfb and ra must be greater than the etoh value (this is a model for upregulation only)
@@ -116,12 +117,20 @@ if (add.vs.mult.null.model == "additive") {
   add.mult.mixture.frac.add <- 1
 } else if (add.vs.mult.null.model == "multiplicative") {
   add.mult.mixture.frac.add <- 0
-} else if (add.vs.mult.null.model == "mixture") {
-  add.mult.mixture.frac.add <- add.mult.mixture.frac.add
-}
-
+} 
 
 for (dose in c("low", "med", "high")) {
+  if (add.vs.mult.null.model == "mixture") {
+    if (dist.for.peaks.vs.genes == "genes") {
+      n.add.genes  <- sum(input.table[[paste0("integrationCategory-", dose, "-dose")]] == "additive")
+      n.mult.genes <- sum(input.table[[paste0("integrationCategory-", dose, "-dose")]] == "multiplicative")
+      add.mult.mixture.frac.add <- n.add.genes / (n.add.genes + n.mult.genes)
+    } else if (dist.for.peaks.vs.genes == "peaks") {
+      n.add.peaks  <- sum(input.table[[paste0("peak_integrationCategory-", dose, "-dose")]] == "additive")
+      n.mult.peaks <- sum(input.table[[paste0("peak_integrationCategory-", dose, "-dose")]] == "multiplicative")
+      add.mult.mixture.frac.add <- n.add.peaks / (n.add.peaks + n.mult.peaks)
+    }
+  }
   set.seed(0)
   new.cvals.all              <- c()
   new.dvals.all              <- c()
@@ -175,20 +184,25 @@ for (dose in c("low", "med", "high")) {
     new.add.mult.raw.diffs.all <- c(new.add.mult.raw.diffs.all, new.add.mult.raw.diffs)
     new.add.mult.fc.diffs.all  <- c(new.add.mult.fc.diffs.all, new.add.mult.fc.diffs)
   }
-  nulldist.result.tib <- tibble(cval = new.cvals.all, dval = new.dvals.all, 
-                                raw.add.mult.diff = new.add.mult.raw.diffs.all, fc.add.mult.diff = new.add.mult.fc.diffs.all)
+
+  bin.leftmost  <- -3
+  bin.rightmost <-  5
+  bin.step.size <-  0.125
+  plot.width    <-  8
+  plot.height   <-  4
+   
+  categorical.values <- NA  # to do--add these if interested. could show which distribution they came from (add vs. mult)
+  hist.values        <- new.cvals.all
+  stackedBarHistTibCvals <- makeHistogramOfValues(hist.values, categorical.values, bin.leftmost, bin.rightmost,
+                                                 bin.step.size, paste0(add.vs.mult.null.model, ", ", dose, " dose, c-values, addmixfrac = ", add.mult.mixture.frac.add), 
+                                                 xlabel = "c-value", ylabel = "count", color.by.category = F)
   
-  p1 <- nulldist.result.tib %>% 
-    filter(raw.add.mult.diff >= min.raw.val.diff.for.c.histogram,
-           fc.add.mult.diff >= min.fc.diff.mult.add.for.c.histogram) %>% 
-      ggplot(aes(cval)) +
-        geom_histogram(bins = 100) + xlim(-2.5, 5) + 
-      ggtitle(paste0("cvals from ", add.vs.mult.null.model, " null model, ", dose, " dose", ",\nminAddMultFcDiff = ", 
-                     min.fc.diff.mult.add.for.c.histogram, ", min raw value diff ", min.raw.val.diff.for.c.histogram)) +
-      theme_minimal()
-  ggsave(paste0(output.file.prefix, "cval_plot_", dose, "_dose.svg"), plot = p1)
+  ggsave(paste0(output.file.prefix, "cval_plot_", dose, "_dose.svg"), plot = stackedBarHistTibCvals, width = plot.width, height = plot.height)
   
-  p2 <- qplot(new.dvals.all, bins = 100) + xlim(-2.5, 5) + ggtitle(paste0("dvals from ", add.vs.mult.null.model, " null model, ", dose, " dose")) +
-    theme_minimal()
-  ggsave(paste0(output.file.prefix, "dval_plot_", dose, "_dose.svg"), plot = p2)
+  categorical.values <- NA  # to do--add these if interested. could show which distribution they came from (add vs. mult)
+  hist.values        <- new.dvals.all
+  stackedBarHistTibDvals <- makeHistogramOfValues(hist.values, categorical.values, bin.leftmost, bin.rightmost,
+                                                  bin.step.size, paste0(add.vs.mult.null.model, ", ", dose, " dose, d-values, addmixfrac = ", add.mult.mixture.frac.add), 
+                                                  xlabel = "c-value", ylabel = "count", color.by.category = F)
+  ggsave(paste0(output.file.prefix, "dval_plot_", dose, "_dose.svg"), plot = stackedBarHistTibDvals, width = plot.width, height = plot.height)
 }

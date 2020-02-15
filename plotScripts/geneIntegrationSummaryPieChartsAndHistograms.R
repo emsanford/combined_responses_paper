@@ -1,6 +1,8 @@
 library(tidyverse)
 library(here)
 
+source(here('extractionScripts', 'util.R'))
+
 cmdargs = commandArgs(trailingOnly=TRUE)
 if (length(cmdargs) == 0) {
   siUpregGenes     <- read_tsv(here('extractedData', 'DeSeqOutputAllConds.annotated.upregulatedGeneSet.tsv'))
@@ -58,24 +60,17 @@ mapCatsToReducesCatSet <- function(cat.values) {
 # input -- a vector of integration contstants
 # output -- bin values for the vector. order of values in the vector doesn't change
 #   note: values outside the range get assigned to the lowest or highest bin available
-assignValuesToHistBin <- function(values, bin.midpoints, bin.radius) {
-  n.vals <- length(values)
-  outputVec <- c()
-  for (ii in 1:n.vals) {
-    this.val <- values[ii]
-    distvec <- abs(this.val - bin.midpoints)
-    lowest.bin.distance <- min(distvec)
-    bin.index <- which(distvec == lowest.bin.distance)[1]
-    outputVec <- c(outputVec, bin.midpoints[bin.index])
-  }
-  return(outputVec)
-}
+
 
 # first loop: get the maximum bin y value to standardize the y axis limits when making plots
 bin.step.size   <- 0.125
-mid.point.shift <- bin.step.size / 2
-bin.midpoints <- seq(-3 + bin.step.size, 5, by = bin.step.size) - mid.point.shift
-bin.radius    <- (bin.midpoints[2] - bin.midpoints[1]) / 2
+bin.leftmost    <- -3
+bin.rightmost   <- 5
+plot.width    <- 8
+plot.height   <- 4
+bin.radius    <- bin.step.size / 2
+bin.midpoints <- seq(bin.leftmost + bin.step.size, bin.rightmost, by = bin.step.size) - bin.radius
+
 
 max.bin.vals <- c()
 for (dosage in c("low", "med", "high")) {
@@ -89,23 +84,14 @@ for (dosage in c("low", "med", "high")) {
 for (dosage in c("low", "med", "high")) {
   categorical.values <- pull(filtSiUpregGenes, paste0("integrationCategory-", dosage ,"-dose"))
   hist.values        <- pull(filtSiUpregGenes, paste0("integrationConstant-", dosage))
-  
   mapped.categorical.values <- mapCatsToReducesCatSet(categorical.values)
-  bin.values <- assignValuesToHistBin(hist.values, bin.midpoints, bin.radius)
+
+  stackedBarHist <- makeHistogramOfValues(hist.values, mapped.categorical.values, bin.leftmost, bin.rightmost,
+                                             bin.step.size, paste0(dosage, " dose, c-values"), 
+                                             xlabel = "c-value", ylabel = "count", color.by.category = F)
   
-  stackedBarHistTib <- tibble(intConstantHhistBin = bin.values, intCategory = mapped.categorical.values)
+  stackedBarHist <- stackedBarHist + ylim(0, max(max.bin.vals))
   
-  stackedBarHist <- ggplot(stackedBarHistTib, aes(x = intConstantHhistBin, fill = intCategory)) +
-    geom_bar(stat="count", width = bin.radius * 2 * .90) + 
-    theme_minimal(base_size = 12) + 
-    # ylim(0, 45) +
-    xlab("integration constant value for a gene") +
-    ylab("number of genes") +
-    ggtitle(paste0("Distribution of integration constants for upregulated genes\n", dosage, " dose, left-val ", table(bin.values)[1], ", right-val ", table(bin.values)[length(table(bin.values))])) +
-    geom_vline(xintercept = 0) + geom_vline(xintercept = 1) +
-    ylim(0, max(max.bin.vals) * 1.05) + 
-    xlim(min(bin.midpoints) - bin.radius, max(bin.midpoints) + bin.radius)
-  
-  ggsave(paste0(stackedBarHistogram.location.prefix, "upregGeneIntegrationConstants_", dosage, "_dose.svg"), width = 8, height = 4)
+  ggsave(paste0(stackedBarHistogram.location.prefix, "upregGeneIntegrationConstants_", dosage, "_dose.svg"), plot = stackedBarHist, width = plot.width, height = plot.height)
 }
   

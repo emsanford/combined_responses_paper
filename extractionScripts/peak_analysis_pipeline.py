@@ -10,7 +10,6 @@ class ParamSet:
 				 initial_diffpeak_algorithm_min_normalized_fragments = 10, initial_diffpeak_algorithm_min_fold_change = 1.1, 
 				 final_diffpeak_algorithm_min_normalized_fragments = 30, final_diffpeak_algorithm_min_fold_change = 1.5,
 				 addPredFcDiffMin_integration_histogram = 0.0, minNormFragCtDiff_integration_histogram = 0,
-				 mixture_fraction_null_dist_histogram = 0.6, 
 				 use_default_param_string = False):
 		self.base_directory      						 	     = base_directory  # this should be the analysis root directory, which contains folders like "extractedData" and "plotScripts"
 		self.sample_metadata_file								 = '"{0}"'.format(base_directory + os.sep + "sampleMetadata_SI2-SI4.txt")
@@ -24,7 +23,6 @@ class ParamSet:
 		self.final_diffpeak_algorithm_min_fold_change            = final_diffpeak_algorithm_min_fold_change
 		self.addPredFcDiffMin_integration_histogram              = addPredFcDiffMin_integration_histogram
 		self.minNormFragCtDiff_integration_histogram             = minNormFragCtDiff_integration_histogram
-		self.mixture_fraction_null_dist_histogram                = mixture_fraction_null_dist_histogram
 		param_summary_string = "mergedist{0}_peakwidth{1}_minNormFrags{2}_minFoldChange{3}".format(peak_merge_distance, 
 																								   initial_peak_width,
 																								   final_diffpeak_algorithm_min_normalized_fragments, 
@@ -238,7 +236,6 @@ def main(param_obj, run_all_steps = False):
 															   param_obj.minNormFragCtDiff_integration_histogram,
 															   "peaks",
 															   "additive",
-															   param_obj.mixture_fraction_null_dist_histogram,
 															   '"{0}"'.format(param_obj.integration_summary_null_distribution_plots_dir))
 		run_command(cmd)
 
@@ -248,7 +245,6 @@ def main(param_obj, run_all_steps = False):
 															   param_obj.minNormFragCtDiff_integration_histogram,
 															   "peaks",
 															   "multiplicative",
-															   param_obj.mixture_fraction_null_dist_histogram,
 															   '"{0}"'.format(param_obj.integration_summary_null_distribution_plots_dir))
 		run_command(cmd)
 
@@ -258,7 +254,6 @@ def main(param_obj, run_all_steps = False):
 															   param_obj.minNormFragCtDiff_integration_histogram,
 															   "peaks",
 															   "mixture",
-															   param_obj.mixture_fraction_null_dist_histogram,
 															   '"{0}"'.format(param_obj.integration_summary_null_distribution_plots_dir))
 		run_command(cmd)
 
