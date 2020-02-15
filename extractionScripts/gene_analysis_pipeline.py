@@ -10,7 +10,6 @@ class ParamSet:
 				 deseq_qval = 0.05, deseq_min_log2_fold_change = 2,
 				 addPredFcDiffMin_integration_histogram =   0, minTpmDiff_integration_histogram = 0,
 				 addPredFcDiffMin_cValByDoseGeneSetPlot =   1, minTpmDiff_cValByDoseGeneSetPlot = 2,
-				 mixture_fraction_null_dist_histogram = 0.6,
 				 use_default_param_string = False):
 		self.base_directory      	 	            = base_directory  # this should be the analysis root directory, which contains folders like "extractedData" and "plotScripts"
 		self.sample_metadata_file		            = '"{0}"'.format(base_directory + os.sep + "sampleMetadata_SI2-SI4.txt")
@@ -23,7 +22,6 @@ class ParamSet:
 		self.minTpmDiff_integration_histogram       = minTpmDiff_integration_histogram
 		self.addPredFcDiffMin_cValByDoseGeneSetPlot = addPredFcDiffMin_cValByDoseGeneSetPlot
 		self.minTpmDiff_cValByDoseGeneSetPlot       = minTpmDiff_cValByDoseGeneSetPlot
-		self.mixture_fraction_null_dist_histogram   = mixture_fraction_null_dist_histogram
 
 		param_summary_string = "qval{0}_minlfc{1}".format(deseq_qval, deseq_min_log2_fold_change)
 		if use_default_param_string:
@@ -145,33 +143,30 @@ def main(param_obj, run_all_steps = False):
 
 	integration_summary_null_histogram_paths = glob.glob(param_obj.integration_summary_null_distribution_plots_dir + '/*.svg')
 	if run_all_steps or len(integration_summary_null_histogram_paths) == 0:
-		cmd = 'Rscript {0} {1} {2} {3} {4} {5} {6} {7}'.format(param_obj.path_to_makeNullDistributionCorDvalue,
+		cmd = 'Rscript {0} {1} {2} {3} {4} {5} {6}'.format(param_obj.path_to_makeNullDistributionCorDvalue,
 															   param_obj.upregulated_genes_table,
 															   param_obj.addPredFcDiffMin_integration_histogram,
 															   param_obj.minTpmDiff_integration_histogram,
 															   "genes",
 															   "additive",
-															   param_obj.mixture_fraction_null_dist_histogram,
 															   '"{0}"'.format(param_obj.integration_summary_null_distribution_plots_dir))
 		run_command(cmd)
 
-		cmd = 'Rscript {0} {1} {2} {3} {4} {5} {6} {7}'.format(param_obj.path_to_makeNullDistributionCorDvalue,
+		cmd = 'Rscript {0} {1} {2} {3} {4} {5} {6}'.format(param_obj.path_to_makeNullDistributionCorDvalue,
 															   param_obj.upregulated_genes_table,
 															   param_obj.addPredFcDiffMin_integration_histogram,
 															   param_obj.minTpmDiff_integration_histogram,
 															   "genes",
 															   "multiplicative",
-															   param_obj.mixture_fraction_null_dist_histogram,
 															   '"{0}"'.format(param_obj.integration_summary_null_distribution_plots_dir))
 		run_command(cmd)
 
-		cmd = 'Rscript {0} {1} {2} {3} {4} {5} {6} {7}'.format(param_obj.path_to_makeNullDistributionCorDvalue,
+		cmd = 'Rscript {0} {1} {2} {3} {4} {5} {6}'.format(param_obj.path_to_makeNullDistributionCorDvalue,
 															   param_obj.upregulated_genes_table,
 															   param_obj.addPredFcDiffMin_integration_histogram,
 															   param_obj.minTpmDiff_integration_histogram,
 															   "genes",
 															   "mixture",
-															   param_obj.mixture_fraction_null_dist_histogram,
 															   '"{0}"'.format(param_obj.integration_summary_null_distribution_plots_dir))
 		run_command(cmd)
 
