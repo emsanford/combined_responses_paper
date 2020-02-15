@@ -203,6 +203,6 @@ for (dose in c("low", "med", "high")) {
   hist.values        <- new.dvals.all
   stackedBarHistTibDvals <- makeHistogramOfValues(hist.values, categorical.values, bin.leftmost, bin.rightmost,
                                                   bin.step.size, paste0(add.vs.mult.null.model, ", ", dose, " dose, d-values, addmixfrac = ", add.mult.mixture.frac.add), 
-                                                  xlabel = "c-value", ylabel = "count", color.by.category = F)
+                                                  xlabel = "d-value", ylabel = "count", color.by.category = F)
   ggsave(paste0(output.file.prefix, "dval_plot_", dose, "_dose.svg"), plot = stackedBarHistTibDvals, width = plot.width, height = plot.height)
 }

@@ -1,14 +1,14 @@
 ## functions used by multiple other extraction scripts
 
-assignValuesToHistBin <- function(values, bin.midpoints, bin.radius) {
+assignValuesToHistBin <- function(values, bin_midpoints, bin.radius) {
   n.vals <- length(values)
   outputVec <- c()
   for (ii in 1:n.vals) {
     this.val <- values[ii]
-    distvec <- abs(this.val - bin.midpoints)
+    distvec <- abs(this.val - bin_midpoints)
     lowest.bin.distance <- min(distvec)
     bin.index <- which(distvec == lowest.bin.distance)[1]
-    outputVec <- c(outputVec, bin.midpoints[bin.index])
+    outputVec <- c(outputVec, bin_midpoints[bin.index])
   }
   return(outputVec)
 }
@@ -18,10 +18,11 @@ makeHistogramOfValues <- function(data.vector, categories.vector, xlim_lower, xl
                                   bin.step.size, plot.title, 
                                   xlabel = "", ylabel = "", color.by.category = T) {
   
-  bin.values <- assignValuesToHistBin(hist.values, bin.midpoints, bin.radius)
+  
   bin.radius      <- bin.step.size / 2
   bin.midpoints   <- seq(xlim_lower + bin.step.size, xlim_upper, by = bin.step.size) - bin.radius
 
+  bin.values <- assignValuesToHistBin(hist.values, bin.midpoints, bin.radius)
   
   stackedBarHistTib <- tibble(intConstantHhistBin = bin.values, intCategory = categories.vector)
   
