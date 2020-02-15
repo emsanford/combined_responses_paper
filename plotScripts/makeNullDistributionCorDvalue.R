@@ -4,7 +4,7 @@ library(VGAM)  # required for rfoldnorm function
 
 source(here('extractionScripts', 'util.R'))
 
-n.iterations.per.input.observation <- 10  # if 1, null distribution will have the same number of observations as the input data, if 2 it'll be 2x, etc...
+n.iterations.per.input.observation <- 1  # if 1, null distribution will have the same number of observations as the input data, if 2 it'll be 2x, etc...
 n.experiment.replicates <- 3
 max.n.sample.attempts.to.be.higher.than.control <- 100000
 
