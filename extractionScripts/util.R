@@ -31,7 +31,6 @@ makeHistogramOfValues <- function(data.vector, categories.vector, xlim_lower, xl
       stackedBarHist <- ggplot(stackedBarHistTib, aes(x = intConstantHhistBin, y = ..prop.., group = 1, fill = intCategory)) +
         geom_bar(stat="count", width = bin.radius * 2 * .90) +
         ylim(0, (max(table(bin.values)[2:(length(table(bin.values)) - 2)]) * 1.05)/length(data.vector)) 
-      print("hi i'm here")
     } else {
       stackedBarHist <- ggplot(stackedBarHistTib, aes(x = intConstantHhistBin, fill = intCategory)) +
         geom_bar(stat="count", width = bin.radius * 2 * .90) +
@@ -59,5 +58,5 @@ makeHistogramOfValues <- function(data.vector, categories.vector, xlim_lower, xl
     geom_vline(xintercept = 0) + geom_vline(xintercept = 1) +
     xlim(min(bin.midpoints) - bin.radius, max(bin.midpoints) + bin.radius) 
   
-  return(stackedBarHist)
+  return(list(stackedBarHist, stackedBarHistTib))
 }

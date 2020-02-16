@@ -143,31 +143,12 @@ def main(param_obj, run_all_steps = False):
 
 	integration_summary_null_histogram_paths = glob.glob(param_obj.integration_summary_null_distribution_plots_dir + '/*.svg')
 	if run_all_steps or len(integration_summary_null_histogram_paths) == 0:
-		cmd = 'Rscript {0} {1} {2} {3} {4} {5} {6}'.format(param_obj.path_to_makeNullDistributionCorDvalue,
-															   param_obj.upregulated_genes_table,
-															   param_obj.addPredFcDiffMin_integration_histogram,
-															   param_obj.minTpmDiff_integration_histogram,
-															   "genes",
-															   "additive",
-															   '"{0}"'.format(param_obj.integration_summary_null_distribution_plots_dir))
-		run_command(cmd)
-
-		cmd = 'Rscript {0} {1} {2} {3} {4} {5} {6}'.format(param_obj.path_to_makeNullDistributionCorDvalue,
-															   param_obj.upregulated_genes_table,
-															   param_obj.addPredFcDiffMin_integration_histogram,
-															   param_obj.minTpmDiff_integration_histogram,
-															   "genes",
-															   "multiplicative",
-															   '"{0}"'.format(param_obj.integration_summary_null_distribution_plots_dir))
-		run_command(cmd)
-
-		cmd = 'Rscript {0} {1} {2} {3} {4} {5} {6}'.format(param_obj.path_to_makeNullDistributionCorDvalue,
-															   param_obj.upregulated_genes_table,
-															   param_obj.addPredFcDiffMin_integration_histogram,
-															   param_obj.minTpmDiff_integration_histogram,
-															   "genes",
-															   "mixture",
-															   '"{0}"'.format(param_obj.integration_summary_null_distribution_plots_dir))
+		cmd = 'Rscript {0} {1} {2} {3} {4} {5}'.format(param_obj.path_to_makeNullDistributionCorDvalue,
+														   param_obj.upregulated_genes_table,
+														   param_obj.addPredFcDiffMin_integration_histogram,
+														   param_obj.minTpmDiff_integration_histogram,
+														   "genes",
+														   '"{0}"'.format(param_obj.integration_summary_null_distribution_plots_dir))
 		run_command(cmd)
 
 	if run_all_steps or not os.path.exists(param_obj.cValChangesWithDosePlot[1:-1]):

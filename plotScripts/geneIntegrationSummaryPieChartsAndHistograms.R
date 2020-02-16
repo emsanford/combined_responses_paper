@@ -63,11 +63,11 @@ mapCatsToReducesCatSet <- function(cat.values) {
 
 
 # first loop: get the maximum bin y value to standardize the y axis limits when making plots
-bin.step.size   <- 0.125
+bin.step.size   <-  0.125
 bin.leftmost    <- -3
-bin.rightmost   <- 5
-plot.width    <- 8
-plot.height   <- 4
+bin.rightmost   <-  5
+plot.width    <-   18
+plot.height   <-    8.15
 bin.radius    <- bin.step.size / 2
 bin.midpoints <- seq(bin.leftmost + bin.step.size, bin.rightmost, by = bin.step.size) - bin.radius
 

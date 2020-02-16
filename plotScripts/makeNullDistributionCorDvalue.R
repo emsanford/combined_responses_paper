@@ -4,7 +4,7 @@ library(VGAM)  # required for rfoldnorm function
 
 source(here('extractionScripts', 'util.R'))
 
-n.iterations.per.input.observation <- 5  # if 1, null distribution will have the same number of observations as the input data, if 2 it'll be 2x, etc...
+n.iterations.per.input.observation <- 25  # if 1, null distribution will have the same number of observations as the input data, if 2 it'll be 2x, etc...
 n.experiment.replicates <- 3
 max.n.sample.attempts.to.be.higher.than.control <- 100000
 
@@ -13,19 +13,17 @@ if (length(cmdargs) == 0) {
   dist.for.peaks.vs.genes  <- "genes" 
   min.fc.diff.mult.add.for.c.histogram   <- 0
   min.raw.val.diff.for.c.histogram       <- 0
-  add.vs.mult.null.model   <- "mixture" # choose "additive" or "multiplicative" or "mixture"
   # input files -- use upregulated peaks or genes
   input.table  <- read_tsv(here("extractedData", "DeSeqOutputAllConds.annotated.upregulatedGeneSet.tsv"))
   # input.table  <- read_tsv(here("extractedData", "differentialAtacPeaks_mergedist250_peakwidth150_minNormFrags30_minFoldChange1.5.annotated.upregulated.tsv"))
   output.file.prefix <- here("plots", "null_distributions",
-                             sprintf("null_distribution_upreg_%s_%s_model_", dist.for.peaks.vs.genes, add.vs.mult.null.model))
+                             sprintf("null_distribution_upreg_%s_", dist.for.peaks.vs.genes))
 } else {
   input.table                            <- read_tsv(cmdargs[1])
   min.fc.diff.mult.add.for.c.histogram   <- as.numeric(cmdargs[2])
   min.raw.val.diff.for.c.histogram       <- as.numeric(cmdargs[3])
   dist.for.peaks.vs.genes                <- cmdargs[4]  # choose "peaks" or "genes"
-  add.vs.mult.null.model                 <- cmdargs[5]  # choose "additive" or "multiplicative" or "mixture"
-  output.file.prefix                     <- paste0(cmdargs[6], '/', sprintf("null_distribution_upreg_%s_%s_model_", dist.for.peaks.vs.genes, add.vs.mult.null.model))
+  output.file.prefix                     <- paste0(cmdargs[5], '/', sprintf("null_distribution_upreg_%s_", dist.for.peaks.vs.genes))
 }
 
 
@@ -100,7 +98,6 @@ drawNewValueSetFromDistribution <- function(etoh.mean.value, etoh.est.CV, ra.mea
   return(list(new.c.value, new.d.value, raw.val.mult.add.diff, foldchange.mult.add.diff))
 }
 
-# for each gene, draw ?3 values from the folded normal distribution, average them, then report the measured c and d values 
 makeAddModelPrediction <- function(etoh.value, ra.value, tgfb.value) {
   ra.effect   <- ra.value - etoh.value
   tgfb.effect <- tgfb.value - etoh.value
@@ -113,100 +110,132 @@ makeMultModelPrediction <- function(etoh.value, ra.value, tgfb.value) {
   return(etoh.value * ra.foldchange * tgfb.foldchange)
 }
 
-if (add.vs.mult.null.model == "additive") {
-  add.mult.mixture.frac.add <- 1
-} else if (add.vs.mult.null.model == "multiplicative") {
-  add.mult.mixture.frac.add <- 0
-} 
 
-for (dose in c("low", "med", "high")) {
-  if (add.vs.mult.null.model == "mixture") {
-    if (dist.for.peaks.vs.genes == "genes") {
-      n.add.genes  <- sum(input.table[[paste0("integrationCategory-", dose, "-dose")]] == "additive")
-      n.mult.genes <- sum(input.table[[paste0("integrationCategory-", dose, "-dose")]] == "multiplicative")
-      add.mult.mixture.frac.add <- n.add.genes / (n.add.genes + n.mult.genes)
-    } else if (dist.for.peaks.vs.genes == "peaks") {
-      n.add.peaks  <- sum(input.table[[paste0("peak_integrationCategory-", dose, "-dose")]] == "additive")
-      n.mult.peaks <- sum(input.table[[paste0("peak_integrationCategory-", dose, "-dose")]] == "multiplicative")
-      add.mult.mixture.frac.add <- n.add.peaks / (n.add.peaks + n.mult.peaks)
-    }
-  }
-  set.seed(0)
-  new.cvals.all              <- c()
-  new.dvals.all              <- c()
-  new.add.mult.raw.diffs.all <- c()
-  new.add.mult.fc.diffs.all  <- c()
-  selected.null.dists.all    <- c()
-  for (jj in 1:n.iterations.per.input.observation) {
-    if (dist.for.peaks.vs.genes == "peaks") {
-      # define the column names in peaks we are using normalized fragment counts
-      etoh.mean.values   <- input.table[["EtOH-nlDensity-avgNormFragmentCounts"]]
-      etoh.est.CVs       <- input.table[["EtOH_peak_cvEstPooled"]]
-      ra.mean.values     <- input.table[[paste0("RA-", dose, "-avgNormFragmentCounts")]]
-      ra.est.CVs         <- input.table[["RA_peak_cvEstPooled"]]
-      tgfb.mean.values   <- input.table[[paste0("TGFb-", dose, "-avgNormFragmentCounts")]]
-      tgfb.est.CVs       <- input.table[["TGFb_peak_cvEstPooled"]]
-      both.est.CVs       <- input.table[["TGFb-and-RA_peak_cvEstPooled"]]  # use the measured CV for the both condition. the mean will be determined by the definition of the null model and the individual mean signal effects
-    } else if (dist.for.peaks.vs.genes == "genes") {
-      # define the column names in peaks we are using transcripts per million
-      etoh.mean.values   <- input.table[["EtOH-nlDensity_avgTPM"]]
-      etoh.est.CVs       <- input.table[["EtOH_cvEstPooled"]]
-      ra.mean.values     <- input.table[[paste0("RA-", dose, "_avgTPM")]]
-      ra.est.CVs         <- input.table[["RA_cvEstPooled"]]
-      tgfb.mean.values   <- input.table[[paste0("TGFb-", dose, "_avgTPM")]]
-      tgfb.est.CVs       <- input.table[["TGFb_cvEstPooled"]]
-      both.est.CVs       <- input.table[["TGFb-and-RA_cvEstPooled"]] # use the measured CV for the both condition. the mean will be determined by the definition of the null model and the individual mean signal effects
-    }
-
-    n.observations <- length(etoh.mean.values)
-    # iterate over the rows of the input table, use a weighted coin model to select rows one-by-one, and call drawNewValueSetFromDistribution
-    new.sampled.val.list <- list()
-    selected.null.dists  <- c()
-    for (ii in 1:n.observations) {
-      use.add.null.model <- runif(1) <= add.mult.mixture.frac.add
-      if (use.add.null.model) {
-        this.null.model <- "add"
-      } else {
-        this.null.model <- "mult"
+grand.tib.for.plot.grid <- NULL
+for (add.vs.mult.null.model in c("additive", "multiplicative", "mixture")) {
+  if (add.vs.mult.null.model == "additive") {
+    add.mult.mixture.frac.add <- 1
+  } else if (add.vs.mult.null.model == "multiplicative") {
+    add.mult.mixture.frac.add <- 0
+  } 
+  
+  for (dose in c("low", "med", "high")) {
+    if (add.vs.mult.null.model == "mixture") {
+      if (dist.for.peaks.vs.genes == "genes") {
+        n.add.genes  <- sum(input.table[[paste0("integrationCategory-", dose, "-dose")]] == "additive")
+        n.mult.genes <- sum(input.table[[paste0("integrationCategory-", dose, "-dose")]] == "multiplicative")
+        add.mult.mixture.frac.add <- n.add.genes / (n.add.genes + n.mult.genes)
+      } else if (dist.for.peaks.vs.genes == "peaks") {
+        n.add.peaks  <- sum(input.table[[paste0("peak_integrationCategory-", dose, "-dose")]] == "additive")
+        n.mult.peaks <- sum(input.table[[paste0("peak_integrationCategory-", dose, "-dose")]] == "multiplicative")
+        add.mult.mixture.frac.add <- n.add.peaks / (n.add.peaks + n.mult.peaks)
       }
-      new.sampled.values <- drawNewValueSetFromDistribution(etoh.mean.values[ii], etoh.est.CVs[ii], 
-                                                            ra.mean.values[ii], ra.est.CVs[ii], 
-                                                            tgfb.mean.values[ii], tgfb.est.CVs[ii], 
-                                                            both.est.CVs[ii], 
-                                                            this.null.model)
-      new.sampled.val.list[[ii]] <- new.sampled.values
-      selected.null.dists <- c(selected.null.dists, this.null.model)
     }
-    new.cvals              <- sapply(new.sampled.val.list, function(x) x[[1]])
-    new.dvals              <- sapply(new.sampled.val.list, function(x) x[[2]])
-    new.add.mult.raw.diffs <- sapply(new.sampled.val.list, function(x) x[[3]])
-    new.add.mult.fc.diffs  <- sapply(new.sampled.val.list, function(x) x[[4]])
+    set.seed(0)
+    new.cvals.all              <- c()
+    new.dvals.all              <- c()
+    new.add.mult.raw.diffs.all <- c()
+    new.add.mult.fc.diffs.all  <- c()
+    selected.null.dists.all    <- c()
+    for (jj in 1:n.iterations.per.input.observation) {
+      if (dist.for.peaks.vs.genes == "peaks") {
+        # define the column names in peaks we are using normalized fragment counts
+        etoh.mean.values   <- input.table[["EtOH-nlDensity-avgNormFragmentCounts"]]
+        etoh.est.CVs       <- input.table[["EtOH_peak_cvEstPooled"]]
+        ra.mean.values     <- input.table[[paste0("RA-", dose, "-avgNormFragmentCounts")]]
+        ra.est.CVs         <- input.table[["RA_peak_cvEstPooled"]]
+        tgfb.mean.values   <- input.table[[paste0("TGFb-", dose, "-avgNormFragmentCounts")]]
+        tgfb.est.CVs       <- input.table[["TGFb_peak_cvEstPooled"]]
+        both.est.CVs       <- input.table[["TGFb-and-RA_peak_cvEstPooled"]]  # use the measured CV for the both condition. the mean will be determined by the definition of the null model and the individual mean signal effects
+      } else if (dist.for.peaks.vs.genes == "genes") {
+        # define the column names in peaks we are using transcripts per million
+        etoh.mean.values   <- input.table[["EtOH-nlDensity_avgTPM"]]
+        etoh.est.CVs       <- input.table[["EtOH_cvEstPooled"]]
+        ra.mean.values     <- input.table[[paste0("RA-", dose, "_avgTPM")]]
+        ra.est.CVs         <- input.table[["RA_cvEstPooled"]]
+        tgfb.mean.values   <- input.table[[paste0("TGFb-", dose, "_avgTPM")]]
+        tgfb.est.CVs       <- input.table[["TGFb_cvEstPooled"]]
+        both.est.CVs       <- input.table[["TGFb-and-RA_cvEstPooled"]] # use the measured CV for the both condition. the mean will be determined by the definition of the null model and the individual mean signal effects
+      }
+  
+      n.observations <- length(etoh.mean.values)
+      # iterate over the rows of the input table, use a weighted coin model to select rows one-by-one, and call drawNewValueSetFromDistribution
+      new.sampled.val.list <- list()
+      selected.null.dists  <- c()
+      for (ii in 1:n.observations) {
+        use.add.null.model <- runif(1) <= add.mult.mixture.frac.add
+        if (use.add.null.model) {
+          this.null.model <- "add"
+        } else {
+          this.null.model <- "mult"
+        }
+        new.sampled.values <- drawNewValueSetFromDistribution(etoh.mean.values[ii], etoh.est.CVs[ii], 
+                                                              ra.mean.values[ii], ra.est.CVs[ii], 
+                                                              tgfb.mean.values[ii], tgfb.est.CVs[ii], 
+                                                              both.est.CVs[ii], 
+                                                              this.null.model)
+        new.sampled.val.list[[ii]] <- new.sampled.values
+        selected.null.dists <- c(selected.null.dists, this.null.model)
+      }
+      new.cvals              <- sapply(new.sampled.val.list, function(x) x[[1]])
+      new.dvals              <- sapply(new.sampled.val.list, function(x) x[[2]])
+      new.add.mult.raw.diffs <- sapply(new.sampled.val.list, function(x) x[[3]])
+      new.add.mult.fc.diffs  <- sapply(new.sampled.val.list, function(x) x[[4]])
+      
+      new.cvals.all <- c(new.cvals.all, new.cvals)
+      new.dvals.all <- c(new.dvals.all, new.dvals)
+      new.add.mult.raw.diffs.all <- c(new.add.mult.raw.diffs.all, new.add.mult.raw.diffs)
+      new.add.mult.fc.diffs.all  <- c(new.add.mult.fc.diffs.all, new.add.mult.fc.diffs)
+      selected.null.dists.all <- c(selected.null.dists.all, selected.null.dists)
+    }
+  
+    bin.leftmost  <- -3
+    bin.rightmost <-  5
+    bin.step.size <-  0.125
+    plot.width    <-  8
+    plot.height   <-  5
+     
+    categorical.values <- selected.null.dists.all  # to do--add these if interested. could show which distribution they came from (add vs. mult)
+    hist.values        <- new.cvals.all
+    cval_hist_output   <- makeHistogramOfValues(hist.values, categorical.values, bin.leftmost, bin.rightmost,
+                                                   bin.step.size, paste0(add.vs.mult.null.model, ", ", dose, " dose, c-values, addmixfrac = ", add.mult.mixture.frac.add), 
+                                                   xlabel = "c-value", ylabel = "prob. density", color.by.category = T, y.axis.units = "counts")
+    stackedBarHistTibCvals <- cval_hist_output[[1]]
+    cval.hist.tib          <- cval_hist_output[[2]]
+    cval.hist.tib[["dose"]] <- dose
+    cval.hist.tib[["null_model"]] <- add.vs.mult.null.model
+    grand.tib.for.plot.grid <- rbind(grand.tib.for.plot.grid, cval.hist.tib)
     
-    new.cvals.all <- c(new.cvals.all, new.cvals)
-    new.dvals.all <- c(new.dvals.all, new.dvals)
-    new.add.mult.raw.diffs.all <- c(new.add.mult.raw.diffs.all, new.add.mult.raw.diffs)
-    new.add.mult.fc.diffs.all  <- c(new.add.mult.fc.diffs.all, new.add.mult.fc.diffs)
-    selected.null.dists.all <- c(selected.null.dists.all, selected.null.dists)
+    ggsave(paste0(output.file.prefix, "cval_plot_", add.vs.mult.null.model, "_model_", dose, "_dose.svg"), plot = stackedBarHistTibCvals, width = plot.width, height = plot.height)
+    
+    categorical.values <- selected.null.dists.all  # to do--add these if interested. could show which distribution they came from (add vs. mult)
+    hist.values        <- new.dvals.all
+    stackedBarHistTibDvals <- makeHistogramOfValues(hist.values, categorical.values, bin.leftmost, bin.rightmost,
+                                                    bin.step.size, paste0(add.vs.mult.null.model, ", ", dose, " dose, d-values, addmixfrac = ", add.mult.mixture.frac.add), 
+                                                    xlabel = "d-value", ylabel = "prob. density", color.by.category = T, y.axis.units = "counts")[[1]]
+    ggsave(paste0(output.file.prefix, "dval_plot_", add.vs.mult.null.model, "_model_", dose, "_dose.svg"), plot = stackedBarHistTibDvals, width = plot.width, height = plot.height)
   }
-
-  bin.leftmost  <- -3
-  bin.rightmost <-  5
-  bin.step.size <-  0.125
-  plot.width    <-  8
-  plot.height   <-  5
-   
-  categorical.values <- selected.null.dists.all  # to do--add these if interested. could show which distribution they came from (add vs. mult)
-  hist.values        <- new.cvals.all
-  stackedBarHistTibCvals <- makeHistogramOfValues(hist.values, categorical.values, bin.leftmost, bin.rightmost,
-                                                 bin.step.size, paste0(add.vs.mult.null.model, ", ", dose, " dose, c-values, addmixfrac = ", add.mult.mixture.frac.add), 
-                                                 xlabel = "c-value", ylabel = "prob. density", color.by.category = T, y.axis.units = "counts")
-  
-  ggsave(paste0(output.file.prefix, "cval_plot_", dose, "_dose.svg"), plot = stackedBarHistTibCvals, width = plot.width, height = plot.height)
-  
-  categorical.values <- selected.null.dists.all  # to do--add these if interested. could show which distribution they came from (add vs. mult)
-  hist.values        <- new.dvals.all
-  stackedBarHistTibDvals <- makeHistogramOfValues(hist.values, categorical.values, bin.leftmost, bin.rightmost,
-                                                  bin.step.size, paste0(add.vs.mult.null.model, ", ", dose, " dose, d-values, addmixfrac = ", add.mult.mixture.frac.add), 
-                                                  xlabel = "d-value", ylabel = "prob. density", color.by.category = T, y.axis.units = "counts")
-  ggsave(paste0(output.file.prefix, "dval_plot_", dose, "_dose.svg"), plot = stackedBarHistTibDvals, width = plot.width, height = plot.height)
 }
+
+grand.tib.for.plot.grid[["dose"]]       <- factor(grand.tib.for.plot.grid[["dose"]], levels = c("low", "med", "high"))
+grand.tib.for.plot.grid[["null_model"]] <- factor(grand.tib.for.plot.grid[["null_model"]], levels = c("additive", "multiplicative", "mixture"))
+n.dose.nullmodel.pairs = 9
+reduced.grand.tib <- grand.tib.for.plot.grid %>% 
+  group_by(intConstantHhistBin, intCategory, dose,  null_model) %>% 
+  mutate(n_this_bin = n(), freq_this_bin = n_this_bin / (nrow(grand.tib.for.plot.grid) / n.dose.nullmodel.pairs)) %>%
+  ungroup() %>%
+  unique()
+  
+gridhistogramplot1 <- ggplot(grand.tib.for.plot.grid, aes(x = intConstantHhistBin, fill = intCategory)) +
+  geom_bar(stat="count", width = bin.step.size * .90) +
+  facet_grid(dose ~ null_model) +
+  theme_classic()
+
+gridhistogramplot2 <- ggplot(reduced.grand.tib, aes(x = intConstantHhistBin, y = freq_this_bin, fill = intCategory)) +
+  geom_bar(stat="identity", width = bin.step.size * .90) +
+  facet_grid(dose ~ null_model) +
+  theme_classic()
+
+ggsave(paste0(output.file.prefix, "cval_grid_counts.svg"), plot = gridhistogramplot1, width = 18, height = 8.15)
+ggsave(paste0(output.file.prefix, "cval_grid_frequencies.svg"), plot = gridhistogramplot2, width = 18, height = 8.15)
+
