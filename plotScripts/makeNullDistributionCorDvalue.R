@@ -4,7 +4,7 @@ library(VGAM)  # required for rfoldnorm function
 
 source(here('extractionScripts', 'util.R'))
 
-n.iterations.per.input.observation <- 25  # if 1, null distribution will have the same number of observations as the input data, if 2 it'll be 2x, etc...
+n.iterations.per.input.observation <- 5  # if 1, null distribution will have the same number of observations as the input data, if 2 it'll be 2x, etc...
 n.experiment.replicates <- 3
 max.n.sample.attempts.to.be.higher.than.control <- 100000
 
@@ -136,6 +136,7 @@ for (dose in c("low", "med", "high")) {
   new.dvals.all              <- c()
   new.add.mult.raw.diffs.all <- c()
   new.add.mult.fc.diffs.all  <- c()
+  selected.null.dists.all    <- c()
   for (jj in 1:n.iterations.per.input.observation) {
     if (dist.for.peaks.vs.genes == "peaks") {
       # define the column names in peaks we are using normalized fragment counts
@@ -160,6 +161,7 @@ for (dose in c("low", "med", "high")) {
     n.observations <- length(etoh.mean.values)
     # iterate over the rows of the input table, use a weighted coin model to select rows one-by-one, and call drawNewValueSetFromDistribution
     new.sampled.val.list <- list()
+    selected.null.dists  <- c()
     for (ii in 1:n.observations) {
       use.add.null.model <- runif(1) <= add.mult.mixture.frac.add
       if (use.add.null.model) {
@@ -173,6 +175,7 @@ for (dose in c("low", "med", "high")) {
                                                             both.est.CVs[ii], 
                                                             this.null.model)
       new.sampled.val.list[[ii]] <- new.sampled.values
+      selected.null.dists <- c(selected.null.dists, this.null.model)
     }
     new.cvals              <- sapply(new.sampled.val.list, function(x) x[[1]])
     new.dvals              <- sapply(new.sampled.val.list, function(x) x[[2]])
@@ -183,26 +186,27 @@ for (dose in c("low", "med", "high")) {
     new.dvals.all <- c(new.dvals.all, new.dvals)
     new.add.mult.raw.diffs.all <- c(new.add.mult.raw.diffs.all, new.add.mult.raw.diffs)
     new.add.mult.fc.diffs.all  <- c(new.add.mult.fc.diffs.all, new.add.mult.fc.diffs)
+    selected.null.dists.all <- c(selected.null.dists.all, selected.null.dists)
   }
 
   bin.leftmost  <- -3
   bin.rightmost <-  5
   bin.step.size <-  0.125
   plot.width    <-  8
-  plot.height   <-  4
+  plot.height   <-  5
    
-  categorical.values <- NA  # to do--add these if interested. could show which distribution they came from (add vs. mult)
+  categorical.values <- selected.null.dists.all  # to do--add these if interested. could show which distribution they came from (add vs. mult)
   hist.values        <- new.cvals.all
   stackedBarHistTibCvals <- makeHistogramOfValues(hist.values, categorical.values, bin.leftmost, bin.rightmost,
                                                  bin.step.size, paste0(add.vs.mult.null.model, ", ", dose, " dose, c-values, addmixfrac = ", add.mult.mixture.frac.add), 
-                                                 xlabel = "c-value", ylabel = "count", color.by.category = F)
+                                                 xlabel = "c-value", ylabel = "prob. density", color.by.category = T, y.axis.units = "counts")
   
   ggsave(paste0(output.file.prefix, "cval_plot_", dose, "_dose.svg"), plot = stackedBarHistTibCvals, width = plot.width, height = plot.height)
   
-  categorical.values <- NA  # to do--add these if interested. could show which distribution they came from (add vs. mult)
+  categorical.values <- selected.null.dists.all  # to do--add these if interested. could show which distribution they came from (add vs. mult)
   hist.values        <- new.dvals.all
   stackedBarHistTibDvals <- makeHistogramOfValues(hist.values, categorical.values, bin.leftmost, bin.rightmost,
                                                   bin.step.size, paste0(add.vs.mult.null.model, ", ", dose, " dose, d-values, addmixfrac = ", add.mult.mixture.frac.add), 
-                                                  xlabel = "d-value", ylabel = "count", color.by.category = F)
+                                                  xlabel = "d-value", ylabel = "prob. density", color.by.category = T, y.axis.units = "counts")
   ggsave(paste0(output.file.prefix, "dval_plot_", dose, "_dose.svg"), plot = stackedBarHistTibDvals, width = plot.width, height = plot.height)
 }
