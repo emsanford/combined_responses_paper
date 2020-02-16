@@ -88,7 +88,7 @@ for (dosage in c("low", "med", "high")) {
 
   stackedBarHist <- makeHistogramOfValues(hist.values, mapped.categorical.values, bin.leftmost, bin.rightmost,
                                              bin.step.size, paste0(dosage, " dose, c-values"), 
-                                             xlabel = "c-value", ylabel = "count", color.by.category = F)
+                                             xlabel = "c-value", ylabel = "count", color.by.category = T)[[1]]
   
   stackedBarHist <- stackedBarHist + ylim(0, max(max.bin.vals))
   
