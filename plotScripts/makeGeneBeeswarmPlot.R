@@ -110,7 +110,7 @@ replicate.spacing <- 0.15
 tibforplot[tibforplot[["replicate"]] == "rep1", "order"] <- tibforplot[tibforplot[["replicate"]] == "rep1", "order"] - replicate.spacing
 tibforplot[tibforplot[["replicate"]] == "rep3", "order"] <- tibforplot[tibforplot[["replicate"]] == "rep3", "order"] + replicate.spacing
 
-genes.to.plot <- c('EPHB2', 'MAP3K1', 'GPRC5A', 'RIPK4') 
+genes.to.plot <- c('EPHB2', 'MAP3K1', 'GPRC5A', 'RIPK4', 'ZNF469') 
 for (gene.to.plot in genes.to.plot) {
   outputLoc <- paste0(outputFolder, '/', paste0(gene.to.plot, "_beeswarm.svg"))
   p <- makeCompositeBeeswarmPlot(gene.to.plot, geneTib, tibforplot)
