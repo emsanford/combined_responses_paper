@@ -199,7 +199,7 @@ for (add.vs.mult.null.model in c("additive", "multiplicative", "mixture")) {
     hist.values        <- new.cvals.all
     cval_hist_output   <- makeHistogramOfValues(hist.values, categorical.values, bin.leftmost, bin.rightmost,
                                                    bin.step.size, paste0(add.vs.mult.null.model, ", ", dose, " dose, c-values, addmixfrac = ", add.mult.mixture.frac.add), 
-                                                   xlabel = "c-value", ylabel = "prob. density", color.by.category = T, y.axis.units = "counts")
+                                                   xlabel = "c-value", ylabel = "counts", color.by.category = T, y.axis.units = "counts")
     stackedBarHistTibCvals <- cval_hist_output[[1]]
     cval.hist.tib          <- cval_hist_output[[2]]
     cval.hist.tib[["dose"]] <- dose
@@ -212,7 +212,7 @@ for (add.vs.mult.null.model in c("additive", "multiplicative", "mixture")) {
     hist.values        <- new.dvals.all
     stackedBarHistTibDvals <- makeHistogramOfValues(hist.values, categorical.values, bin.leftmost, bin.rightmost,
                                                     bin.step.size, paste0(add.vs.mult.null.model, ", ", dose, " dose, d-values, addmixfrac = ", add.mult.mixture.frac.add), 
-                                                    xlabel = "d-value", ylabel = "prob. density", color.by.category = T, y.axis.units = "counts")[[1]]
+                                                    xlabel = "d-value", ylabel = "counts", color.by.category = T, y.axis.units = "counts")[[1]]
     ggsave(paste0(output.file.prefix, "dval_plot_", add.vs.mult.null.model, "_model_", dose, "_dose.svg"), plot = stackedBarHistTibDvals, width = plot.width, height = plot.height)
   }
 }

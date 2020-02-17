@@ -3,6 +3,8 @@ library(here)
 
 source(here('extractionScripts', 'util.R'))
 
+use.common.scale <- F
+
 cmdargs = commandArgs(trailingOnly=TRUE)
 if (length(cmdargs) == 0) {
   siUpregGenes     <- read_tsv(here('extractedData', 'DeSeqOutputAllConds.annotated.upregulatedGeneSet.tsv'))
@@ -90,8 +92,10 @@ for (dosage in c("low", "med", "high")) {
                                              bin.step.size, paste0(dosage, " dose, c-values"), 
                                              xlabel = "c-value", ylabel = "count", color.by.category = T)[[1]]
   
-  stackedBarHist <- stackedBarHist + ylim(0, max(max.bin.vals))
-  
+  if (use.common.scale) {
+    stackedBarHist <- stackedBarHist + ylim(0, max(max.bin.vals))
+  }
+
   ggsave(paste0(stackedBarHistogram.location.prefix, "upregGeneIntegrationConstants_", dosage, "_dose.svg"), plot = stackedBarHist, width = plot.width, height = plot.height)
 }
   
