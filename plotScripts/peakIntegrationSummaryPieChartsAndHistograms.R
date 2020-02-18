@@ -18,9 +18,22 @@ n.upreg.peaks <- nrow(siUpregPeaks)
 
 svg(filename=paste0(piechart.location.prefix, "low_dose_", "n", n.upreg.peaks, ".svg"),width=8,height=8)
 input.vector <- factor(sapply(siUpregPeaks$`peak_integrationCategory-low-dose`, convertUpregCvalCatToDvalCat), levels = factor.order.peak.categories)
-pieplot.low  <- pie(table(input.vector), main = paste0("low dose, N =", n.upreg.peaks))
+pieplot.low  <- pie(table(input.vector), main = paste0("low dose, N =", n.upreg.peaks), init.angle = 150, clockwise = TRUE)
 print(pieplot.low)
 dev.off()
+
+svg(filename=paste0(piechart.location.prefix, "med_dose_", "n", n.upreg.peaks, ".svg"),width=8,height=8)
+input.vector <- factor(sapply(siUpregPeaks$`peak_integrationCategory-med-dose`, convertUpregCvalCatToDvalCat), levels = factor.order.peak.categories)
+pieplot.med  <- pie(table(input.vector), main = paste0("med dose, N =", n.upreg.peaks), init.angle = 150, clockwise = TRUE)
+print(pieplot.med)
+dev.off()
+
+svg(filename=paste0(piechart.location.prefix, "high_dose_", "n", n.upreg.peaks, ".svg"),width=8,height=8)
+input.vector <- factor(sapply(siUpregPeaks$`peak_integrationCategory-high-dose`, convertUpregCvalCatToDvalCat), levels = factor.order.peak.categories)
+pieplot.high  <- pie(table(input.vector), main = paste0("high dose, N =", n.upreg.peaks), init.angle = 150, clockwise = TRUE)
+print(pieplot.high)
+dev.off()
+
 
 
 
