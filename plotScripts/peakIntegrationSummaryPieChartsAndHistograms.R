@@ -3,7 +3,7 @@ library(here)
 
 cmdargs = commandArgs(trailingOnly=TRUE)
 if (length(cmdargs) == 0) {
-  # siUpregPeaks   <- read_tsv(here('plots', 'sensitivity_analysis',  'differentialAtacPeaks_mergedist250_peakwidth150_minNormFrags30_minFoldChange1.5.annotated.tsv'))
+  siUpregPeaks   <- read_tsv("/Users/emsanford/Dropbox (RajLab)/Shared_Eric/SIgnal_Integration/Analysis_SI2-SI4_github_testing/signal_integration_paper_scripts/extractedData/differentialAtacPeaks_mergedist250_peakwidth150_minNormFrags30_minFoldChange1.5.annotated.upregulated.tsv")
   outputPrefix  <- here("plots", paste0("stackedBarHist_upregPeakIntegrationConstants_"))
 } else {
   siUpregPeaks  <- read_tsv(cmdargs[1])

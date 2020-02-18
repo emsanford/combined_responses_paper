@@ -7,7 +7,7 @@ use.common.scale <- F
 
 cmdargs = commandArgs(trailingOnly=TRUE)
 if (length(cmdargs) == 0) {
-  siUpregGenes     <- read_tsv(here('extractedData', 'DeSeqOutputAllConds.annotated.upregulatedGeneSet.tsv'))
+  siUpregGenes     <- read_tsv("/Users/emsanford/Dropbox (RajLab)/Shared_Eric/SIgnal_Integration/Analysis_SI2-SI4_github_testing/signal_integration_paper_scripts/extractedData/DeSeqOutputAllConds.annotated.upregulatedGeneSet.tsv")
   addPredFcDiffMin <- 0
   minTpmDiff       <- 0
   output.folder    <- here('plots', 'gene_integration_summary_plots')
@@ -88,9 +88,14 @@ for (dosage in c("low", "med", "high")) {
   hist.values        <- pull(filtSiUpregGenes, paste0("integrationConstant-", dosage))
   mapped.categorical.values <- mapCatsToReducesCatSet(categorical.values)
 
-  stackedBarHist <- makeHistogramOfValues(hist.values, mapped.categorical.values, bin.leftmost, bin.rightmost,
+  stackedBarRes <- makeHistogramOfValues(hist.values, mapped.categorical.values, bin.leftmost, bin.rightmost,
                                              bin.step.size, paste0(dosage, " dose, c-values"), 
-                                             xlabel = "c-value", ylabel = "count", color.by.category = T)[[1]]
+                                             xlabel = "c-value", ylabel = "count", color.by.category = T)
+  
+  stackedBarHist <- stackedBarRes[[1]]
+  stackedBarTib  <- stackedBarRes[[2]]
+  
+  threshold.for.reporting.upper.end.of.histogram <- 2
   
   if (use.common.scale) {
     stackedBarHist <- stackedBarHist + ylim(0, max(max.bin.vals))

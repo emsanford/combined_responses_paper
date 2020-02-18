@@ -14,7 +14,8 @@ if (length(cmdargs) == 0) {
   min.fc.diff.mult.add.for.c.histogram   <- 0
   min.raw.val.diff.for.c.histogram       <- 0
   # input files -- use upregulated peaks or genes
-  input.table  <- read_tsv(here("extractedData", "DeSeqOutputAllConds.annotated.upregulatedGeneSet.tsv"))
+  # input.table  <- read_tsv(here("extractedData", "DeSeqOutputAllConds.annotated.upregulatedGeneSet.tsv"))
+  input.table  <- read_tsv("/Users/emsanford/Dropbox (RajLab)/Shared_Eric/SIgnal_Integration/Analysis_SI2-SI4_github_testing/signal_integration_paper_scripts/extractedData/DeSeqOutputAllConds.annotated.upregulatedGeneSet.tsv")
   # input.table  <- read_tsv(here("extractedData", "differentialAtacPeaks_mergedist250_peakwidth150_minNormFrags30_minFoldChange1.5.annotated.upregulated.tsv"))
   output.file.prefix <- here("plots", "null_distributions",
                              sprintf("null_distribution_upreg_%s_", dist.for.peaks.vs.genes))
@@ -239,3 +240,17 @@ gridhistogramplot2 <- ggplot(reduced.grand.tib, aes(x = intConstantHhistBin, y =
 ggsave(paste0(output.file.prefix, "cval_grid_counts.svg"), plot = gridhistogramplot1, width = 18, height = 8.15)
 ggsave(paste0(output.file.prefix, "cval_grid_frequencies.svg"), plot = gridhistogramplot2, width = 18, height = 8.15)
 
+
+# to do: print percent above c = 2 for each null distribution:
+c.cutoff <- 2
+for (dosage in c("low", "med", "high")) {
+  for (model in c("additive", "multiplicative", "mixture")) {
+    freq.above.c.2 <- reduced.grand.tib %>%
+      filter(null_model == model, dose == dosage) %>%
+      filter(intConstantHhistBin >= c.cutoff) %>%
+      pull("freq_this_bin") %>%
+      sum()
+    
+    print(sprintf("%s %s %0.3f", model, dosage, freq.above.c.2))
+  }
+}
