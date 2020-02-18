@@ -216,7 +216,7 @@ def main(param_obj, run_all_steps = False):
 	if run_all_steps or len(pie_chart_output_files) == 0:
 		cmd = "Rscript {0} {1} {2}".format(param_obj.path_to_peak_integration_category_histograms_script, 
 										   param_obj.upregulated_diffpeaks_output_file, 
-										   '"{0}"'.format(param_obj.integration_summary_plots_dir)
+										   '"{0}"'.format(param_obj.integration_summary_plots_dir))
 		run_command(cmd)
 
 	# make the venn diagrams of number of differential peaks and genes for each signal treatment
