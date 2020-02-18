@@ -59,3 +59,20 @@ makeHistogramOfValues <- function(data.vector, categories.vector, xlim_lower, xl
   
   return(list(stackedBarHist, stackedBarHistTib))
 }
+
+convertUpregCvalCatToDvalCat <- function(add.mult.spectrum.category.string) {
+  superadditive.peak.categories <- c("between-add-and-mult", "multiplicative", "super-multiplicative")
+  additive.peak.categories      <- c("additive", "ambiguous")
+  subadditive.peak.categories   <- c("sub-additive")
+  stopifnot(add.mult.spectrum.category.string %in% c(subadditive.peak.categories, additive.peak.categories, superadditive.peak.categories))
+  
+  if (add.mult.spectrum.category.string %in% subadditive.peak.categories) {
+    return("sub-additive") 
+  } else if (add.mult.spectrum.category.string %in% additive.peak.categories) {
+    return("additive") 
+  } else if (add.mult.spectrum.category.string %in% superadditive.peak.categories) {
+    return("super-additive")
+  } else {
+    return(NA)
+  }
+}

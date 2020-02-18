@@ -1,14 +1,26 @@
 library(tidyverse)
 library(here)
 
+source(here('extractionScripts', 'util.R'))
+
 cmdargs = commandArgs(trailingOnly=TRUE)
 if (length(cmdargs) == 0) {
   siUpregPeaks   <- read_tsv("/Users/emsanford/Dropbox (RajLab)/Shared_Eric/SIgnal_Integration/Analysis_SI2-SI4_github_testing/signal_integration_paper_scripts/extractedData/differentialAtacPeaks_mergedist250_peakwidth150_minNormFrags30_minFoldChange1.5.annotated.upregulated.tsv")
-  outputPrefix  <- here("plots", paste0("stackedBarHist_upregPeakIntegrationConstants_"))
+  output.folder  <- here("plots", "peak_integration_summary_plots")
 } else {
   siUpregPeaks  <- read_tsv(cmdargs[1])
-  outputPrefix <- cmdargs[2]
+  output.folder <- cmdargs[2]
 }
+
+piechart.location.prefix <- paste0(output.folder, '/peak_integration_category_pie_chart_')
+factor.order.peak.categories <- c("sub-additive", "additive", "super-additive")
+n.upreg.peaks <- nrow(siUpregPeaks)
+
+svg(filename=paste0(piechart.location.prefix, "low_dose_", "n", n.upreg.peaks, ".svg"),width=8,height=8)
+input.vector <- factor(sapply(siUpregPeaks$`peak_integrationCategory-low-dose`, convertUpregCvalCatToDvalCat), levels = factor.order.peak.categories)
+pieplot.low  <- pie(table(input.vector), main = paste0("low dose, N =", n.upreg.peaks))
+print(pieplot.low)
+dev.off()
 
 
 

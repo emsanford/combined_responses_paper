@@ -59,7 +59,6 @@ class ParamSet:
 		self.upregulated_diffpeaks_output_file                  = '"{0}"'.format(os.sep.join([extractedDataDir, "differentialAtacPeaks_{0}.annotated.upregulated.tsv".format(param_summary_string)]))
 		self.initial_peak_fdr_grid_plot_path_prefix             = '"{0}"'.format(os.sep.join([plotsDir, "initial_fdr_grid_{0}".format(param_summary_string)]))
 		self.final_peak_fdr_grid_plot_path_prefix               = '"{0}"'.format(os.sep.join([plotsDir, "final_fdr_grid_{0}".format(param_summary_string)]))
-		self.integration_histogram_path_prefix                  = '"{0}"'.format(os.sep.join([self.integration_summary_plots_dir, "cval_histogram_{0}".format(param_summary_string)]))
 		self.upreg_peak_cats_bed_file_prefix                    = '"{0}"'.format(os.sep.join([extractedDataDir, "upregulated_peaks_{0}".format(param_summary_string)]))
 		self.joined_gene_and_peak_table_file                    = '"{0}"'.format(os.sep.join([extractedDataDir, "upregJoinedPeakGeneTib_{0}.tsv".format(param_summary_string)]))
 		self.peaks_near_genes_plots_path_prefix                 = '"{0}"'.format(os.sep.join([plotsDir, "peaks_near_genes_{0}".format(param_summary_string)]))
@@ -213,10 +212,11 @@ def main(param_obj, run_all_steps = False):
 		run_command(cmd)
 
 	# make the peak signal integration histogram and pie charts for this parameter set
-	if run_all_steps or not os.path.exists(param_obj.integration_histogram_path_prefix[1:-1] + "_med_dose.svg"):
+	pie_chart_output_files = glob.glob(param_obj.integration_summary_plots_dir + os.sep + "*pie_chart*.svg")
+	if run_all_steps or len(pie_chart_output_files) == 0:
 		cmd = "Rscript {0} {1} {2}".format(param_obj.path_to_peak_integration_category_histograms_script, 
 										   param_obj.upregulated_diffpeaks_output_file, 
-										   param_obj.integration_histogram_path_prefix)
+										   '"{0}"'.format(param_obj.integration_summary_plots_dir)
 		run_command(cmd)
 
 	# make the venn diagrams of number of differential peaks and genes for each signal treatment
