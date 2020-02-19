@@ -1,5 +1,6 @@
 library(tidyverse)
 library(here)
+library(patchwork)
 
 source(here('extractionScripts', 'util.R'))
 
@@ -35,18 +36,6 @@ print(pieplot.high)
 dev.off()
 
 
-
-
-# svg(filename=here("plots", "rTpmBeeSwarmsAll", sprintf("piechart_%s_%s.svg", signal.effect.direction, "0-low")),width=8,height=8)
-pie(table(siUpregPeaks$`peak_integrationCategory-low-dose`))
-pie(table(siUpregPeaks$`peak_integrationCategory-med-dose`))
-pie(table(siUpregPeaks$`peak_integrationCategory-high-dose`))
-siUpregPeaks$`peak_integrationConstant-low` %>% qplot() + xlim(-2, 2) + ylim(0, 155)
-siUpregPeaks$`peak_integrationConstant-med` %>% qplot() + xlim(-2, 2) + ylim(0, 155)
-siUpregPeaks$`peak_integrationConstant-high` %>% qplot() + xlim(-2, 2) + ylim(0, 155)
-# dev.off()
-
-
 ####### make stacked histogram plot showing signal integration constant & colored by frequency of each category in the plot
 
 # function: reassign weird categories that may come up when a different dose integrates in a different direction to "uncategorized" 
@@ -56,54 +45,92 @@ mapCatsToReducesCatSet <- function(cat.values) {
   return(factor(cat.values, levels = rev(c("uncategorized", allowedCategories))))
 }
 
-# function: assign values to a bin
-# input -- a vector of integration contstants
-# output -- bin values for the vector. order of values in the vector doesn't change
-#   note: values outside the range get assigned to the lowest or highest bin available
-assignValuesToHistBin <- function(values, bin.midpoints, bin.radius) {
-  n.vals <- length(values)
-  outputVec <- c()
-  for (ii in 1:n.vals) {
-    this.val <- values[ii]
-    distvec <- abs(this.val - bin.midpoints)
-    lowest.bin.distance <- min(distvec)
-    bin.index <- which(distvec == lowest.bin.distance)[1]
-    outputVec <- c(outputVec, bin.midpoints[bin.index])
-  }
-  return(outputVec)
-}
 
+# make stacked bar histograms for D value
+bin.step.size   <-  0.05
+bin.leftmost    <- -2
+bin.rightmost   <-  2
+plot.width      <-  16
+plot.height     <-  8
+bin.radius      <- bin.step.size / 2
+bin.midpoints   <- seq(bin.leftmost + bin.step.size, bin.rightmost, by = bin.step.size) - bin.radius
+use.common.scale <- T
+standard.ylim <- 500
+threshold.for.reporting.upper.end.of.histogram <- 1.5
 
+output.fig.list <- list()
+counter <- 1
 for (dosage in c("low", "med", "high")) {
-  categorical.values <- pull(siUpregPeaks, paste0("peak_integrationCategory-", dosage ,"-dose"))
-  hist.values        <- pull(siUpregPeaks, paste0("peak_integrationConstant-", dosage))
+  categorical.values <- sapply(pull(siUpregPeaks, paste0("peak_integrationCategory-", dosage ,"-dose")), convertUpregCvalCatToDvalCat)
+  hist.values        <- pull(siUpregPeaks, paste0("peakAdditivePredFcResidual-", dosage))
   
-  bin.midpoints <- seq(-4, 8, by = 0.1)
-  bin.radius    <- (bin.midpoints[2] - bin.midpoints[1]) / 2
+  stackedBarRes <- makeHistogramOfValues(hist.values, categorical.values, bin.leftmost, bin.rightmost,
+                                         bin.step.size, paste0(dosage, " dose, d-values"), 
+                                         xlabel = "d-value", ylabel = "count", color.by.category = T)
   
-  mapped.categorical.values <- mapCatsToReducesCatSet(categorical.values)
-  bin.values <- assignValuesToHistBin(hist.values, bin.midpoints, bin.radius)
+  stackedBarHist <- stackedBarRes[[1]]
   
-  stackedBarHistTib <- tibble(intConstantHhistBin = bin.values, intCategory = mapped.categorical.values)
+  if (use.common.scale) {
+    stackedBarHist <- stackedBarHist + ylim(0, standard.ylim)
+  }
   
-  stackedBarHist <- ggplot(stackedBarHistTib, aes(x = intConstantHhistBin, fill = intCategory)) +
-    geom_bar(stat="count", width = bin.radius * 2 * .90) + 
-    theme_minimal(base_size = 12) + 
-    xlab("integration constant value for a peak") +
-    ylab("number of peaks") +
-    geom_vline(xintercept = 0) +
-    geom_vline(xintercept = 1) +
-    ggtitle(paste0("Distribution of integration constants for upregulated peaks\n", dosage, " dose"))
+  stackedBarTib  <- stackedBarRes[[2]]
+  stackedBarTib[["dose"]] <- dosage
+  reduced.tib <- stackedBarTib %>% 
+    group_by(intConstantHhistBin, intCategory, dose) %>% 
+    mutate(n_this_bin = n(), freq_this_bin = n_this_bin / nrow(stackedBarTib)) %>%
+    ungroup() %>%
+    unique()
   
-  ggsave(paste0(outputPrefix, "_", dosage, "_dose.svg"), width = 12, height = 4, plot = stackedBarHist)
+  freq.above.c.2 <- reduced.tib %>%
+    filter(intConstantHhistBin >= threshold.for.reporting.upper.end.of.histogram) %>%
+    pull("freq_this_bin") %>%
+    sum()
+  
+  print(sprintf("%s %0.3f", dosage, freq.above.c.2))
+  
+  ggsave(paste0(output.folder, "/dval_addPredDiff_histogram_", dosage, "_dose.svg"), width = plot.width, height = plot.height, plot = stackedBarHist)
+  
+  output.fig.list[[counter]] <- stackedBarHist
+  counter <- counter + 1
 }
 
-# "d" value histograms for peaks
-d1 <- siUpregPeaks$`peakAdditivePredFcResidual-low` %>% qplot(bins = 50) + xlim(-5, 5) + ylab("number of upregulated peaks") + xlab("fold-change difference from additive prediction") + theme_minimal(base_size = 16)
-d2 <- siUpregPeaks$`peakAdditivePredFcResidual-med` %>% qplot(bins = 50) + xlim(-5, 5) + ylab("number of upregulated peaks") + xlab("fold-change difference from additive prediction") + theme_minimal(base_size = 16)
-d3 <- siUpregPeaks$`peakAdditivePredFcResidual-high` %>% qplot(bins = 50) + xlim(-5, 5) + ylab("number of upregulated peaks") + xlab("fold-change difference from additive prediction") + theme_minimal(base_size = 16)
+grand.plot.dvals <- output.fig.list[[1]] + output.fig.list[[2]] + output.fig.list[[3]] 
+ggsave(paste0(output.folder, "/dval_composed_histogram_", dosage, "_dose.svg"), width = plot.width * 3, height = plot.height, plot = grand.plot.dvals) 
 
-d4 <- siUpregPeaks$`peakMultiplicativePredFcResidual-low` %>% qplot(bins = 50) + xlim(-5, 5) + ylab("number of upregulated peaks") + xlab("fold-change difference from multiplicative prediction") + theme_minimal(base_size = 16)
-d5 <- siUpregPeaks$`peakMultiplicativePredFcResidual-med` %>% qplot(bins = 50) + xlim(-5, 5) + ylab("number of upregulated peaks") + xlab("fold-change difference from multiplicative prediction") + theme_minimal(base_size = 16)
-d6 <- siUpregPeaks$`peakMultiplicativePredFcResidual-high` %>% qplot(bins = 50) + xlim(-5, 5) + ylab("number of upregulated peaks") + xlab("fold-change difference from multiplicative prediction") + theme_minimal(base_size = 16)
+# uncomment this block of code to see similar plots but for the fold-change difference from the multiplicative prediction
+# for (dosage in c("low", "med", "high")) {
+#   categorical.values <- sapply(pull(siUpregPeaks, paste0("peak_integrationCategory-", dosage ,"-dose")), convertUpregCvalCatToDvalCat)
+#   hist.values        <- pull(siUpregPeaks, paste0("peakMultiplicativePredFcResidual-", dosage))
+#   
+#   stackedBarRes <- makeHistogramOfValues(hist.values, categorical.values, bin.leftmost, bin.rightmost,
+#                                          bin.step.size, paste0(dosage, " dose, d-values"), 
+#                                          xlabel = "d-value", ylabel = "count", color.by.category = T)
+#   
+#   stackedBarHist <- stackedBarRes[[1]]
+#   
+#   if (use.common.scale) {
+#     stackedBarHist <- stackedBarHist + ylim(0, standard.ylim)
+#   }
+#   
+#   stackedBarTib  <- stackedBarRes[[2]]
+#   stackedBarTib[["dose"]] <- dosage
+#   reduced.tib <- stackedBarTib %>% 
+#     group_by(intConstantHhistBin, intCategory, dose) %>% 
+#     mutate(n_this_bin = n(), freq_this_bin = n_this_bin / nrow(stackedBarTib)) %>%
+#     ungroup() %>%
+#     unique()
+#   
+#   freq.above.c.2 <- reduced.tib %>%
+#     filter(intConstantHhistBin >= threshold.for.reporting.upper.end.of.histogram) %>%
+#     pull("freq_this_bin") %>%
+#     sum()
+#   
+#   print(sprintf("%s %0.3f", dosage, freq.above.c.2))
+#   
+#   ggsave(paste0(output.folder, "/multPredDiff_histogram_", dosage, "_dose.svg"), width = plot.width, height = plot.height, plot = stackedBarHist)
+#   
+#   output.fig.list[[counter]] <- stackedBarHist
+#   counter <- counter + 1
+# }
 

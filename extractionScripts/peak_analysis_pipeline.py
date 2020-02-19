@@ -40,9 +40,10 @@ class ParamSet:
 		self.venn_diagrams_directory                             = os.sep.join([plotsDir, "venn_diagrams"])
 		self.integration_summary_plots_dir                       = os.sep.join([plotsDir, "peak_integration_summary_plots"])
 		self.integration_summary_null_distribution_plots_dir     = os.sep.join([plotsDir, "peak_integration_summary_plots", "null_distributions"])
+		self.peaks_near_genes_plots_dir                          = os.sep.join([plotsDir, "peaks_near_gene_types_plots"]) 
 		self.subdirectories 							 		 = [plotsDir, extractedDataDir, self.consensus_peak_file_dir[1:-1], 
 																	self.integration_summary_plots_dir, self.integration_summary_null_distribution_plots_dir,
-																	self.venn_diagrams_directory]
+																	self.venn_diagrams_directory, self.peaks_near_genes_plots_dir]
 
 		# paths to input and output files
 		self.merged_consensus_peak_file                         = '"{0}"'.format(os.sep.join([extractedDataDir, "mergedConsensusMacs2PeakFilesAllConditions.bed"]))
@@ -280,34 +281,12 @@ def main(param_obj, run_all_steps = False):
 											   param_obj.joined_gene_and_peak_table_file)
 		run_command(cmd)
 	# use the new joined peak tib to make the "special peak types near genes" plots
-	peaks_near_genes_analysis_plots = glob.glob(param_obj.peaks_near_genes_plots_path_prefix[1:-1] + "*.svg")
+	peaks_near_genes_analysis_plots = glob.glob(param_obj.peaks_near_genes_plots_dir + os.sep + "*.svg")
 	if run_all_steps or len(peaks_near_genes_analysis_plots) == 0:
-		cmd = "Rscript {0} {1} {2} {3} {4}".format(param_obj.path_to_make_peak_near_gene_analysis_plots,
-												   param_obj.path_to_upregulated_gene_table,
-												   param_obj.joined_gene_and_peak_table_file,
-												   param_obj.peaks_near_genes_plots_path_prefix + "superadditivePeaks_",
-												   "superadditive")
-		run_command(cmd)
-
-		cmd = "Rscript {0} {1} {2} {3} {4}".format(param_obj.path_to_make_peak_near_gene_analysis_plots,
-												   param_obj.path_to_upregulated_gene_table,
-												   param_obj.joined_gene_and_peak_table_file,
-												   param_obj.peaks_near_genes_plots_path_prefix + "additivePeaks_",
-												   "additive")
-		run_command(cmd)
-
-		cmd = "Rscript {0} {1} {2} {3} {4}".format(param_obj.path_to_make_peak_near_gene_analysis_plots,
-												   param_obj.path_to_upregulated_gene_table,
-												   param_obj.joined_gene_and_peak_table_file,
-												   param_obj.peaks_near_genes_plots_path_prefix + "subadditivePeaks_",
-												   "subadditive")
-		run_command(cmd)
-
-		cmd = "Rscript {0} {1} {2} {3} {4}".format(param_obj.path_to_make_peak_near_gene_analysis_plots,
-												   param_obj.path_to_upregulated_gene_table,
-												   param_obj.joined_gene_and_peak_table_file,
-												   param_obj.peaks_near_genes_plots_path_prefix + "allUpregPeaks_",
-												   "all")
+		cmd = "Rscript {0} {1} {2} {3}".format(param_obj.path_to_make_peak_near_gene_analysis_plots,
+											   param_obj.path_to_upregulated_gene_table,
+											   param_obj.joined_gene_and_peak_table_file,
+											   '"{0}"'.format(param_obj.peaks_near_genes_plots_dir))
 		run_command(cmd)
 
 	

@@ -4,27 +4,31 @@ library(VGAM)  # required for rfoldnorm function
 
 source(here('extractionScripts', 'util.R'))
 
-n.iterations.per.input.observation <- 50  # if 1, null distribution will have the same number of observations as the input data, if 2 it'll be 2x, etc...
 n.experiment.replicates <- 3
 max.n.sample.attempts.to.be.higher.than.control <- 100000
 
 cmdargs = commandArgs(trailingOnly=TRUE)
 if (length(cmdargs) == 0) {
-  dist.for.peaks.vs.genes  <- "genes" 
+  dist.for.peaks.vs.genes  <- "peaks" 
   min.fc.diff.mult.add.for.c.histogram   <- 0
   min.raw.val.diff.for.c.histogram       <- 0
   # input files -- use upregulated peaks or genes
   # input.table  <- read_tsv(here("extractedData", "DeSeqOutputAllConds.annotated.upregulatedGeneSet.tsv"))
-  input.table  <- read_tsv("/Users/emsanford/Dropbox (RajLab)/Shared_Eric/SIgnal_Integration/Analysis_SI2-SI4_github_testing/signal_integration_paper_scripts/extractedData/DeSeqOutputAllConds.annotated.upregulatedGeneSet.tsv")
-  # input.table  <- read_tsv(here("extractedData", "differentialAtacPeaks_mergedist250_peakwidth150_minNormFrags30_minFoldChange1.5.annotated.upregulated.tsv"))
-  output.file.prefix <- here("plots", "null_distributions",
-                             sprintf("null_distribution_upreg_%s_", dist.for.peaks.vs.genes))
+  # input.table  <- read_tsv("/Users/emsanford/Dropbox (RajLab)/Shared_Eric/SIgnal_Integration/Analysis_SI2-SI4_github_testing/signal_integration_paper_scripts/extractedData/DeSeqOutputAllConds.annotated.upregulatedGeneSet.tsv")
+  input.table      <- read_tsv("/Users/emsanford/Dropbox (RajLab)/Shared_Eric/SIgnal_Integration/Analysis_SI2-SI4_github_testing/signal_integration_paper_scripts/extractedData/differentialAtacPeaks_mergedist250_peakwidth150_minNormFrags30_minFoldChange1.5.annotated.upregulated.tsv")
+  output.file.prefix <- paste0("/Users/emsanford/Dropbox (RajLab)/Shared_Eric/SIgnal_Integration/Analysis_SI2-SI4/plots/peak_integration_summary_plots/null_distributions/", dist.for.peaks.vs.genes, "_")
 } else {
   input.table                            <- read_tsv(cmdargs[1])
   min.fc.diff.mult.add.for.c.histogram   <- as.numeric(cmdargs[2])
   min.raw.val.diff.for.c.histogram       <- as.numeric(cmdargs[3])
   dist.for.peaks.vs.genes                <- cmdargs[4]  # choose "peaks" or "genes"
   output.file.prefix                     <- paste0(cmdargs[5], '/', sprintf("null_distribution_upreg_%s_", dist.for.peaks.vs.genes))
+}
+
+if (dist.for.peaks.vs.genes == "genes") {
+  n.iterations.per.input.observation <- 50  # if 1, null distribution will have the same number of observations as the input data, if 2 it'll be 2x, etc...
+} else if (dist.for.peaks.vs.genes == "peaks") {
+  n.iterations.per.input.observation <- 10  
 }
 
 
@@ -112,7 +116,8 @@ makeMultModelPrediction <- function(etoh.value, ra.value, tgfb.value) {
 }
 
 
-grand.tib.for.plot.grid <- NULL
+grand.tib.for.cval.plot.grid <- NULL
+grand.tib.for.dval.plot.grid <- NULL
 for (add.vs.mult.null.model in c("additive", "multiplicative", "mixture")) {
   if (add.vs.mult.null.model == "additive") {
     add.mult.mixture.frac.add <- 1
@@ -190,6 +195,7 @@ for (add.vs.mult.null.model in c("additive", "multiplicative", "mixture")) {
       selected.null.dists.all <- c(selected.null.dists.all, selected.null.dists)
     }
   
+    # make plot for c values
     bin.leftmost  <- -3
     bin.rightmost <-  5
     bin.step.size <-  0.125
@@ -205,29 +211,43 @@ for (add.vs.mult.null.model in c("additive", "multiplicative", "mixture")) {
     cval.hist.tib          <- cval_hist_output[[2]]
     cval.hist.tib[["dose"]] <- dose
     cval.hist.tib[["null_model"]] <- add.vs.mult.null.model
-    grand.tib.for.plot.grid <- rbind(grand.tib.for.plot.grid, cval.hist.tib)
+    grand.tib.for.cval.plot.grid <- rbind(grand.tib.for.cval.plot.grid, cval.hist.tib)
     
     ggsave(paste0(output.file.prefix, "cval_plot_", add.vs.mult.null.model, "_model_", dose, "_dose.svg"), plot = stackedBarHistTibCvals, width = plot.width, height = plot.height)
     
+    # make plot for d values
+    bin.step.size   <-  0.05
+    bin.leftmost    <- -2
+    bin.rightmost   <-  2
+    plot.width    <-  8
+    plot.height   <-  5
+    
     categorical.values <- selected.null.dists.all  # to do--add these if interested. could show which distribution they came from (add vs. mult)
     hist.values        <- new.dvals.all
-    stackedBarHistTibDvals <- makeHistogramOfValues(hist.values, categorical.values, bin.leftmost, bin.rightmost,
+    dval_hist_output <- makeHistogramOfValues(hist.values, categorical.values, bin.leftmost, bin.rightmost,
                                                     bin.step.size, paste0(add.vs.mult.null.model, ", ", dose, " dose, d-values, addmixfrac = ", add.mult.mixture.frac.add), 
-                                                    xlabel = "d-value", ylabel = "counts", color.by.category = T, y.axis.units = "counts")[[1]]
+                                                    xlabel = "d-value", ylabel = "counts", color.by.category = T, y.axis.units = "counts")
+    
+    stackedBarHistTibDvals <- dval_hist_output[[1]]
+    dval.hist.tib          <- dval_hist_output[[2]]
+    dval.hist.tib[["dose"]] <- dose
+    dval.hist.tib[["null_model"]] <- add.vs.mult.null.model
+    grand.tib.for.dval.plot.grid <- rbind(grand.tib.for.dval.plot.grid, dval.hist.tib)
+    
     ggsave(paste0(output.file.prefix, "dval_plot_", add.vs.mult.null.model, "_model_", dose, "_dose.svg"), plot = stackedBarHistTibDvals, width = plot.width, height = plot.height)
   }
 }
 
-grand.tib.for.plot.grid[["dose"]]       <- factor(grand.tib.for.plot.grid[["dose"]], levels = c("low", "med", "high"))
-grand.tib.for.plot.grid[["null_model"]] <- factor(grand.tib.for.plot.grid[["null_model"]], levels = c("additive", "multiplicative", "mixture"))
+grand.tib.for.cval.plot.grid[["dose"]]       <- factor(grand.tib.for.cval.plot.grid[["dose"]], levels = c("low", "med", "high"))
+grand.tib.for.cval.plot.grid[["null_model"]] <- factor(grand.tib.for.cval.plot.grid[["null_model"]], levels = c("additive", "multiplicative", "mixture"))
 n.dose.nullmodel.pairs = 9
-reduced.grand.tib <- grand.tib.for.plot.grid %>% 
+reduced.grand.tib <- grand.tib.for.cval.plot.grid %>% 
   group_by(intConstantHhistBin, intCategory, dose,  null_model) %>% 
-  mutate(n_this_bin = n(), freq_this_bin = n_this_bin / (nrow(grand.tib.for.plot.grid) / n.dose.nullmodel.pairs)) %>%
+  mutate(n_this_bin = n(), freq_this_bin = n_this_bin / (nrow(grand.tib.for.cval.plot.grid) / n.dose.nullmodel.pairs)) %>%
   ungroup() %>%
   unique()
   
-gridhistogramplot1 <- ggplot(grand.tib.for.plot.grid, aes(x = intConstantHhistBin, fill = intCategory)) +
+gridhistogramplot1 <- ggplot(grand.tib.for.cval.plot.grid, aes(x = intConstantHhistBin, fill = intCategory)) +
   geom_bar(stat="count", width = bin.step.size * .90) +
   facet_grid(dose ~ null_model) +
   theme_classic()
@@ -239,10 +259,10 @@ gridhistogramplot2 <- ggplot(reduced.grand.tib, aes(x = intConstantHhistBin, y =
 
 ggsave(paste0(output.file.prefix, "cval_grid_counts.svg"), plot = gridhistogramplot1, width = 18, height = 8.15)
 ggsave(paste0(output.file.prefix, "cval_grid_frequencies.svg"), plot = gridhistogramplot2, width = 18, height = 8.15)
-
+saveRDS(grand.tib.for.cval.plot.grid, file = paste0(output.file.prefix, "cval_grid_grand_tibble.rds"))
 
 # to do: print percent above c = 2 for each null distribution:
-c.cutoff <- 2
+c.cutoff <- 3
 for (dosage in c("low", "med", "high")) {
   for (model in c("additive", "multiplicative", "mixture")) {
     freq.above.c.2 <- reduced.grand.tib %>%
@@ -254,3 +274,62 @@ for (dosage in c("low", "med", "high")) {
     print(sprintf("%s %s %0.3f", model, dosage, freq.above.c.2))
   }
 }
+
+
+
+
+grand.tib.for.dval.plot.grid[["dose"]]       <- factor(grand.tib.for.dval.plot.grid[["dose"]], levels = c("low", "med", "high"))
+grand.tib.for.dval.plot.grid[["null_model"]] <- factor(grand.tib.for.dval.plot.grid[["null_model"]], levels = c("additive", "multiplicative", "mixture"))
+n.dose.nullmodel.pairs = 9
+reduced.grand.tib <- grand.tib.for.dval.plot.grid %>% 
+  group_by(intConstantHhistBin, intCategory, dose,  null_model) %>% 
+  mutate(n_this_bin = n(), freq_this_bin = n_this_bin / (nrow(grand.tib.for.dval.plot.grid) / n.dose.nullmodel.pairs)) %>%
+  ungroup() %>%
+  unique()
+
+gridhistogramplot1 <- ggplot(grand.tib.for.dval.plot.grid, aes(x = intConstantHhistBin, fill = intCategory)) +
+  geom_bar(stat="count", width = bin.step.size * .90) +
+  facet_grid(dose ~ null_model) +
+  theme_classic()
+
+gridhistogramplot2 <- ggplot(reduced.grand.tib, aes(x = intConstantHhistBin, y = freq_this_bin, fill = intCategory)) +
+  geom_bar(stat="identity", width = bin.step.size * .90) +
+  facet_grid(dose ~ null_model) +
+  theme_classic()
+
+histogramplot3 <- ggplot(filter(reduced.grand.tib, null_model == "additive", dose == "low"), aes(x = intConstantHhistBin, y = freq_this_bin, fill = intCategory)) +
+  geom_bar(stat="identity", width = bin.step.size * .90) +
+  theme_classic()
+
+histogramplot4 <- ggplot(filter(reduced.grand.tib, null_model == "additive", dose == "med"), aes(x = intConstantHhistBin, y = freq_this_bin, fill = intCategory)) +
+  geom_bar(stat="identity", width = bin.step.size * .90) +
+  theme_classic()
+
+histogramplot5 <- ggplot(filter(reduced.grand.tib, null_model == "additive", dose == "high"), aes(x = intConstantHhistBin, y = freq_this_bin, fill = intCategory)) +
+  geom_bar(stat="identity", width = bin.step.size * .90) +
+  theme_classic()
+
+library(patchwork)
+rowhistogramplot1 <- histogramplot3 + histogramplot4 + histogramplot5
+plot.width      <-  16
+plot.height     <-  8
+ggsave(paste0(output.file.prefix, "dval_row_frequencies.svg"), plot = rowhistogramplot1, width = plot.width * 3, height = plot.height)
+
+ggsave(paste0(output.file.prefix, "dval_grid_counts.svg"), plot = gridhistogramplot1, width = 18, height = 8.15)
+ggsave(paste0(output.file.prefix, "dval_grid_frequencies.svg"), plot = gridhistogramplot2, width = 18, height = 8.15)
+saveRDS(grand.tib.for.dval.plot.grid, file = paste0(output.file.prefix, "dval_grid_grand_tibble.rds"))
+
+# to do: print percent above c = 2 for each null distribution:
+d.cutoff <- 1.5
+for (dosage in c("low", "med", "high")) {
+  for (model in c("additive", "multiplicative", "mixture")) {
+    freq.above.c.2 <- reduced.grand.tib %>%
+      filter(null_model == model, dose == dosage) %>%
+      filter(intConstantHhistBin >= d.cutoff) %>%
+      pull("freq_this_bin") %>%
+      sum()
+    
+    print(sprintf("%s %s %0.5f", model, dosage, freq.above.c.2))
+  }
+}
+
