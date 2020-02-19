@@ -182,4 +182,4 @@ for (selected.peak.category.arg in c("subadditive", "additive", "superadditive")
 patchwork.plot <- (grand.list.of.list.of.plots[[1]][[1]] + grand.list.of.list.of.plots[[1]][[2]] + grand.list.of.list.of.plots[[1]][[3]]) /
                   (grand.list.of.list.of.plots[[2]][[1]] + grand.list.of.list.of.plots[[2]][[2]] + grand.list.of.list.of.plots[[2]][[3]]) /
                   (grand.list.of.list.of.plots[[3]][[1]] + grand.list.of.list.of.plots[[3]][[2]] + grand.list.of.list.of.plots[[3]][[3]])
-ggsave(paste0(outputloc.prefix, "patchwork_plot_avgNumPeakTypesNearGeneTypes.svg"), plot = patchwork.plot, width = 16, height = 16)
+ggsave(paste0(outputloc.prefix, "patchwork_plot_avgNumPeakTypesNearGeneTypes.svg"), plot = patchwork.plot, width = 24, height = 16)
