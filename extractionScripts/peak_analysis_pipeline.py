@@ -284,7 +284,7 @@ def main(param_obj, run_all_steps = False):
 
 		cmd = "Rscript {0} {1} {2} {3}".format(param_obj.path_to_join_peak_to_gene_tib,
 											   param_obj.path_to_upregulated_gene_table,
-											   param_obj.param_obj.annotated_diffpeaks_output_file,
+											   param_obj.annotated_diffpeaks_output_file,
 											   param_obj.joined_gene_and_all_peak_table_file)
 		run_command(cmd)
 
