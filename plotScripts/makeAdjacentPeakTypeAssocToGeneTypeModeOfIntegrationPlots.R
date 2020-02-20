@@ -20,13 +20,15 @@ cmdargs = commandArgs(trailingOnly=TRUE)
 if (length(cmdargs) == 0) {
   # siUpregGenes        <- read_tsv(here('extractedData', 'differentialAtacPeaks_mergedist250_peakwidth150_minNormFrags30_minFoldChange1.5.annotated.upregulated'))
   siUpregGenes        <- read_tsv("/Users/emsanford/Dropbox (RajLab)/Shared_Eric/SIgnal_Integration/Analysis_SI2-SI4_github_testing/signal_integration_paper_scripts/extractedData/DeSeqOutputAllConds.annotated.upregulatedGeneSet.tsv")
-  # siUpregJoinedPeaks  <- read_tsv(here('extractedData', 'upregJoinedPeakGeneTib_mergedist250_peakwidth150_minNormFrags30_minFoldChange1.5.tsv'))
-  siUpregJoinedPeaks  <- read_tsv("/Users/emsanford/Dropbox (RajLab)/Shared_Eric/SIgnal_Integration/Analysis_SI2-SI4_github_testing/signal_integration_paper_scripts/extractedData/upregJoinedPeakGeneTib_mergedist250_peakwidth150_minNormFrags30_minFoldChange1.5.tsv")
+  # siUpregJoinedUpregPeaks  <- read_tsv(here('extractedData', 'upregJoinedPeakGeneTib_mergedist250_peakwidth150_minNormFrags30_minFoldChange1.5.tsv'))
+  siUpregJoinedUpregPeaks  <- read_tsv("/Users/emsanford/Dropbox (RajLab)/Shared_Eric/SIgnal_Integration/Analysis_SI2-SI4_github_testing/signal_integration_paper_scripts/extractedData/upregGenesUpregPeaksJoinedTib_mergedist250_peakwidth150_minNormFrags30_minFoldChange1.5.tsv")
+  siUpregJoinedAllPeaks    <- read_tsv("/Users/emsanford/Dropbox (RajLab)/Shared_Eric/SIgnal_Integration/Analysis_SI2-SI4_github_testing/signal_integration_paper_scripts/extractedData/upregGenesAllPeaksJoinedTib_mergedist250_peakwidth150_minNormFrags30_minFoldChange1.5.tsv") 
   outputloc.prefix <- here('plots', 'peaks_near_gene_types_plots', "")
 } else {
-  siUpregGenes       <- read_tsv(cmdargs[1])
-  siUpregJoinedPeaks <- read_tsv(cmdargs[2])
-  outputloc.prefix   <- cmdargs[3]
+  siUpregGenes            <- read_tsv(cmdargs[1])
+  siUpregJoinedUpregPeaks <- read_tsv(cmdargs[2])
+  siUpregJoinedAllPeaks   <- read_tsv(cmdargs[3])
+  outputloc.prefix        <- cmdargs[4]
 }
 
 grand.list.of.list.of.plots <- list()
@@ -49,12 +51,24 @@ for (selected.peak.category.arg in c("subadditive", "additive", "superadditive",
   }
 
   geneSet <- siUpregGenes$ensg
-  peaksNearGeneSet       <- siUpregJoinedPeaks %>% filter(ensg %in% geneSet)
-  genesWithPeaksNearby   <- peaksNearGeneSet$ensg %>% unique()
+  upregPeaksNearGeneSet  <- siUpregJoinedUpregPeaks %>% filter(ensg %in% geneSet)
+  allPeaksNearGeneSet    <- siUpregJoinedAllPeaks %>% filter(ensg %in% geneSet)
+    
+  genesWithUpregPeaksNearby   <- upregPeaksNearGeneSet$ensg %>% unique()
+  genesWithNoUpregPeaksNearby <- setdiff(geneSet, genesWithUpregPeaksNearby)
+  
+  genesWithPeaksNearby   <- allPeaksNearGeneSet$ensg %>% unique()
   genesWithNoPeaksNearby <- setdiff(geneSet, genesWithPeaksNearby)
   
   longTibAllGenes <- NULL # can add the ones with zeros here...
   for (dosage in c("low", "med", "high")) {
+    if (selected.peak.category.arg == "mutualExclusivePairs") {
+      genesWithPeaksNearby   <- allPeaksNearGeneSet$ensg %>% unique()
+      genesWithNoPeaksNearby <- setdiff(geneSet, genesWithPeaksNearby)
+    } else {
+      genesWithUpregPeaksNearby <- upregPeaksNearGeneSet$ensg %>% unique()
+      genesWithNoPeaksNearby <- setdiff(geneSet, genesWithUpregPeaksNearby)
+    }
     numGenesWithNoPeaksNearby <- length(genesWithNoPeaksNearby)
     integrationModesThisDose  <- siUpregGenes %>% filter(ensg %in% genesWithNoPeaksNearby) %>% pull(paste0("integrationCategory-", dosage ,"-dose"))
     geneIDsThisDose           <- siUpregGenes %>% filter(ensg %in% genesWithNoPeaksNearby) %>% pull("ensg")
@@ -66,7 +80,7 @@ for (selected.peak.category.arg in c("subadditive", "additive", "superadditive",
   # fields: gene ID, dosage, number of nearby superadditive peaks, gene's mode of integration
   for (dosage in c("low", "med", "high")) {
     if (selected.peak.category.arg == "mutualExclusivePairs") {
-      longTibGenesWithPeaksNearbyThisDose <- peaksNearGeneSet %>%
+      longTibGenesWithPeaksNearbyThisDose <- allPeaksNearGeneSet %>%
         group_by(ensg) %>%
         mutate(num_ME_peaks_RA   = sum(PeakMutualExclusivityScoreAsymmetricAdditive > mutual.exclusivity.threshold)) %>%
         mutate(num_ME_peaks_TGFb = sum(PeakMutualExclusivityScoreAsymmetricAdditive < (1 - mutual.exclusivity.threshold))) %>%
@@ -78,7 +92,7 @@ for (selected.peak.category.arg in c("subadditive", "additive", "superadditive",
         ungroup() %>%
         unique() 
     } else {
-      longTibGenesWithPeaksNearbyThisDose <- peaksNearGeneSet %>%
+      longTibGenesWithPeaksNearbyThisDose <- upregPeaksNearGeneSet %>%
         group_by(ensg) %>%
         mutate(is_selected_peak_type = UQ(as.symbol(paste0("peak_integrationCategory-", dosage, "-dose"))) %in% selected.peak.category) %>%
         mutate(numNearbyPeaksThisType = sum(is_selected_peak_type)) %>%
@@ -195,4 +209,4 @@ patchwork.plot <- (grand.list.of.list.of.plots[[1]][[1]] + grand.list.of.list.of
 ggsave(paste0(outputloc.prefix, "patchwork_plot_avgNumPeakTypesNearGeneTypes.svg"), plot = patchwork.plot, width = 24, height = 16)
 
 patchwork.plot2 <- (grand.list.of.list.of.plots[[4]][[1]] + grand.list.of.list.of.plots[[4]][[2]] + grand.list.of.list.of.plots[[4]][[3]])
-ggsave(paste0(outputloc.prefix, "patchwork_plot_mePairsNearNearGeneTypes.svg"), plot = patchwork.plot, width = 24, height = 16 / 3)
+ggsave(paste0(outputloc.prefix, "patchwork_plot_mePairsNearNearGeneTypes.svg"), plot = patchwork.plot2, width = 24, height = 16 / 3)

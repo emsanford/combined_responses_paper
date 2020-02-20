@@ -81,7 +81,7 @@ class ParamSet:
 		self.path_to_make_bed_files_for_each_category            = '"{0}"'.format(os.sep.join([base_directory, "extractionScripts", "createBedFilesForPeakIntegrationCategories.R"]))
 		self.path_to_chromVAR_motif_analysis_script              = '"{0}"'.format(os.sep.join([base_directory, "plotScripts", "chromVarIndSignalMotifEnrichments.R"]))
 		self.path_to_join_peak_to_gene_tib                       = '"{0}"'.format(os.sep.join([base_directory, "extractionScripts", "joinNearbyPeaksToGenes.R"]))
-		self.path_to_make_peak_near_gene_analysis_plots          = '"{0}"'.format(os.sep.join([base_directory, "plotScripts", "makeAdjacentSuperadditivePeakAssocModeOfIntegrationPlots.R"]))
+		self.path_to_make_peak_near_gene_analysis_plots          = '"{0}"'.format(os.sep.join([base_directory, "plotScripts", "makeAdjacentPeakTypeAssocToGeneTypeModeOfIntegrationPlots.R"]))
 
 
 
@@ -291,9 +291,10 @@ def main(param_obj, run_all_steps = False):
 	# use the new joined peak tib to make the "special peak types near genes" plots
 	peaks_near_genes_analysis_plots = glob.glob(param_obj.peaks_near_genes_plots_dir + os.sep + "*.svg")
 	if run_all_steps or len(peaks_near_genes_analysis_plots) == 0:
-		cmd = "Rscript {0} {1} {2} {3}".format(param_obj.path_to_make_peak_near_gene_analysis_plots,
+		cmd = "Rscript {0} {1} {2} {3} {4}".format(param_obj.path_to_make_peak_near_gene_analysis_plots,
 											   param_obj.path_to_upregulated_gene_table,
 											   param_obj.joined_gene_and_upreg_peak_table_file,
+											   param_obj.joined_gene_and_all_peak_table_file,
 											   '"{0}{1}"'.format(param_obj.peaks_near_genes_plots_dir, os.sep))
 		run_command(cmd)
 
