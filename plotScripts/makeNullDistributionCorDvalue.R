@@ -329,7 +329,7 @@ for (dosage in c("low", "med", "high")) {
       pull("freq_this_bin") %>%
       sum()
     
-    print(sprintf("%s %s %0.5f", model, dosage, freq.above.c.2))
+    print(sprintf("dval: %s %s %0.5f", model, dosage, freq.above.c.2))
   }
 }
 

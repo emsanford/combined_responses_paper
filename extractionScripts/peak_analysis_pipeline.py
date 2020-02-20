@@ -61,7 +61,8 @@ class ParamSet:
 		self.initial_peak_fdr_grid_plot_path_prefix             = '"{0}"'.format(os.sep.join([plotsDir, "initial_fdr_grid_{0}".format(param_summary_string)]))
 		self.final_peak_fdr_grid_plot_path_prefix               = '"{0}"'.format(os.sep.join([plotsDir, "final_fdr_grid_{0}".format(param_summary_string)]))
 		self.upreg_peak_cats_bed_file_prefix                    = '"{0}"'.format(os.sep.join([extractedDataDir, "upregulated_peaks_{0}".format(param_summary_string)]))
-		self.joined_gene_and_peak_table_file                    = '"{0}"'.format(os.sep.join([extractedDataDir, "upregJoinedPeakGeneTib_{0}.tsv".format(param_summary_string)]))
+		self.joined_gene_and_upreg_peak_table_file              = '"{0}"'.format(os.sep.join([extractedDataDir, "upregGenesUpregPeaksJoinedTib_{0}.tsv".format(param_summary_string)]))
+		self.joined_gene_and_all_peak_table_file                = '"{0}"'.format(os.sep.join([extractedDataDir, "upregGenesAllPeaksJoinedTib_{0}.tsv".format(param_summary_string)]))
 		self.peaks_near_genes_plots_path_prefix                 = '"{0}"'.format(os.sep.join([plotsDir, "peaks_near_genes_{0}".format(param_summary_string)]))
 
 
@@ -274,18 +275,25 @@ def main(param_obj, run_all_steps = False):
 
 	# are the super-additive peaks more likely to be close to super-multiplicative genes?
 	# make new joined peak tib
-	if run_all_steps or not os.path.exists(param_obj.joined_gene_and_peak_table_file[1:-1]):
+	if run_all_steps or not os.path.exists(param_obj.joined_gene_and_upreg_peak_table_file[1:-1]):
 		cmd = "Rscript {0} {1} {2} {3}".format(param_obj.path_to_join_peak_to_gene_tib,
 											   param_obj.path_to_upregulated_gene_table,
 											   param_obj.upregulated_diffpeaks_output_file,
-											   param_obj.joined_gene_and_peak_table_file)
+											   param_obj.joined_gene_and_upreg_peak_table_file)
 		run_command(cmd)
+
+		cmd = "Rscript {0} {1} {2} {3}".format(param_obj.path_to_join_peak_to_gene_tib,
+											   param_obj.path_to_upregulated_gene_table,
+											   param_obj.param_obj.annotated_diffpeaks_output_file,
+											   param_obj.joined_gene_and_all_peak_table_file)
+		run_command(cmd)
+
 	# use the new joined peak tib to make the "special peak types near genes" plots
 	peaks_near_genes_analysis_plots = glob.glob(param_obj.peaks_near_genes_plots_dir + os.sep + "*.svg")
 	if run_all_steps or len(peaks_near_genes_analysis_plots) == 0:
 		cmd = "Rscript {0} {1} {2} {3}".format(param_obj.path_to_make_peak_near_gene_analysis_plots,
 											   param_obj.path_to_upregulated_gene_table,
-											   param_obj.joined_gene_and_peak_table_file,
+											   param_obj.joined_gene_and_upreg_peak_table_file,
 											   '"{0}{1}"'.format(param_obj.peaks_near_genes_plots_dir, os.sep))
 		run_command(cmd)
 

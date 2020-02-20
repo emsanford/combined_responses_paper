@@ -13,6 +13,7 @@ other.possible.peak.categories <- c("super-additive", "sub-multiplicative", "unc
 factor.order.gene.categories <- c("sub-additive", "additive", "multiplicative", "super-multiplicative", "ambiguous", "between-add-and-mult")
 plot.these.gene.categories <- c("sub-additive", "additive", "multiplicative", "super-multiplicative", "ambiguous")
 
+mutual.exclusivity.threshold <- 0.90
 n.bootstrap.samples <- 10000
 
 cmdargs = commandArgs(trailingOnly=TRUE)
@@ -30,7 +31,7 @@ if (length(cmdargs) == 0) {
 
 grand.list.of.list.of.plots <- list()
 grand.counter <- 1
-for (selected.peak.category.arg in c("subadditive", "additive", "superadditive")) {
+for (selected.peak.category.arg in c("subadditive", "additive", "superadditive", "mutualExclusivePairs")) {
   if (selected.peak.category.arg == "superadditive") {
     selected.peak.category <- superadditive.peak.categories
     plot.category.string   <- "super-additive"
@@ -43,6 +44,8 @@ for (selected.peak.category.arg in c("subadditive", "additive", "superadditive")
   } else if (selected.peak.category.arg == "all") {
     selected.peak.category <- c(subadditive.peak.categories, additive.peak.categories, superadditive.peak.categories, other.possible.peak.categories)
     plot.category.string   <- "any upregulated"
+  } else if (selected.peak.category.arg == "mutualExclusivePairs") {
+    plot.category.string   <- "mutualExclusivePairs"
   }
 
   geneSet <- siUpregGenes$ensg
@@ -62,18 +65,30 @@ for (selected.peak.category.arg in c("subadditive", "additive", "superadditive")
   }
   # fields: gene ID, dosage, number of nearby superadditive peaks, gene's mode of integration
   for (dosage in c("low", "med", "high")) {
-    longTibGenesWithPeaksNearbyThisDose <- peaksNearGeneSet %>%
-      group_by(ensg) %>%
-      mutate(is_selected_peak_type = UQ(as.symbol(paste0("peak_integrationCategory-", dosage, "-dose"))) %in% selected.peak.category) %>%
-      mutate(numNearbyPeaksThisType = sum(is_selected_peak_type)) %>%
-      mutate(modeOfIntegration = UQ(as.symbol(paste0("integrationCategory-", dosage, "-dose")))) %>%
-      mutate(dose = dosage) %>%
-      dplyr::select(ensg, dose, modeOfIntegration, numNearbyPeaksThisType) %>%
-      ungroup() %>%
-      unique() 
-      
+    if (selected.peak.category.arg == "mutualExclusivePairs") {
+      longTibGenesWithPeaksNearbyThisDose <- peaksNearGeneSet %>%
+        group_by(ensg) %>%
+        mutate(num_ME_peaks_RA   = sum(PeakMutualExclusivityScoreAsymmetricAdditive > mutual.exclusivity.threshold)) %>%
+        mutate(num_ME_peaks_TGFb = sum(PeakMutualExclusivityScoreAsymmetricAdditive < (1 - mutual.exclusivity.threshold))) %>%
+        mutate(num_ME_peak_pairs = min(num_ME_peaks_RA, num_ME_peaks_TGFb)) %>%
+        mutate(numNearbyPeaksThisType = num_ME_peak_pairs) %>%
+        mutate(modeOfIntegration = UQ(as.symbol(paste0("integrationCategory-", dosage, "-dose")))) %>%
+        mutate(dose = dosage) %>%
+        dplyr::select(ensg, dose, modeOfIntegration, numNearbyPeaksThisType) %>%
+        ungroup() %>%
+        unique() 
+    } else {
+      longTibGenesWithPeaksNearbyThisDose <- peaksNearGeneSet %>%
+        group_by(ensg) %>%
+        mutate(is_selected_peak_type = UQ(as.symbol(paste0("peak_integrationCategory-", dosage, "-dose"))) %in% selected.peak.category) %>%
+        mutate(numNearbyPeaksThisType = sum(is_selected_peak_type)) %>%
+        mutate(modeOfIntegration = UQ(as.symbol(paste0("integrationCategory-", dosage, "-dose")))) %>%
+        mutate(dose = dosage) %>%
+        dplyr::select(ensg, dose, modeOfIntegration, numNearbyPeaksThisType) %>%
+        ungroup() %>%
+        unique() 
+    }
     longTibAllGenes <- rbind(longTibAllGenes, longTibGenesWithPeaksNearbyThisDose)
-  
   }
   
   longTibAllGenes <- filter(longTibAllGenes, modeOfIntegration %in% plot.these.gene.categories)
@@ -108,11 +123,6 @@ for (selected.peak.category.arg in c("subadditive", "additive", "superadditive")
       longTibAllGenes[["n_genes_this_dose_and_intmode"]][(longTibAllGenes$dose == dosage) & (longTibAllGenes$modeOfIntegration == intmode)] <- n.genes.this.cat
     }
   }
-  
-  
-  #### color the bars by modeOfIntegration
-  
-  ####
   
   tfp <- longTibAllGenes %>%
     group_by(dose, modeOfIntegration) %>%
@@ -183,3 +193,6 @@ patchwork.plot <- (grand.list.of.list.of.plots[[1]][[1]] + grand.list.of.list.of
                   (grand.list.of.list.of.plots[[2]][[1]] + grand.list.of.list.of.plots[[2]][[2]] + grand.list.of.list.of.plots[[2]][[3]]) /
                   (grand.list.of.list.of.plots[[3]][[1]] + grand.list.of.list.of.plots[[3]][[2]] + grand.list.of.list.of.plots[[3]][[3]])
 ggsave(paste0(outputloc.prefix, "patchwork_plot_avgNumPeakTypesNearGeneTypes.svg"), plot = patchwork.plot, width = 24, height = 16)
+
+patchwork.plot2 <- (grand.list.of.list.of.plots[[4]][[1]] + grand.list.of.list.of.plots[[4]][[2]] + grand.list.of.list.of.plots[[4]][[3]])
+ggsave(paste0(outputloc.prefix, "patchwork_plot_mePairsNearNearGeneTypes.svg"), plot = patchwork.plot, width = 24, height = 16 / 3)

@@ -87,7 +87,7 @@ for (dosage in c("low", "med", "high")) {
     pull("freq_this_bin") %>%
     sum()
   
-  print(sprintf("%s %0.3f", dosage, freq.above.c.2))
+  print(sprintf("freq d.val above %0.2f: (%s dose) %0.3f", threshold.for.reporting.upper.end.of.histogram, dosage, freq.above.c.2))
   
   ggsave(paste0(output.folder, "/dval_addPredDiff_histogram_", dosage, "_dose.svg"), width = plot.width, height = plot.height, plot = stackedBarHist)
   
