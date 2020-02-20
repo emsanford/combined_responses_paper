@@ -12,7 +12,7 @@ register(MulticoreParam(4, progressbar = TRUE))
 
 # manually_include_these_motifs <- c("ENSG00000126778_LINE2315_SIX1_I", "ENSG00000102974_LINE747_CTCF_D_N67")  # from homer de novo motif analysis on upregulated peaks
 # manually_include_these_motifs <- c("SIX1", "CTCF")  # from homer de novo motif analysis on upregulated peaks
-manually_include_these_motifs <- c()
+manually_include_these_motifs <- c("CTCF")
 
 cmdargs = commandArgs(trailingOnly=TRUE)
 if (length(cmdargs) == 0) {
@@ -35,7 +35,7 @@ motif_ix <- matchMotifs(motifSet, fragmentCounts,
 dev <- computeDeviations(object = fragmentCounts, annotations = motif_ix)
 variability <- computeVariability(dev)
 p <- plotVariability(variability, use_plotly = FALSE)
-top_n_motifs_to_keep <- 96  # this was chosen by manually looking at the plot below to see where the natural break was
+top_n_motifs_to_keep <- 50  # this was chosen by manually looking at the plot below to see where the natural break was
 p <- p + geom_vline(xintercept = top_n_motifs_to_keep)
 # print(p)
 tvar <- as.tibble(variability)
