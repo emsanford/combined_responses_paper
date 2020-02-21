@@ -79,9 +79,9 @@ class ParamSet:
 		self.path_to_diff_peak_and_gene_venn_diagram_script      = '"{0}"'.format(os.sep.join([base_directory, "plotScripts", "make_DiffPeakAndDiffGeneVennDiagrams.R"]))
 		self.path_to_makeNullDistributionCorDvalue               = '"{0}"'.format(os.sep.join([base_directory, "plotScripts", "makeNullDistributionCorDvalue.R"]))
 		self.path_to_make_bed_files_for_each_category            = '"{0}"'.format(os.sep.join([base_directory, "extractionScripts", "createBedFilesForPeakIntegrationCategories.R"]))
-		self.path_to_chromVAR_motif_analysis_script              = '"{0}"'.format(os.sep.join([base_directory, "plotScripts", "chromVarIndSignalMotifEnrichments.R"]))
 		self.path_to_join_peak_to_gene_tib                       = '"{0}"'.format(os.sep.join([base_directory, "extractionScripts", "joinNearbyPeaksToGenes.R"]))
 		self.path_to_make_peak_near_gene_analysis_plots          = '"{0}"'.format(os.sep.join([base_directory, "plotScripts", "makeAdjacentPeakTypeAssocToGeneTypeModeOfIntegrationPlots.R"]))
+		self.path_to_motif_analysis_plots                        = '"{0}"'.format(os.sep.join([base_directory, "plotScripts", "makeMotifAnalysisPlots.R"]))
 
 
 
@@ -264,14 +264,12 @@ def main(param_obj, run_all_steps = False):
 	# outputPlotPrefix, "raw_dev_score_by_tf_name.svg"
 	motif_enrichment_plots = glob.glob(param_obj.plotsDir + os.sep + "*motifPlots*dev_score*.svg")
 	if run_all_steps or len(motif_enrichment_plots) == 0:
-		upregulated_peaks_fragCount_r_objects = glob.glob(param_obj.upreg_peak_cats_bed_file_prefix[1:-1] + "*.rds")
-		upregulated_peaks_fragCount_r_objects.append(param_obj.final_merged_differential_atac_frag_count_rds_file[1:-1])
-		for peak_r_object in upregulated_peaks_fragCount_r_objects:
-			cmd = "Rscript {0} {1} {2} {3}".format(param_obj.path_to_chromVAR_motif_analysis_script, 
-												   '"{0}"'.format(peak_r_object), 
+		cmd = "Rscript {0} {1} {2} {3} {4}".format(param_obj.path_to_motif_analysis_plots, 
+												   param_obj.final_merged_differential_atac_frag_count_rds_file,
+												   param_obj.annotated_diffpeaks_output_file, 
 												   param_obj.most_variable_motifs_file,
 												   '"{0}"'.format(peak_r_object.replace(param_obj.extractedDataDir, param_obj.plotsDir) + "_motifPlots_"))
-			run_command(cmd)
+		run_command(cmd)
 
 	# are the super-additive peaks more likely to be close to super-multiplicative genes?
 	# make new joined peak tib

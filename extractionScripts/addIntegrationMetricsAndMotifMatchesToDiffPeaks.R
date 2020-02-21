@@ -220,11 +220,20 @@ irf.factors.tgfb   <- c("IRF4")
 other.tgfb.factors <- c("BACH1", "BACH2", "SMARCC1", "NFE2", "NFE2L2", "MAFF", "MAFK")
 all.tgfb.factors   <- c(ap1.factors, smad.factors, irf.factors.tgfb, other.tgfb.factors)
 
+
+ra.dominant.factors   <- c("RARA", 'FOXA1', 'FOXA2', 'FOXA3', 'FOXC2', 'FOXD3', 'SPI', 'SPIB', "SPIC", "EHF", "ELF1", "ELF2", "ELF3", "ELF4", "ELF5")
+tgfb.dominant.factors <- c("SMAD3", "SMAD4", "SMAD9", "JUN", "JUNB", "JUND", "JDP2", "FOS", "FOSB", "FOSL1", "FOSL2", "BACH1", "BACH2", "BATF",
+                         "SMARCC1", "NFE2", "NFE2L2", "MAFF", "MAFK")
+
 # other factor groups 
 ctcf.factors <- c("CTCF", "CTCFL")  # slightly associated with RA but weakly associated with TGFb as well, previously found to be variable in controls
 
-factor.group.list  <- list(klf.factors, ap2.factors, other.etoh.factors, all.etoh.factors, nfkb.factors, fox.factors, hox.factors, rar.factors, irf.factors.ra, elf.factors, other.ra.factors, all.ra.factors, ap1.factors, smad.factors, irf.factors.tgfb, other.tgfb.factors, all.tgfb.factors, ctcf.factors)
-factor.group.names <-   c('group-KLF', 'group-AP2', 'group-otherEtOH',  'group-allEtOH',  'group-NFKB', 'group-FOX', 'group-HOX', 'group-RAR', 'group-raIRF',  'group-ELF', 'group-otherRA',  'group-allRA',  'group-AP1', 'group-SMAD', 'group-tgfbIRF',  'group-otherTGFB',  'group-allTGFB',  'groupCTCF')
+factor.group.list  <- list(klf.factors, ap2.factors, other.etoh.factors, all.etoh.factors, nfkb.factors, fox.factors, hox.factors, rar.factors, irf.factors.ra, elf.factors, other.ra.factors, all.ra.factors, 
+                           ap1.factors, smad.factors, irf.factors.tgfb, other.tgfb.factors, all.tgfb.factors, ctcf.factors,
+                           ra.dominant.factors, tgfb.dominant.factors)
+factor.group.names <-   c('group-KLF', 'group-AP2', 'group-otherEtOH',  'group-allEtOH',  'group-NFKB', 'group-FOX', 'group-HOX', 'group-RAR', 'group-raIRF',  'group-ELF', 'group-otherRA',  'group-allRA',  
+                          'group-AP1', 'group-SMAD', 'group-tgfbIRF',  'group-otherTGFB',  'group-allTGFB',  'group-CTCF',
+                          'group-RAdominant', 'group-TGFbdominant')
 stopifnot(length(factor.group.list) == length(factor.group.names))
 
 for (ii in 1:length(factor.group.names)) {

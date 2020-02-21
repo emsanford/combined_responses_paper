@@ -57,7 +57,6 @@ superadditive.peak.categories <- c("between-add-and-mult", "multiplicative", "su
 additive.peak.categories      <- c("additive", "ambiguous")
 subadditive.peak.categories   <- c("sub-additive")
 
-
 npeaks.all <- nrow(upregpeaks)
 res.tib    <- NULL
 for (motif.col.name in motif.col.names) {
