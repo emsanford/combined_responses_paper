@@ -41,9 +41,10 @@ class ParamSet:
 		self.integration_summary_plots_dir                       = os.sep.join([plotsDir, "peak_integration_summary_plots"])
 		self.integration_summary_null_distribution_plots_dir     = os.sep.join([plotsDir, "peak_integration_summary_plots", "null_distributions"])
 		self.peaks_near_genes_plots_dir                          = os.sep.join([plotsDir, "peaks_near_gene_types_plots"]) 
+		self.motif_analysis_plots_dir                            = os.sep.join([plotsDir, "motif_analysis_plots"]) 
 		self.subdirectories 							 		 = [plotsDir, extractedDataDir, self.consensus_peak_file_dir[1:-1], 
 																	self.integration_summary_plots_dir, self.integration_summary_null_distribution_plots_dir,
-																	self.venn_diagrams_directory, self.peaks_near_genes_plots_dir]
+																	self.venn_diagrams_directory, self.peaks_near_genes_plots_dir, self.motif_analysis_plots_dir]
 
 		# paths to input and output files
 		self.merged_consensus_peak_file                         = '"{0}"'.format(os.sep.join([extractedDataDir, "mergedConsensusMacs2PeakFilesAllConditions.bed"]))
@@ -260,17 +261,6 @@ def main(param_obj, run_all_steps = False):
 											   "VariableWidth")
 			run_command(cmd)
 
-	# use chromVAR to do motif analysis at the different categories of upregulated peaks
-	# outputPlotPrefix, "raw_dev_score_by_tf_name.svg"
-	motif_enrichment_plots = glob.glob(param_obj.plotsDir + os.sep + "*motifPlots*dev_score*.svg")
-	if run_all_steps or len(motif_enrichment_plots) == 0:
-		cmd = "Rscript {0} {1} {2} {3} {4}".format(param_obj.path_to_motif_analysis_plots, 
-												   param_obj.final_merged_differential_atac_frag_count_rds_file,
-												   param_obj.annotated_diffpeaks_output_file, 
-												   param_obj.most_variable_motifs_file,
-												   '"{0}"'.format(peak_r_object.replace(param_obj.extractedDataDir, param_obj.plotsDir) + "_motifPlots_"))
-		run_command(cmd)
-
 	# are the super-additive peaks more likely to be close to super-multiplicative genes?
 	# make new joined peak tib
 	if run_all_steps or not os.path.exists(param_obj.joined_gene_and_upreg_peak_table_file[1:-1]):
@@ -296,7 +286,16 @@ def main(param_obj, run_all_steps = False):
 											   '"{0}{1}"'.format(param_obj.peaks_near_genes_plots_dir, os.sep))
 		run_command(cmd)
 
-	
+	# make the motif analysis plots
+	motif_analysis_plots = glob.glob(param_obj.motif_analysis_plots_dir + os.sep + "*.svg")
+	if run_all_steps or len(peaks_near_genes_analysis_plots) == 0:
+		cmd = "Rscript {0} {1} {2} {3} {4}".format(param_obj.path_to_motif_analysis_plots,
+												   param_obj.final_merged_differential_atac_frag_count_rds_file,
+												   param_obj.upregulated_diffpeaks_output_file,
+												   param_obj.most_variable_motifs_file,
+												   '"{0}{1}"'.format(param_obj.motif_analysis_plots_dir, os.sep))
+		run_command(cmd)
+
 
 if __name__ == '__main__':
 	do_parameter_sweep = False
