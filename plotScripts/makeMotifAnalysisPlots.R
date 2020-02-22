@@ -197,10 +197,12 @@ for (motif.col.name in motif.col.names) {
 
 frac.motif.matches.by.category.plot <- frac.motif.matches.by.category.tib %>% ggplot(aes(x = motif.name, y = frac.peaks.with.motif.matches, fill = peak.category)) +
   geom_bar(stat = "identity", position = "dodge") +
+  xlab("") +
+  guides(fill=FALSE) +
   theme_classic() + 
   theme(axis.text.x = element_text(angle = 45,  hjust = 1, vjust=0.5))
 
 
-composite.plot1 <- devscore.plot.list[[1]] / devscore.plot.list[[2]] / devscore.plot.list[[3]] / motif.d.scores.plot / frac.motif.matches.by.category.plot
-composite.plot2 <- patchplot1 / motif.d.scores.plot / frac.motif.matches.by.category.plot
+composite.plot <- devscore.plot.list[[1]] / devscore.plot.list[[2]] / devscore.plot.list[[3]] / motif.d.scores.plot / frac.motif.matches.by.category.plot
+ggsave(paste0(outputPlotPrefix, "motif_analysis_composite_plot.svg"), plot = composite.plot, width = 24, height = 18)
 

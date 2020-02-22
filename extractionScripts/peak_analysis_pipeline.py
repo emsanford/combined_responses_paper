@@ -288,7 +288,7 @@ def main(param_obj, run_all_steps = False):
 
 	# make the motif analysis plots
 	motif_analysis_plots = glob.glob(param_obj.motif_analysis_plots_dir + os.sep + "*.svg")
-	if run_all_steps or len(peaks_near_genes_analysis_plots) == 0:
+	if run_all_steps or len(motif_analysis_plots) == 0:
 		cmd = "Rscript {0} {1} {2} {3} {4}".format(param_obj.path_to_motif_analysis_plots,
 												   param_obj.final_merged_differential_atac_frag_count_rds_file,
 												   param_obj.upregulated_diffpeaks_output_file,
