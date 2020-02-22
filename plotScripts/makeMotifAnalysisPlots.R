@@ -14,15 +14,15 @@ source(here('extractionScripts', 'util.R'))
 
 cmdargs = commandArgs(trailingOnly=TRUE)
 if (length(cmdargs) == 0) {
-  fragmentCountsDiffPeaks <- read_rds("/Users/emsanford/Dropbox (RajLab)/Shared_Eric/SIgnal_Integration/Analysis_SI2-SI4_github_testing/signal_integration_paper_scripts/extractedData/final_diffPeaks_fragment_counts_mergedist250_peakwidth150_minNormFrags30_minFoldChange1.5.rds")
+  fragmentCountsDiffPeaks <- readRDS("/Users/emsanford/Dropbox (RajLab)/Shared_Eric/SIgnal_Integration/Analysis_SI2-SI4_github_testing/signal_integration_paper_scripts/extractedData/final_diffPeaks_fragment_counts_mergedist250_peakwidth150_minNormFrags30_minFoldChange1.5.rds")
   outputPlotPrefix        <- here("extractedData", "peaks_categorized_by_mode_of_integration", "plots_upreg_alldiff_peaks_")
   siUpregPeaks            <- read_tsv("/Users/emsanford/Dropbox (RajLab)/Shared_Eric/SIgnal_Integration/Analysis_SI2-SI4_github_testing/signal_integration_paper_scripts/extractedData/differentialAtacPeaks_mergedist250_peakwidth150_minNormFrags30_minFoldChange1.5.annotated.upregulated.tsv")
   selected.PWM.objects    <- readRDS("/Users/emsanford/Dropbox (RajLab)/Shared_Eric/SIgnal_Integration/Analysis_SI2-SI4_github_testing/signal_integration_paper_scripts/extractedData/mostVariableMotifs_mergedist250_peakwidth150_minNormFrags30_minFoldChange1.5.rds")
 } else {
-  fragmentCountsDiffPeaks <- read_rds(cmdargs[1])
-  siUpregPeaks <- read_rds(cmdargs[2])
-  selected.PWM.objects <- readRDS(cmdargs[3])
-  outputPlotPrefix <- cmdargs[4]
+  fragmentCountsDiffPeaks <- readRDS(cmdargs[1])
+  siUpregPeaks            <- read_tsv(cmdargs[2])
+  selected.PWM.objects    <- readRDS(cmdargs[3])
+  outputPlotPrefix        <- cmdargs[4]
 }
 
 fragmentCountsDiffPeaks <- addGCBias(fragmentCountsDiffPeaks, 
