@@ -300,5 +300,18 @@ for(ii in 1:nrow(outputTib)) {
   outputTib[["consensusIntegrationCategory"]][ii] <- consensusIntegrationCat
 }
 
+
+calcAsymmmetricGeneMutualExclusivityScore <- function(etohTPM, raTPM, tgfbTPM) {
+raEffectMagnitude   <- abs(raTPM - etohTPM)
+tgfbEffectMagnitude <- abs(tgfbTPM - etohTPM)
+totalEffect  <- raEffectMagnitude + tgfbEffectMagnitude
+mutualExclusivityScore <- raEffectMagnitude / totalEffect
+return(mutualExclusivityScore)
+}
+
+outputTib[["gene_asymmmetricMutualExclusivityScore"]] <- (calcAsymmmetricGeneMutualExclusivityScore(outputTib[["EtOH-nlDensity_avgTPM"]], outputTib[["RA-low_avgTPM"]],  outputTib[["TGFb-low_avgTPM"]]) +
+                                                          calcAsymmmetricGeneMutualExclusivityScore(outputTib[["EtOH-nlDensity_avgTPM"]], outputTib[["RA-med_avgTPM"]],  outputTib[["TGFb-med_avgTPM"]]) +
+                                                          calcAsymmmetricGeneMutualExclusivityScore(outputTib[["EtOH-nlDensity_avgTPM"]], outputTib[["RA-high_avgTPM"]], outputTib[["TGFb-high_avgTPM"]])) / 3
+
 # write output table to file
 write_tsv(outputTib, outputLoc)

@@ -206,3 +206,30 @@ frac.motif.matches.by.category.plot <- frac.motif.matches.by.category.tib %>% gg
 composite.plot <- devscore.plot.list[[1]] / devscore.plot.list[[2]] / devscore.plot.list[[3]] / motif.d.scores.plot / frac.motif.matches.by.category.plot
 ggsave(paste0(outputPlotPrefix, "motif_analysis_composite_plot.svg"), plot = composite.plot, width = 24, height = 18)
 
+# are super-additive peaks more likely to contain dual motifs?
+siUpregPeaks$`group-TGFbdominant_maxMotifMatchScore`
+siUpregPeaks$`group-RAdominant_maxMotifMatchScore`
+siUpregPeaks[["peakIntegrationCategory_med_dose"]] <- factor(sapply(siUpregPeaks$`peak_integrationCategory-med-dose`, convertUpregCvalCatToDvalCat), levels = c("sub-additive", "additive", "super-additive"))
+
+
+dual.motif.analysis.tib <- siUpregPeaks %>%
+  mutate(hasTGFbMatch = `group-TGFbdominant_maxMotifMatchScore` > 0,
+         hasRAMatch   = `group-RAdominant_maxMotifMatchScore` > 0) %>%
+  mutate(hasDualMotifMatch = hasTGFbMatch & hasRAMatch) %>%
+  group_by(peakIntegrationCategory_med_dose) %>%
+  mutate(measured_frac_dual_motif = sum(hasDualMotifMatch) / n()) %>%
+  mutate(expected_frac_dual_motif = (sum(hasRAMatch) / n()) * (sum(hasTGFbMatch) / n())) %>%
+  ungroup() %>%
+  dplyr::select(hasTGFbMatch, hasRAMatch, hasDualMotifMatch, peakIntegrationCategory_med_dose, measured_frac_dual_motif, expected_frac_dual_motif)
+
+reduced.dual.motif.analysis.tib <- dplyr::select(dual.motif.analysis.tib, peakIntegrationCategory_med_dose, measured_frac_dual_motif, expected_frac_dual_motif) %>% unique()
+reduced.dual.motif.analysis.tib <- gather(reduced.dual.motif.analysis.tib, key = "expected_or_measured", value = "frac_dual", "measured_frac_dual_motif", "expected_frac_dual_motif")
+
+p.dualmotif <- reduced.dual.motif.analysis.tib %>%
+  ggplot(aes(x = peakIntegrationCategory_med_dose, y = frac_dual, fill = expected_or_measured)) + 
+  geom_bar(stat = "identity", position = "dodge") +
+  ylab("fraction of peaks with dual-motif matches (one TGFb motif + one RA motif)") +
+  xlab("peak integration category") +
+  theme_minimal(base_size = 16)
+
+p.dualmotif
