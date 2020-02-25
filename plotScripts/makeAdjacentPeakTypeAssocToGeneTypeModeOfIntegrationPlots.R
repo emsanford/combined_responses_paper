@@ -19,7 +19,7 @@ n.bootstrap.samples <- 10000
 cmdargs = commandArgs(trailingOnly=TRUE)
 if (length(cmdargs) == 0) {
   # siUpregGenes        <- read_tsv(here('extractedData', 'differentialAtacPeaks_mergedist250_peakwidth150_minNormFrags30_minFoldChange1.5.annotated.upregulated'))
-  siUpregGenes        <- read_tsv("/Users/emsanford/Dropbox (RajLab)/Shared_Eric/SIgnal_Integration/Analysis_SI2-SI4_github_testing/signal_integration_paper_scripts/extractedData/DeSeqOutputAllConds.annotated.upregulatedGeneSet.tsv")
+  siUpregGenes             <- read_tsv("/Users/emsanford/Dropbox (RajLab)/Shared_Eric/SIgnal_Integration/Analysis_SI2-SI4_github_testing/signal_integration_paper_scripts/extractedData/DeSeqOutputAllConds.annotated.upregulatedGeneSet.tsv")
   # siUpregJoinedUpregPeaks  <- read_tsv(here('extractedData', 'upregJoinedPeakGeneTib_mergedist250_peakwidth150_minNormFrags30_minFoldChange1.5.tsv'))
   siUpregJoinedUpregPeaks  <- read_tsv("/Users/emsanford/Dropbox (RajLab)/Shared_Eric/SIgnal_Integration/Analysis_SI2-SI4_github_testing/signal_integration_paper_scripts/extractedData/upregGenesUpregPeaksJoinedTib_mergedist250_peakwidth150_minNormFrags30_minFoldChange1.5.tsv")
   siUpregJoinedAllPeaks    <- read_tsv("/Users/emsanford/Dropbox (RajLab)/Shared_Eric/SIgnal_Integration/Analysis_SI2-SI4_github_testing/signal_integration_paper_scripts/extractedData/upregGenesAllPeaksJoinedTib_mergedist250_peakwidth150_minNormFrags30_minFoldChange1.5.tsv") 
@@ -210,3 +210,69 @@ ggsave(paste0(outputloc.prefix, "patchwork_plot_avgNumPeakTypesNearGeneTypes.svg
 
 patchwork.plot2 <- (grand.list.of.list.of.plots[[4]][[1]] + grand.list.of.list.of.plots[[4]][[2]] + grand.list.of.list.of.plots[[4]][[3]])
 ggsave(paste0(outputloc.prefix, "patchwork_plot_mePairsNearNearGeneTypes.svg"), plot = patchwork.plot2, width = 24, height = 16 / 3)
+
+
+
+
+
+
+
+# supermultiplicative gene analysis, looking at genes where one signal seems to require the other signal to have an effect: 
+     # this analysis may need to be thrown out
+mutual.exclusivity.threshold <- 0.90
+siUpregJoinedAllPeaks
+siUpregJoinedUpregPeaks
+
+gene.mutual.exclusivity.threshold <- 0.75
+peak.mutual.exclusivity.threshold <- 0.75
+
+# for now, we are ignoring genes w/ no peaks nearby
+ra.dominant.supermult.genes <- siUpregJoinedAllPeaks %>%
+  filter(`integrationCategory-med-dose` == "super-multiplicative") %>%
+  filter(gene_asymmmetricMutualExclusivityScore > gene.mutual.exclusivity.threshold) %>%
+  # filter(PeakMutualExclusivityScoreAsymmetricAdditive > peak.mutual.exclusivity.threshold) %>%
+  group_by(gene_name) %>%
+  mutate(max.d.val.of.exclusive.peak = max(`peakAdditivePredFcResidual-med`)) %>%
+  ungroup() %>%
+  dplyr::select(gene_name, max.d.val.of.exclusive.peak, gene_asymmmetricMutualExclusivityScore) %>%
+  unique() %>%
+  pull(max.d.val.of.exclusive.peak) %>% qplot() + xlim(-3, 3)
+
+tgfb.dominant.supermult.genes <- siUpregJoinedAllPeaks %>%
+  filter(`integrationCategory-med-dose` == "super-multiplicative") %>%
+  filter(gene_asymmmetricMutualExclusivityScore < (1 - gene.mutual.exclusivity.threshold)) %>%
+  # filter(PeakMutualExclusivityScoreAsymmetricAdditive < (1 - peak.mutual.exclusivity.threshold)) %>%
+  group_by(gene_name) %>%
+  mutate(max.d.val.of.exclusive.peak = max(`peakAdditivePredFcResidual-med`)) %>%
+  ungroup() %>%
+  dplyr::select(gene_name, max.d.val.of.exclusive.peak, gene_asymmmetricMutualExclusivityScore) %>%
+  unique() %>%
+  pull(max.d.val.of.exclusive.peak) %>%  qplot() + xlim(-3, 3)
+
+
+ra.dominant.add.or.mult.genes <- siUpregJoinedAllPeaks %>%
+  filter(`integrationCategory-med-dose` %in% c('additive', 'ambiguous', 'multiplicative')) %>%
+  filter(gene_asymmmetricMutualExclusivityScore > gene.mutual.exclusivity.threshold) %>%
+  # filter(PeakMutualExclusivityScoreAsymmetricAdditive > peak.mutual.exclusivity.threshold) %>%
+  group_by(gene_name) %>%
+  mutate(max.d.val.of.exclusive.peak = max(`peakAdditivePredFcResidual-med`)) %>%
+  ungroup() %>%
+  dplyr::select(gene_name, max.d.val.of.exclusive.peak, gene_asymmmetricMutualExclusivityScore) %>%
+  unique() %>%
+  pull(max.d.val.of.exclusive.peak) %>%  qplot() + xlim(-3, 3)
+  
+tgfb.dominant.add.or.mult.genes <- siUpregJoinedAllPeaks %>%
+  filter(`integrationCategory-med-dose` %in% c('additive', 'ambiguous', 'multiplicative')) %>%
+  filter(gene_asymmmetricMutualExclusivityScore < (1 - gene.mutual.exclusivity.threshold)) %>%
+  # filter(PeakMutualExclusivityScoreAsymmetricAdditive < (1 - peak.mutual.exclusivity.threshold)) %>%
+  group_by(gene_name) %>%
+  mutate(max.d.val.of.exclusive.peak = max(`peakAdditivePredFcResidual-med`)) %>%
+  ungroup() %>%
+  dplyr::select(gene_name, max.d.val.of.exclusive.peak, gene_asymmmetricMutualExclusivityScore) %>%
+  unique() %>%
+  pull(max.d.val.of.exclusive.peak) %>%  qplot() + xlim(-3, 3)
+
+
+
+
+

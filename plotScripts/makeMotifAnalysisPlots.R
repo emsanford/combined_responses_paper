@@ -25,9 +25,6 @@ if (length(cmdargs) == 0) {
   outputPlotPrefix        <- cmdargs[4]
 }
 
-fragmentCountsDiffPeaks <- addGCBias(fragmentCountsDiffPeaks, 
-                                     genome = BSgenome.Hsapiens.UCSC.hg38)
-
 tf.factor.order <- c("RARA", "SMAD3", "SMAD4", "SMAD9", 
                      "JUN", "JUNB", "JUND", "JDP2", "FOS", "FOSB", "FOSL1", "FOSL2", 
                      "BACH1",  "BACH2", "BATF", "FOXA1", "FOXA2", "FOXA3", "FOXC2", "FOXD3", 
@@ -37,84 +34,111 @@ tf.factor.order <- c("RARA", "SMAD3", "SMAD4", "SMAD9",
                      "GRHL1", "SPI1", "SPIB", "SPIC", 
                      "EHF", "ELF1", "ELF2", "ELF3", "ELF4", "ELF5", "ELK4", "ETS2")
 
+n.bootstrap.samples <- 1000
+
 #use the selected PWM objects to test for motif deviations in a subset of the data: controls and TGFB only, controls and RA only
-allSampleNames <- colnames(fragmentCountsDiffPeaks)
-etohSampleNames <- allSampleNames[grepl("EtOH", allSampleNames)]
-raSampleNames <- allSampleNames[grepl("-RA-", allSampleNames) & !grepl("-TGFb-", allSampleNames)]
-tgfbSampleNames <- allSampleNames[grepl("-TGFb-", allSampleNames) & !grepl("-RA-", allSampleNames)]
-BothSampleNames <- allSampleNames[grepl("-TGFb-", allSampleNames) & grepl("-RA-", allSampleNames)]
+makeDeviationScorePlotTibs <- function(fragmentCountsDiffPeaks, motif_ix) {
+  allSampleNames <- colnames(fragmentCountsDiffPeaks)
+  etohSampleNames <- allSampleNames[grepl("EtOH", allSampleNames)]
+  raSampleNames <- allSampleNames[grepl("-RA-", allSampleNames) & !grepl("-TGFb-", allSampleNames)]
+  tgfbSampleNames <- allSampleNames[grepl("-TGFb-", allSampleNames) & !grepl("-RA-", allSampleNames)]
+  BothSampleNames <- allSampleNames[grepl("-TGFb-", allSampleNames) & grepl("-RA-", allSampleNames)]
+  
+  # calculate deviation scores looking just the RA condition and how it compares to the EtOH condition
+  fragCountsRAandControls <- fragmentCountsDiffPeaks[, c(etohSampleNames, raSampleNames)]
+  devRA <- computeDeviations(object = fragCountsRAandControls, annotations = motif_ix)
+  variabilityRA <- computeVariability(devRA)
+  tvarRA <- as.tibble(variabilityRA)
+  devScoresEtOHconds <- deviations(devRA[, 1:9])
+  devScoresRAconds   <- deviations(devRA[, 10:18])
+  avgDevEtOH <- rowMeans(devScoresEtOHconds)
+  avgDevRA   <- rowMeans(devScoresRAconds)
+  tfnames <- names(avgDevEtOH)
+  tfnames <- sapply( strsplit(tfnames, "_"), function(x) x[3])
+  n_tfs = length(tfnames)
+  raDevTib <- tibble(tf_name = factor(rep(tfnames, 2), levels = tf.factor.order), dev_score = c(avgDevEtOH, avgDevRA), cond = c(rep("EtOH", n_tfs), rep("RA", n_tfs)))
+  
+  # calculate deviation scores looking just the TGFb condition and how it compares to the EtOH condition
+  fragCountsTGFbandControls <- fragmentCountsDiffPeaks[, c(etohSampleNames, tgfbSampleNames)]
+  devTGFb <- computeDeviations(object = fragCountsTGFbandControls, annotations = motif_ix)
+  variabilityTGFb <- computeVariability(devTGFb)
+  tvarTGFb <- as.tibble(variabilityTGFb)
+  devScoresEtOHconds <- deviations(devTGFb[, 1:9])
+  devScoresTGFbconds   <- deviations(devTGFb[, 10:18])
+  avgDevEtOH <- rowMeans(devScoresEtOHconds)
+  avgDevTGFb   <- rowMeans(devScoresTGFbconds)
+  tfnames <- names(avgDevEtOH)
+  tfnames <- sapply( strsplit(tfnames, "_"), function(x) x[3])
+  n_tfs = length(tfnames)
+  TGFbDevTib <- tibble(tf_name = factor(rep(tfnames, 2), levels = tf.factor.order), dev_score = c(avgDevEtOH, avgDevTGFb), cond = c(rep("EtOH", n_tfs), rep("TGFb", n_tfs)))
+  
+  # calculate deviation scores looking at just the "both" condition and how it compares to the EtOH condition
+  fragCountsBothandControls <- fragmentCountsDiffPeaks[, c(etohSampleNames, BothSampleNames)]
+  devBoth <- computeDeviations(object = fragCountsBothandControls, annotations = motif_ix)
+  variabilityBoth <- computeVariability(devBoth)
+  tvarBoth <- as.tibble(variabilityBoth)
+  devScoresEtOHconds <- deviations(devBoth[, 1:9])
+  devScoresBothconds   <- deviations(devBoth[, 10:18])
+  avgDevEtOH <- rowMeans(devScoresEtOHconds)
+  avgDevBoth   <- rowMeans(devScoresBothconds)
+  tfnames <- names(avgDevEtOH)
+  tfnames <- sapply( strsplit(tfnames, "_"), function(x) x[3])
+  n_tfs = length(tfnames)
+  BothDevTib <- tibble(tf_name = factor(rep(tfnames, 2), levels = tf.factor.order), dev_score = c(avgDevEtOH, avgDevBoth), cond = c(rep("EtOH", n_tfs), rep("Both", n_tfs)))
 
-# calculate deviation scores looking just the RA condition and how it compares to the EtOH condition
-set.seed(2019)
-fragCountsRAandControls <- fragmentCountsDiffPeaks[, c(etohSampleNames, raSampleNames)]
-motif_ix <- matchMotifs(selected.PWM.objects, fragCountsRAandControls, 
+  combTib <- rbind(raDevTib, TGFbDevTib, BothDevTib) %>%
+    filter(cond != "EtOH")
+
+  return(combTib)  
+}
+
+fragmentCountsDiffPeaks <- addGCBias(fragmentCountsDiffPeaks, 
+                                     genome = BSgenome.Hsapiens.UCSC.hg38)
+motif_ix <- matchMotifs(selected.PWM.objects, fragmentCountsDiffPeaks, 
                         genome = BSgenome.Hsapiens.UCSC.hg38)
-devRA <- computeDeviations(object = fragCountsRAandControls, annotations = motif_ix)
-variabilityRA <- computeVariability(devRA)
-plotVariability(variabilityRA, use_plotly = FALSE)
-tvarRA <- as.tibble(variabilityRA)
+set.seed(0)
+# the algorithm itself has some random variability, so use an average from 100 measurements before doing bootstrap confidence intervals
+n.dev.score.calcs.to.average <- 1000
+dev.scores.for.averaging.tib <- NULL
+for (ii in 1:n.dev.score.calcs.to.average) {
+  this.devScoreTib <- makeDeviationScorePlotTibs(fragmentCountsDiffPeaks, motif_ix)
+  this.devScores <- this.devScoreTib$dev_score
+  dev.scores.for.averaging.tib <- rbind(dev.scores.for.averaging.tib, this.devScores)
+}
+mean.dev.scores <- colMeans(dev.scores.for.averaging.tib)
+devScoresTib <- makeDeviationScorePlotTibs(fragmentCountsDiffPeaks, motif_ix)
+devScoresTib[["dev_score"]] <- mean.dev.scores 
 
-devScoresEtOHconds <- deviations(devRA[, 1:9])
-devScoresRAconds   <- deviations(devRA[, 10:18])
-avgDevEtOH <- rowMeans(devScoresEtOHconds)
-avgDevRA   <- rowMeans(devScoresRAconds)
-tfnames <- names(avgDevEtOH)
-tfnames <- sapply( strsplit(tfnames, "_"), function(x) x[3])
-n_tfs = length(tfnames)
-raDevTib <- tibble(tf_name = factor(rep(tfnames, 2)), dev_score = c(avgDevEtOH, avgDevRA), cond = c(rep("EtOH-1", n_tfs), rep("RA", n_tfs)))
-ggplot(raDevTib, aes(tf_name, dev_score, color = cond)) + geom_bar(stat="identity") + facet_grid(cond ~ .)
-# deviationScores(devRA[, 10:18])
+# add bootstrap confidence intervals
+n.peaks <- nrow(fragmentCountsDiffPeaks)
 
-# calculate deviation scores looking just the TGFb condition and how it compares to the EtOH condition
-set.seed(2019)
-fragCountsTGFbandControls <- fragmentCountsDiffPeaks[, c(etohSampleNames, tgfbSampleNames)]
-motif_ix <- matchMotifs(selected.PWM.objects, fragCountsTGFbandControls, 
-                        genome = BSgenome.Hsapiens.UCSC.hg38)
-devTGFb <- computeDeviations(object = fragCountsTGFbandControls, annotations = motif_ix)
-variabilityTGFb <- computeVariability(devTGFb)
-plotVariability(variabilityTGFb, use_plotly = FALSE)
-tvarTGFb <- as.tibble(variabilityTGFb)
-
-devScoresEtOHconds <- deviations(devTGFb[, 1:9])
-devScoresTGFbconds   <- deviations(devTGFb[, 10:18])
-avgDevEtOH <- rowMeans(devScoresEtOHconds)
-avgDevTGFb   <- rowMeans(devScoresTGFbconds)
-tfnames <- names(avgDevEtOH)
-tfnames <- sapply( strsplit(tfnames, "_"), function(x) x[3])
-n_tfs = length(tfnames)
-TGFbDevTib <- tibble(tf_name = factor(rep(tfnames, 2)), dev_score = c(avgDevEtOH, avgDevTGFb), cond = c(rep("EtOH-2", n_tfs), rep("TGFb", n_tfs)))
-ggplot(TGFbDevTib, aes(tf_name, dev_score, color = cond)) + geom_bar(stat="identity") + facet_grid(cond ~ .)
-
-# calculate deviation scores looking at just the "both" condition and how it compares to the EtOH condition
-set.seed(2019)
-fragCountsBothandControls <- fragmentCountsDiffPeaks[, c(etohSampleNames, BothSampleNames)]
-motif_ix <- matchMotifs(selected.PWM.objects, fragCountsBothandControls, 
-                        genome = BSgenome.Hsapiens.UCSC.hg38)
-devBoth <- computeDeviations(object = fragCountsBothandControls, annotations = motif_ix)
-variabilityBoth <- computeVariability(devBoth)
-plotVariability(variabilityBoth, use_plotly = FALSE)
-tvarBoth <- as.tibble(variabilityBoth)
-
-devScoresEtOHconds <- deviations(devBoth[, 1:9])
-devScoresBothconds   <- deviations(devBoth[, 10:18])
-avgDevEtOH <- rowMeans(devScoresEtOHconds)
-avgDevBoth   <- rowMeans(devScoresBothconds)
-tfnames <- names(avgDevEtOH)
-tfnames <- sapply( strsplit(tfnames, "_"), function(x) x[3])
-n_tfs = length(tfnames)
-BothDevTib <- tibble(tf_name = factor(rep(tfnames, 2)), dev_score = c(avgDevEtOH, avgDevBoth), cond = c(rep("EtOH-2", n_tfs), rep("Both", n_tfs)))
-ggplot(BothDevTib, aes(tf_name, dev_score, color = cond)) + geom_bar(stat="identity") + facet_grid(cond ~ .)
+bootstrap.dev.scores.tib <- NULL
+for (ii in 1:n.bootstrap.samples) {
+  this.sample.inds <- sample(1:n.peaks, n.peaks, replace = TRUE)
+  fragCtsBootstrapSample <- fragmentCountsDiffPeaks[this.sample.inds, ]
+  this.motif_ix <- motif_ix[this.sample.inds, ]
+  this.devScoreTib <- makeDeviationScorePlotTibs(fragCtsBootstrapSample, this.motif_ix)
+  this.devScores <- this.devScoreTib$dev_score
+  bootstrap.dev.scores.tib <- rbind(bootstrap.dev.scores.tib, this.devScores)
+}
+lower.bootstrap.quantiles <- c()
+upper.bootstrap.quantiles <- c()
+for (ii in 1:ncol(bootstrap.dev.scores.tib)) {
+  lower.bootstrap.quantiles <- c(lower.bootstrap.quantiles, quantile(bootstrap.dev.scores.tib[,ii], .05))
+  upper.bootstrap.quantiles <- c(upper.bootstrap.quantiles, quantile(bootstrap.dev.scores.tib[,ii], .95))
+}
+devScoresTib[["bootstrap_ci_lower"]] <- 2 * devScoresTib$dev_score - upper.bootstrap.quantiles
+devScoresTib[["bootstrap_ci_upper"]] <- 2 * devScoresTib$dev_score - lower.bootstrap.quantiles
 
 
-combTib <- rbind(raDevTib, TGFbDevTib, BothDevTib)
-combTib$tf_name <- factor(combTib$tf_name , levels = tf.factor.order)
 devscore.plot.list <- list()
 colorscheme <- c('dark green', 'blue', 'dark orange')
 for (condname in c("RA", "TGFb", "Both")) {
-  p <- combTib %>%
+  p <- devScoresTib %>%
     filter(cond == condname) %>%
-    ggplot(aes(tf_name, dev_score)) + 
+    ggplot(aes(tf_name, dev_score, ymin = bootstrap_ci_lower, ymax = bootstrap_ci_upper)) + 
     geom_bar(stat="identity", fill = colorscheme[length(devscore.plot.list) + 1]) + 
+    geom_errorbar(width = 0) +
     geom_hline(yintercept = 0) +
     ylab(paste0("dev score ", condname)) + 
     xlab("") +
@@ -125,78 +149,129 @@ for (condname in c("RA", "TGFb", "Both")) {
 
 patchplot1 <- devscore.plot.list[[1]] / devscore.plot.list[[2]] / devscore.plot.list[[3]]
 
-# make plot of motif matches sub, add, superadd
+
+##### make median D score by motif plot
+makeMotifDScoresTib <- function(anno.peaks, motif.column.names) {
+  motif.names         <- sapply(strsplit(motif.column.names, "_"), function(x) x[[1]])
+  peak.d.values <- pull(anno.peaks, "peakAdditivePredFcResidual-med")
+  n.peaks       <- length(peak.d.values)
+  corresponding.avg.d.scores    <- c()
+  corresponding.median.d.scores <- c()
+  for (motif.col.name in motif.column.names) {
+    motif.match.indices <- which(anno.peaks[, motif.col.name] > 0)
+    frac.peaks.with.motif <- length(motif.match.indices) / n.peaks
+    this.avg.d          <- mean(peak.d.values[motif.match.indices])
+    this.median.d       <- median(peak.d.values[motif.match.indices])
+    corresponding.avg.d.scores    <- c(corresponding.avg.d.scores, this.avg.d)
+    corresponding.median.d.scores <- c(corresponding.median.d.scores, this.median.d)
+    p <- qplot(peak.d.values[motif.match.indices]) + ggtitle(strsplit(motif.col.name, "_")[[1]][1]) + ylab("counts")
+  }
+  motif.d.scores.tib <- tibble(motif.name = factor(motif.names, levels = tf.factor.order), 
+                               median.d.score = corresponding.median.d.scores, 
+                               avg.d.score = corresponding.avg.d.scores)
+  return(motif.d.scores.tib)
+}
+
 motif.col.names     <- colnames(siUpregPeaks)[which(grepl("_motifMatchScore", colnames(siUpregPeaks)))]
 motif.names         <- sapply(strsplit(motif.col.names, "_"), function(x) x[[1]])
 corresponding.avg.d.scores    <- c()
 corresponding.median.d.scores <- c()
 corresponding.perc.d.scores   <- c()
-peak.d.values <- pull(siUpregPeaks, "peakAdditivePredFcResidual-med")
-n.peaks       <- length(peak.d.values)
 
-indmotifplots <- list()
-counter <- 1
-for (motif.col.name in motif.col.names) {
-  motif.match.indices <- which(siUpregPeaks[, motif.col.name] > 0)
-  frac.peaks.with.motif <- length(motif.match.indices) / n.peaks
-  print(sprintf("%s, in %0.3f percent of %d motifs", motif.col.name, frac.peaks.with.motif, n.peaks))
-  this.avg.d          <- mean(peak.d.values[motif.match.indices])
-  this.median.d       <- median(peak.d.values[motif.match.indices])
-  this.80perc.d       <- quantile(peak.d.values[motif.match.indices], .8)
-  corresponding.avg.d.scores    <- c(corresponding.avg.d.scores, this.avg.d)
-  corresponding.median.d.scores <- c(corresponding.median.d.scores, this.median.d)
-  corresponding.perc.d.scores   <- c(corresponding.perc.d.scores, this.80perc.d)
-  p <- qplot(peak.d.values[motif.match.indices]) + ggtitle(strsplit(motif.col.name, "_")[[1]][1]) + ylab("counts")
-  indmotifplots[[counter]] <- p
-  counter <- counter + 1
+motif.d.scores.tib <- makeMotifDScoresTib(siUpregPeaks, motif.col.names)
+
+# now do bootstrap error bars
+set.seed(0)
+median.dscores.tib <- NULL
+for (ii in 1:n.bootstrap.samples) {
+  siUpregPeaksBootstrapSample   <- sample_n(siUpregPeaks, nrow(siUpregPeaks), replace = TRUE)
+  this.sample.motif.d.score.tib <- makeMotifDScoresTib(siUpregPeaksBootstrapSample, motif.col.names)
+  this.median.dscores <- this.sample.motif.d.score.tib$median.d.score
+  median.dscores.tib <- rbind(median.dscores.tib, this.median.dscores)
 }
-motif.d.scores.tib <- tibble(motif.name = factor(motif.names, levels = tf.factor.order), 
-                             median.d.score = corresponding.median.d.scores, 
-                             avg.d.score = corresponding.avg.d.scores,
-                             perc.d.score = corresponding.perc.d.scores)
+colnames(median.dscores.tib) <- this.sample.motif.d.score.tib$motif.name
+rownames(median.dscores.tib) <- NULL
+
+lower.bootstrap.quantiles <- c()
+upper.bootstrap.quantiles <- c()
+for (ii in 1:ncol(median.dscores.tib)) {
+  lower.bootstrap.quantiles <- c(lower.bootstrap.quantiles, quantile(median.dscores.tib[,ii], .05))
+  upper.bootstrap.quantiles <- c(upper.bootstrap.quantiles, quantile(median.dscores.tib[,ii], .95))
+}
+motif.d.scores.tib[["bootstrap_ci_lower"]] <- 2 * motif.d.scores.tib$median.d.score - upper.bootstrap.quantiles
+motif.d.scores.tib[["bootstrap_ci_upper"]] <- 2 * motif.d.scores.tib$median.d.score - lower.bootstrap.quantiles
 
 motif.d.scores.plot <- motif.d.scores.tib %>%
-  ggplot(aes(x = motif.name, y = median.d.score)) +
+  ggplot(aes(x = motif.name, y = median.d.score, ymin = bootstrap_ci_lower, ymax = bootstrap_ci_upper)) +
   geom_bar(stat = "identity") + 
-  geom_hline(yintercept = median(peak.d.values)) + 
+  geom_errorbar(width = 0) +
+  geom_hline(yintercept = median(pull(siUpregPeaks, "peakAdditivePredFcResidual-med")), color = "grey") + 
+  geom_hline(yintercept = 0, color = "black") + 
   xlab("") +
   theme_classic() + 
   theme(axis.text.x = element_text(angle = 45,  hjust = 1, vjust=0.5))
 
+##### make frequency of motif matches at different classes of peaks: sub-additive, additive, and super-additive
+makeFracMotifMatchesByCategoryTib <- function(anno.peaks, motif.col.names, subadditive.peak.categories, additive.peak.categories, superadditive.peak.categories) {
+  frac.motif.matches.by.category.tib    <- NULL
+  for (motif.col.name in motif.col.names) {
+    subadd.peaks <- anno.peaks %>% filter(`peak_integrationCategory-med-dose` %in% subadditive.peak.categories)
+    n.subadd.peaks <- nrow(subadd.peaks)
+    subadd.motif.match.indices <- which(subadd.peaks[, motif.col.name] > 0)
+    subadd.frac.peaks.with.motif <- length(subadd.motif.match.indices) / n.subadd.peaks
+    
+    add.peaks <- anno.peaks %>% filter(`peak_integrationCategory-med-dose` %in% additive.peak.categories)
+    n.add.peaks <- nrow(add.peaks)
+    add.motif.match.indices <- which(add.peaks[, motif.col.name] > 0)
+    add.frac.peaks.with.motif <- length(add.motif.match.indices) / n.add.peaks
+    
+    superadd.peaks <- anno.peaks %>% filter(`peak_integrationCategory-med-dose` %in% superadditive.peak.categories)
+    n.superadd.peaks <- nrow(superadd.peaks)
+    superadd.motif.match.indices <- which(superadd.peaks[, motif.col.name] > 0)
+    superadd.frac.peaks.with.motif <- length(superadd.motif.match.indices) / n.superadd.peaks
+    
+    motif.name   <- factor(rep(strsplit(motif.col.name, "_")[[1]][1], 3), levels = tf.factor.order)
+    frac.peaks.with.motif.matches <- c(subadd.frac.peaks.with.motif, add.frac.peaks.with.motif, superadd.frac.peaks.with.motif)
+    peak.category <- factor(c('subadditive', 'additive', 'superadditive'), levels = c('subadditive', 'additive', 'superadditive'))
+    peak.category.total.num.peaks <- c(n.subadd.peaks, n.add.peaks, n.superadd.peaks)
+    
+    frac.motif.matches.by.category.tib <- rbind(frac.motif.matches.by.category.tib, tibble(motif.name, frac.peaks.with.motif.matches, peak.category, peak.category.total.num.peaks))
+  }
+  return(frac.motif.matches.by.category.tib)
+}
 
-# look at frequency of each motif at sub-additive, additive, and super-additive peaks
 subadditive.peak.categories   <- c("sub-additive")
 additive.peak.categories      <- c("additive", "ambiguous")
 superadditive.peak.categories <- c("between-add-and-mult", "multiplicative", "super-multiplicative")
 
-frac.motif.matches.by.category.tib    <- NULL
-for (motif.col.name in motif.col.names) {
-  subadd.peaks <- siUpregPeaks %>% filter(`peak_integrationCategory-med-dose` %in% subadditive.peak.categories)
-  n.subadd.peaks <- nrow(subadd.peaks)
-  subadd.motif.match.indices <- which(subadd.peaks[, motif.col.name] > 0)
-  subadd.frac.peaks.with.motif <- length(subadd.motif.match.indices) / n.subadd.peaks
-  
-  add.peaks <- siUpregPeaks %>% filter(`peak_integrationCategory-med-dose` %in% additive.peak.categories)
-  n.add.peaks <- nrow(add.peaks)
-  add.motif.match.indices <- which(add.peaks[, motif.col.name] > 0)
-  add.frac.peaks.with.motif <- length(add.motif.match.indices) / n.add.peaks
-  
-  superadd.peaks <- siUpregPeaks %>% filter(`peak_integrationCategory-med-dose` %in% superadditive.peak.categories)
-  n.superadd.peaks <- nrow(superadd.peaks)
-  superadd.motif.match.indices <- which(superadd.peaks[, motif.col.name] > 0)
-  superadd.frac.peaks.with.motif <- length(superadd.motif.match.indices) / n.superadd.peaks
-  
-  motif.name   <- factor(rep(strsplit(motif.col.name, "_")[[1]][1], 3), levels = tf.factor.order)
-  frac.peaks.with.motif.matches <- c(subadd.frac.peaks.with.motif, add.frac.peaks.with.motif, superadd.frac.peaks.with.motif)
-  peak.category <- factor(c('subadditive', 'additive', 'superadditive'), levels = c('subadditive', 'additive', 'superadditive'))
-  peak.category.total.num.peaks <- c(n.subadd.peaks, n.add.peaks, n.superadd.peaks)
-  
-  frac.motif.matches.by.category.tib <- rbind(frac.motif.matches.by.category.tib, tibble(motif.name, frac.peaks.with.motif.matches, peak.category, peak.category.total.num.peaks))
+frac.motif.matches.by.category.tib <- makeFracMotifMatchesByCategoryTib(siUpregPeaks, motif.col.names, subadditive.peak.categories, additive.peak.categories, superadditive.peak.categories)
+
+# now do bootstrap error bars
+set.seed(0)
+frac.peaks.with.motif.match.tib <- NULL
+for (ii in 1:n.bootstrap.samples) {
+  siUpregPeaksBootstrapSample   <- sample_n(siUpregPeaks, nrow(siUpregPeaks), replace = TRUE)
+  this.frac.motif.matches.by.category <- makeFracMotifMatchesByCategoryTib(siUpregPeaksBootstrapSample, motif.col.names, subadditive.peak.categories, additive.peak.categories, superadditive.peak.categories)
+  this.frac.peaks.with.motif.match <- this.frac.motif.matches.by.category$frac.peaks.with.motif.matches
+  frac.peaks.with.motif.match.tib <- rbind(frac.peaks.with.motif.match.tib, this.frac.peaks.with.motif.match)
 }
+colnames(frac.peaks.with.motif.match.tib) <- paste0(this.frac.motif.matches.by.category$motif.name, "_", this.frac.motif.matches.by.category$peak.category)
+rownames(frac.peaks.with.motif.match.tib) <- NULL
 
+lower.bootstrap.quantiles <- c()
+upper.bootstrap.quantiles <- c()
+for (ii in 1:ncol(frac.peaks.with.motif.match.tib)) {
+  lower.bootstrap.quantiles <- c(lower.bootstrap.quantiles, quantile(frac.peaks.with.motif.match.tib[,ii], .05))
+  upper.bootstrap.quantiles <- c(upper.bootstrap.quantiles, quantile(frac.peaks.with.motif.match.tib[,ii], .95))
+}
+frac.motif.matches.by.category.tib[["bootstrap_ci_lower"]] <- 2 * frac.motif.matches.by.category.tib$frac.peaks.with.motif.matches - upper.bootstrap.quantiles
+frac.motif.matches.by.category.tib[["bootstrap_ci_upper"]] <- 2 * frac.motif.matches.by.category.tib$frac.peaks.with.motif.matches - lower.bootstrap.quantiles
 
-frac.motif.matches.by.category.plot <- frac.motif.matches.by.category.tib %>% ggplot(aes(x = motif.name, y = frac.peaks.with.motif.matches, fill = peak.category)) +
+frac.motif.matches.by.category.plot <- frac.motif.matches.by.category.tib %>% 
+  ggplot(aes(x = motif.name, y = frac.peaks.with.motif.matches, fill = peak.category,
+             ymin = bootstrap_ci_lower, ymax = bootstrap_ci_upper)) +
   geom_bar(stat = "identity", position = "dodge") +
+  geom_errorbar( position = position_dodge(width=0.9), colour="black", width=0.0) +
   xlab("") +
   guides(fill=FALSE) +
   theme_classic() + 
@@ -206,30 +281,77 @@ frac.motif.matches.by.category.plot <- frac.motif.matches.by.category.tib %>% gg
 composite.plot <- devscore.plot.list[[1]] / devscore.plot.list[[2]] / devscore.plot.list[[3]] / motif.d.scores.plot / frac.motif.matches.by.category.plot
 ggsave(paste0(outputPlotPrefix, "motif_analysis_composite_plot.svg"), plot = composite.plot, width = 24, height = 18)
 
-# are super-additive peaks more likely to contain dual motifs?
-siUpregPeaks$`group-TGFbdominant_maxMotifMatchScore`
-siUpregPeaks$`group-RAdominant_maxMotifMatchScore`
+### are super-additive peaks more likely to contain dual motifs?
+getExpectedAndMeasuredDualMotifMatchesAtAnnotatedPeaks <- function(peak.tib.anno, peak.integration.category, peak.dose) {
+  int.categories <- sapply(pull(peak.tib.anno, paste0("peak_integrationCategory-", peak.dose, "-dose")), convertUpregCvalCatToDvalCat)
+  int.cat.inds   <- int.categories == peak.integration.category
+  filt.peak.tib.anno <- peak.tib.anno[int.cat.inds, ]
+  
+  dual.motif.tib <- filt.peak.tib.anno %>%
+    mutate(hasTGFbMatch = `group-TGFbdominant_maxMotifMatchScore` > 0,
+           hasRAMatch   = `group-RAdominant_maxMotifMatchScore` > 0) %>%
+    mutate(hasDualMotifMatch = hasTGFbMatch & hasRAMatch)
+  
+  n.peaks.this.cat <- nrow(dual.motif.tib)
+  measured_frac_dual_motif = sum(dual.motif.tib$hasDualMotifMatch) / n.peaks.this.cat
+  expected_frac_dual_motif = (sum(dual.motif.tib$hasRAMatch) / n.peaks.this.cat) * (sum(dual.motif.tib$hasTGFbMatch) / n.peaks.this.cat)
+
+  return(list(measured_frac_dual_motif, expected_frac_dual_motif))
+}
+
 siUpregPeaks[["peakIntegrationCategory_med_dose"]] <- factor(sapply(siUpregPeaks$`peak_integrationCategory-med-dose`, convertUpregCvalCatToDvalCat), levels = c("sub-additive", "additive", "super-additive"))
 
+frac.dual.motif.matches.measured.subadditive   <- getExpectedAndMeasuredDualMotifMatchesAtAnnotatedPeaks(siUpregPeaks, "sub-additive", "med")[[1]]
+frac.dual.motif.matches.expected.subadditive   <- getExpectedAndMeasuredDualMotifMatchesAtAnnotatedPeaks(siUpregPeaks, "sub-additive", "med")[[2]]
+frac.dual.motif.matches.measured.additive      <- getExpectedAndMeasuredDualMotifMatchesAtAnnotatedPeaks(siUpregPeaks, "additive", "med")[[1]]
+frac.dual.motif.matches.expected.additive      <- getExpectedAndMeasuredDualMotifMatchesAtAnnotatedPeaks(siUpregPeaks, "additive", "med")[[2]]
+frac.dual.motif.matches.measured.superadditive <- getExpectedAndMeasuredDualMotifMatchesAtAnnotatedPeaks(siUpregPeaks, "super-additive", "med")[[1]]
+frac.dual.motif.matches.expected.superadditive <- getExpectedAndMeasuredDualMotifMatchesAtAnnotatedPeaks(siUpregPeaks, "super-additive", "med")[[2]]
 
-dual.motif.analysis.tib <- siUpregPeaks %>%
-  mutate(hasTGFbMatch = `group-TGFbdominant_maxMotifMatchScore` > 0,
-         hasRAMatch   = `group-RAdominant_maxMotifMatchScore` > 0) %>%
-  mutate(hasDualMotifMatch = hasTGFbMatch & hasRAMatch) %>%
-  group_by(peakIntegrationCategory_med_dose) %>%
-  mutate(measured_frac_dual_motif = sum(hasDualMotifMatch) / n()) %>%
-  mutate(expected_frac_dual_motif = (sum(hasRAMatch) / n()) * (sum(hasTGFbMatch) / n())) %>%
-  ungroup() %>%
-  dplyr::select(hasTGFbMatch, hasRAMatch, hasDualMotifMatch, peakIntegrationCategory_med_dose, measured_frac_dual_motif, expected_frac_dual_motif)
+# do bootstrap right here, add CI's
+set.seed(0)
+frac.dual.motif.matches.measured.subadditive.bootstrap.values <- c()
+frac.dual.motif.matches.expected.subadditive.bootstrap.values   <- c()
+frac.dual.motif.matches.measured.additive.bootstrap.values      <- c()
+frac.dual.motif.matches.expected.additive.bootstrap.values      <- c()
+frac.dual.motif.matches.measured.superadditive.bootstrap.values <- c()
+frac.dual.motif.matches.expected.superadditive.bootstrap.values <- c()
+for (ii in 1:n.bootstrap.samples) {
+  siUpregPeakBootstrapSample <- sample_n(siUpregPeaks, nrow(siUpregPeaks), replace = TRUE)
+  
+  bootstrap.frac.dual.motif.matches.measured.subadditive   <- getExpectedAndMeasuredDualMotifMatchesAtAnnotatedPeaks(siUpregPeakBootstrapSample, "sub-additive", "med")[[1]] - frac.dual.motif.matches.measured.subadditive
+  bootstrap.frac.dual.motif.matches.expected.subadditive   <- getExpectedAndMeasuredDualMotifMatchesAtAnnotatedPeaks(siUpregPeakBootstrapSample, "sub-additive", "med")[[2]] - frac.dual.motif.matches.expected.subadditive
+  bootstrap.frac.dual.motif.matches.measured.additive      <- getExpectedAndMeasuredDualMotifMatchesAtAnnotatedPeaks(siUpregPeakBootstrapSample, "additive", "med")[[1]] - frac.dual.motif.matches.measured.additive
+  bootstrap.frac.dual.motif.matches.expected.additive      <- getExpectedAndMeasuredDualMotifMatchesAtAnnotatedPeaks(siUpregPeakBootstrapSample, "additive", "med")[[2]] - frac.dual.motif.matches.expected.additive
+  bootstrap.frac.dual.motif.matches.measured.superadditive <- getExpectedAndMeasuredDualMotifMatchesAtAnnotatedPeaks(siUpregPeakBootstrapSample, "super-additive", "med")[[1]] - frac.dual.motif.matches.measured.superadditive
+  bootstrap.frac.dual.motif.matches.expected.superadditive <- getExpectedAndMeasuredDualMotifMatchesAtAnnotatedPeaks(siUpregPeakBootstrapSample, "super-additive", "med")[[2]] - frac.dual.motif.matches.expected.superadditive
+  
+  frac.dual.motif.matches.measured.subadditive.bootstrap.values   <- c(frac.dual.motif.matches.measured.subadditive.bootstrap.values, bootstrap.frac.dual.motif.matches.measured.subadditive)
+  frac.dual.motif.matches.expected.subadditive.bootstrap.values   <- c(frac.dual.motif.matches.expected.subadditive.bootstrap.values, bootstrap.frac.dual.motif.matches.expected.subadditive)
+  frac.dual.motif.matches.measured.additive.bootstrap.values      <- c(frac.dual.motif.matches.measured.additive.bootstrap.values, bootstrap.frac.dual.motif.matches.measured.additive)
+  frac.dual.motif.matches.expected.additive.bootstrap.values      <- c(frac.dual.motif.matches.expected.additive.bootstrap.values, bootstrap.frac.dual.motif.matches.expected.additive)
+  frac.dual.motif.matches.measured.superadditive.bootstrap.values <- c(frac.dual.motif.matches.measured.superadditive.bootstrap.values, bootstrap.frac.dual.motif.matches.measured.superadditive)
+  frac.dual.motif.matches.expected.superadditive.bootstrap.values <- c(frac.dual.motif.matches.expected.superadditive.bootstrap.values, bootstrap.frac.dual.motif.matches.expected.superadditive)
+  print(ii)
+}
+# now build tibble for plot, row-by-row
+reduced.dual.motif.analysis.tib <- tibble(expected.vs.measured = c("measured","expected", "measured","expected", "measured", "expected"),
+                                          peak.category        = factor(c('sub-additive', 'sub-additive', 'additive', 'additive', 'super-additive', 'super-additive'), levels = c("sub-additive", "additive", "super-additive")),
+                                          frac.dual.motifs = c(frac.dual.motif.matches.measured.subadditive, frac.dual.motif.matches.expected.subadditive,
+                                                               frac.dual.motif.matches.measured.additive, frac.dual.motif.matches.expected.additive,
+                                                               frac.dual.motif.matches.measured.superadditive, frac.dual.motif.matches.expected.superadditive),
+                                          upper.ci = frac.dual.motifs - c(quantile(frac.dual.motif.matches.measured.subadditive.bootstrap.values, .05), quantile(frac.dual.motif.matches.expected.subadditive.bootstrap.values, .05),
+                                                                          quantile(frac.dual.motif.matches.measured.additive.bootstrap.values, .05), quantile(frac.dual.motif.matches.expected.additive.bootstrap.values, .05),
+                                                                          quantile(frac.dual.motif.matches.measured.superadditive.bootstrap.values, .05), quantile(frac.dual.motif.matches.expected.superadditive.bootstrap.values, .05)),
+                                          lower.ci = frac.dual.motifs - c(quantile(frac.dual.motif.matches.measured.subadditive.bootstrap.values, .95), quantile(frac.dual.motif.matches.expected.subadditive.bootstrap.values, .95),
+                                                                          quantile(frac.dual.motif.matches.measured.additive.bootstrap.values, .95), quantile(frac.dual.motif.matches.expected.additive.bootstrap.values, .95),
+                                                                          quantile(frac.dual.motif.matches.measured.superadditive.bootstrap.values, .95), quantile(frac.dual.motif.matches.expected.superadditive.bootstrap.values, .95)),
+                                          )
 
-reduced.dual.motif.analysis.tib <- dplyr::select(dual.motif.analysis.tib, peakIntegrationCategory_med_dose, measured_frac_dual_motif, expected_frac_dual_motif) %>% unique()
-reduced.dual.motif.analysis.tib <- gather(reduced.dual.motif.analysis.tib, key = "expected_or_measured", value = "frac_dual", "measured_frac_dual_motif", "expected_frac_dual_motif")
+dual.motif.analysis.plot <- reduced.dual.motif.analysis.tib %>%
+  ggplot(aes(x = peak.category, y = frac.dual.motifs, fill = expected.vs.measured, ymin = lower.ci, ymax = upper.ci)) +
+  geom_bar(stat = "identity", position = "dodge") + 
+  geom_errorbar(position = position_dodge(width=0.9), width = 0) +
+  theme_minimal()
 
-p.dualmotif <- reduced.dual.motif.analysis.tib %>%
-  ggplot(aes(x = peakIntegrationCategory_med_dose, y = frac_dual, fill = expected_or_measured)) + 
-  geom_bar(stat = "identity", position = "dodge") +
-  ylab("fraction of peaks with dual-motif matches (one TGFb motif + one RA motif)") +
-  xlab("peak integration category") +
-  theme_minimal(base_size = 16)
-
-p.dualmotif
+ggsave(paste0(outputPlotPrefix, "motif_analysis_freq_dual_motif_matches_by_peakIntCategory.svg"), plot = dual.motif.analysis.plot, width = 12, height = 12)
