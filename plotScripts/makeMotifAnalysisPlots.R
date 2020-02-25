@@ -49,45 +49,47 @@ makeDeviationScorePlotTibs <- function(fragmentCountsDiffPeaks, motif_ix) {
   devRA <- computeDeviations(object = fragCountsRAandControls, annotations = motif_ix)
   variabilityRA <- computeVariability(devRA)
   tvarRA <- as.tibble(variabilityRA)
-  devScoresEtOHconds <- deviations(devRA[, 1:9])
-  devScoresRAconds   <- deviations(devRA[, 10:18])
+  devScoresEtOHconds <- (assays(devRA)$raw_deviations[, 1:9])
+  devScoresRAconds   <- (assays(devRA)$raw_deviations[, 10:18])
   avgDevEtOH <- rowMeans(devScoresEtOHconds)
   avgDevRA   <- rowMeans(devScoresRAconds)
+  devScoreRA <- (avgDevRA + 1) / (avgDevEtOH + 1) - 1
   tfnames <- names(avgDevEtOH)
   tfnames <- sapply( strsplit(tfnames, "_"), function(x) x[3])
   n_tfs = length(tfnames)
-  raDevTib <- tibble(tf_name = factor(rep(tfnames, 2), levels = tf.factor.order), dev_score = c(avgDevEtOH, avgDevRA), cond = c(rep("EtOH", n_tfs), rep("RA", n_tfs)))
+  raDevTib <- tibble(tf_name = factor(tfnames, levels = tf.factor.order), dev_score = devScoreRA, cond = rep("RA", n_tfs))
   
   # calculate deviation scores looking just the TGFb condition and how it compares to the EtOH condition
   fragCountsTGFbandControls <- fragmentCountsDiffPeaks[, c(etohSampleNames, tgfbSampleNames)]
   devTGFb <- computeDeviations(object = fragCountsTGFbandControls, annotations = motif_ix)
   variabilityTGFb <- computeVariability(devTGFb)
   tvarTGFb <- as.tibble(variabilityTGFb)
-  devScoresEtOHconds <- deviations(devTGFb[, 1:9])
-  devScoresTGFbconds   <- deviations(devTGFb[, 10:18])
+  devScoresEtOHconds <- (assays(devTGFb)$raw_deviations[, 1:9])
+  devScoresTGFbconds   <- (assays(devTGFb)$raw_deviations[, 10:18])
   avgDevEtOH <- rowMeans(devScoresEtOHconds)
   avgDevTGFb   <- rowMeans(devScoresTGFbconds)
+  devScoreTGFb <- (avgDevTGFb + 1) / (avgDevEtOH + 1) - 1
   tfnames <- names(avgDevEtOH)
   tfnames <- sapply( strsplit(tfnames, "_"), function(x) x[3])
   n_tfs = length(tfnames)
-  TGFbDevTib <- tibble(tf_name = factor(rep(tfnames, 2), levels = tf.factor.order), dev_score = c(avgDevEtOH, avgDevTGFb), cond = c(rep("EtOH", n_tfs), rep("TGFb", n_tfs)))
+  TGFbDevTib <- tibble(tf_name = factor(tfnames, levels = tf.factor.order), dev_score = devScoreTGFb, cond = rep("TGFb", n_tfs))
   
   # calculate deviation scores looking at just the "both" condition and how it compares to the EtOH condition
   fragCountsBothandControls <- fragmentCountsDiffPeaks[, c(etohSampleNames, BothSampleNames)]
   devBoth <- computeDeviations(object = fragCountsBothandControls, annotations = motif_ix)
   variabilityBoth <- computeVariability(devBoth)
   tvarBoth <- as.tibble(variabilityBoth)
-  devScoresEtOHconds <- deviations(devBoth[, 1:9])
-  devScoresBothconds   <- deviations(devBoth[, 10:18])
+  devScoresEtOHconds <- (assays(devBoth)$raw_deviations[, 1:9])
+  devScoresBothconds   <- (assays(devBoth)$raw_deviations[, 10:18])
   avgDevEtOH <- rowMeans(devScoresEtOHconds)
   avgDevBoth   <- rowMeans(devScoresBothconds)
+  devScoreBoth <- (avgDevBoth + 1) / (avgDevEtOH + 1) - 1
   tfnames <- names(avgDevEtOH)
   tfnames <- sapply( strsplit(tfnames, "_"), function(x) x[3])
   n_tfs = length(tfnames)
-  BothDevTib <- tibble(tf_name = factor(rep(tfnames, 2), levels = tf.factor.order), dev_score = c(avgDevEtOH, avgDevBoth), cond = c(rep("EtOH", n_tfs), rep("Both", n_tfs)))
+  BothDevTib <- tibble(tf_name = factor(tfnames, levels = tf.factor.order), dev_score = devScoreBoth, cond = rep("Both", n_tfs))
 
-  combTib <- rbind(raDevTib, TGFbDevTib, BothDevTib) %>%
-    filter(cond != "EtOH")
+  combTib <- rbind(raDevTib, TGFbDevTib, BothDevTib) 
 
   return(combTib)  
 }
@@ -96,22 +98,11 @@ fragmentCountsDiffPeaks <- addGCBias(fragmentCountsDiffPeaks,
                                      genome = BSgenome.Hsapiens.UCSC.hg38)
 motif_ix <- matchMotifs(selected.PWM.objects, fragmentCountsDiffPeaks, 
                         genome = BSgenome.Hsapiens.UCSC.hg38)
-set.seed(0)
-# the algorithm itself has some random variability, so use an average from 100 measurements before doing bootstrap confidence intervals
-n.dev.score.calcs.to.average <- 1000
-dev.scores.for.averaging.tib <- NULL
-for (ii in 1:n.dev.score.calcs.to.average) {
-  this.devScoreTib <- makeDeviationScorePlotTibs(fragmentCountsDiffPeaks, motif_ix)
-  this.devScores <- this.devScoreTib$dev_score
-  dev.scores.for.averaging.tib <- rbind(dev.scores.for.averaging.tib, this.devScores)
-}
-mean.dev.scores <- colMeans(dev.scores.for.averaging.tib)
 devScoresTib <- makeDeviationScorePlotTibs(fragmentCountsDiffPeaks, motif_ix)
-devScoresTib[["dev_score"]] <- mean.dev.scores 
 
 # add bootstrap confidence intervals
+set.seed(0)
 n.peaks <- nrow(fragmentCountsDiffPeaks)
-
 bootstrap.dev.scores.tib <- NULL
 for (ii in 1:n.bootstrap.samples) {
   this.sample.inds <- sample(1:n.peaks, n.peaks, replace = TRUE)
@@ -146,7 +137,11 @@ for (condname in c("RA", "TGFb", "Both")) {
     theme(axis.text.x = element_text(angle = 45,  hjust = 1, vjust=0.5)) 
   devscore.plot.list[[length(devscore.plot.list) + 1]] <- p
 }
-
+# brute force, standardize y axes
+y_limits <- ggplot_build(devscore.plot.list[[3]])$layout$panel_scales_y[[1]]$range$range
+devscore.plot.list[[1]] <- devscore.plot.list[[1]] + ylim(y_limits)
+devscore.plot.list[[2]] <- devscore.plot.list[[2]] + ylim(y_limits)
+devscore.plot.list[[3]] <- devscore.plot.list[[3]] + ylim(y_limits)
 patchplot1 <- devscore.plot.list[[1]] / devscore.plot.list[[2]] / devscore.plot.list[[3]]
 
 
@@ -299,8 +294,6 @@ getExpectedAndMeasuredDualMotifMatchesAtAnnotatedPeaks <- function(peak.tib.anno
   return(list(measured_frac_dual_motif, expected_frac_dual_motif))
 }
 
-siUpregPeaks[["peakIntegrationCategory_med_dose"]] <- factor(sapply(siUpregPeaks$`peak_integrationCategory-med-dose`, convertUpregCvalCatToDvalCat), levels = c("sub-additive", "additive", "super-additive"))
-
 frac.dual.motif.matches.measured.subadditive   <- getExpectedAndMeasuredDualMotifMatchesAtAnnotatedPeaks(siUpregPeaks, "sub-additive", "med")[[1]]
 frac.dual.motif.matches.expected.subadditive   <- getExpectedAndMeasuredDualMotifMatchesAtAnnotatedPeaks(siUpregPeaks, "sub-additive", "med")[[2]]
 frac.dual.motif.matches.measured.additive      <- getExpectedAndMeasuredDualMotifMatchesAtAnnotatedPeaks(siUpregPeaks, "additive", "med")[[1]]
@@ -332,7 +325,6 @@ for (ii in 1:n.bootstrap.samples) {
   frac.dual.motif.matches.expected.additive.bootstrap.values      <- c(frac.dual.motif.matches.expected.additive.bootstrap.values, bootstrap.frac.dual.motif.matches.expected.additive)
   frac.dual.motif.matches.measured.superadditive.bootstrap.values <- c(frac.dual.motif.matches.measured.superadditive.bootstrap.values, bootstrap.frac.dual.motif.matches.measured.superadditive)
   frac.dual.motif.matches.expected.superadditive.bootstrap.values <- c(frac.dual.motif.matches.expected.superadditive.bootstrap.values, bootstrap.frac.dual.motif.matches.expected.superadditive)
-  print(ii)
 }
 # now build tibble for plot, row-by-row
 reduced.dual.motif.analysis.tib <- tibble(expected.vs.measured = c("measured","expected", "measured","expected", "measured", "expected"),
@@ -352,6 +344,6 @@ dual.motif.analysis.plot <- reduced.dual.motif.analysis.tib %>%
   ggplot(aes(x = peak.category, y = frac.dual.motifs, fill = expected.vs.measured, ymin = lower.ci, ymax = upper.ci)) +
   geom_bar(stat = "identity", position = "dodge") + 
   geom_errorbar(position = position_dodge(width=0.9), width = 0) +
-  theme_minimal()
+  theme_classic()
 
 ggsave(paste0(outputPlotPrefix, "motif_analysis_freq_dual_motif_matches_by_peakIntCategory.svg"), plot = dual.motif.analysis.plot, width = 12, height = 12)
