@@ -307,7 +307,7 @@ if __name__ == '__main__':
 		# plotsDir = os.sep.join([basedir, "plots", "sensitivityAnalysis"])
 
 		# peak_merge_distances = [0, 250, 375, 500]           # also try [0, 150, 250, 500]
-		# initial_peak_width           = 150                          # also try 225 later, for motif analysis
+		# initial_peak_width           = 150                          #  these are centered at macs2 summits
 		# final_diffpeak_algorithm_min_normalized_fragments_list = [10, 30]   # do 10, 20, 30, 40
 		# final_diffpeak_algorithm_min_fold_change_list          = [1.1, 1.5]  # do 1,1, 1.5, 2, 4
 		# param_object_list = []
