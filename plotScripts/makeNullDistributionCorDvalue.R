@@ -9,14 +9,14 @@ max.n.sample.attempts.to.be.higher.than.control <- 100000
 
 cmdargs = commandArgs(trailingOnly=TRUE)
 if (length(cmdargs) == 0) {
-  dist.for.peaks.vs.genes  <- "peaks" 
+  dist.for.peaks.vs.genes  <- "genes" 
   min.fc.diff.mult.add.for.c.histogram   <- 0
   min.raw.val.diff.for.c.histogram       <- 0
   # input files -- use upregulated peaks or genes
   # input.table  <- read_tsv(here("extractedData", "DeSeqOutputAllConds.annotated.upregulatedGeneSet.tsv"))
-  # input.table  <- read_tsv("/Users/emsanford/Dropbox (RajLab)/Shared_Eric/SIgnal_Integration/Analysis_SI2-SI4_github_testing/signal_integration_paper_scripts/extractedData/DeSeqOutputAllConds.annotated.upregulatedGeneSet.tsv")
-  input.table      <- read_tsv("/Users/emsanford/Dropbox (RajLab)/Shared_Eric/SIgnal_Integration/Analysis_SI2-SI4_github_testing/signal_integration_paper_scripts/extractedData/differentialAtacPeaks_mergedist250_peakwidth150_minNormFrags30_minFoldChange1.5.annotated.upregulated.tsv")
-  output.file.prefix <- paste0("/Users/emsanford/Dropbox (RajLab)/Shared_Eric/SIgnal_Integration/Analysis_SI2-SI4/plots/peak_integration_summary_plots/null_distributions/", dist.for.peaks.vs.genes, "_")
+  input.table  <- read_tsv("/Users/emsanford/Dropbox (RajLab)/Shared_Eric/SIgnal_Integration/Analysis_SI2-SI4_github_testing/signal_integration_paper_scripts/extractedData/DeSeqOutputAllConds.annotated.upregulatedGeneSet.tsv")
+  # input.table      <- read_tsv("/Users/emsanford/Dropbox (RajLab)/Shared_Eric/SIgnal_Integration/Analysis_SI2-SI4_github_testing/signal_integration_paper_scripts/extractedData/differentialAtacPeaks_mergedist250_peakwidth150_minNormFrags30_minFoldChange1.5.annotated.upregulated.tsv")
+  output.file.prefix <- paste0("/Users/emsanford/Dropbox (RajLab)/Shared_Eric/SIgnal_Integration/Analysis_SI2-SI4/plots/gene_integration_summary_plots/null_distributions/", dist.for.peaks.vs.genes, "_")
 } else {
   input.table                            <- read_tsv(cmdargs[1])
   min.fc.diff.mult.add.for.c.histogram   <- as.numeric(cmdargs[2])
@@ -241,20 +241,22 @@ for (add.vs.mult.null.model in c("additive", "multiplicative", "mixture")) {
 grand.tib.for.cval.plot.grid[["dose"]]       <- factor(grand.tib.for.cval.plot.grid[["dose"]], levels = c("low", "med", "high"))
 grand.tib.for.cval.plot.grid[["null_model"]] <- factor(grand.tib.for.cval.plot.grid[["null_model"]], levels = c("additive", "multiplicative", "mixture"))
 n.dose.nullmodel.pairs = 9
-reduced.grand.tib <- grand.tib.for.cval.plot.grid %>% 
+reduced.grand.tib.cvals <- grand.tib.for.cval.plot.grid %>% 
   group_by(intConstantHhistBin, intCategory, dose,  null_model) %>% 
   mutate(n_this_bin = n(), freq_this_bin = n_this_bin / (nrow(grand.tib.for.cval.plot.grid) / n.dose.nullmodel.pairs)) %>%
   ungroup() %>%
   unique()
   
-gridhistogramplot1 <- ggplot(grand.tib.for.cval.plot.grid, aes(x = intConstantHhistBin, fill = intCategory)) +
+gridhistogramplot1 <- grand.tib.for.cval.plot.grid %>%
+  filter(null_model == "mixture") %>%
+  ggplot(aes(x = intConstantHhistBin, fill = intCategory)) +
   geom_bar(stat="count", width = bin.step.size * .90) +
-  facet_grid(dose ~ null_model) +
+  facet_grid(~dose) +
   theme_classic()
 
-gridhistogramplot2 <- ggplot(reduced.grand.tib, aes(x = intConstantHhistBin, y = freq_this_bin, fill = intCategory)) +
+gridhistogramplot2 <- ggplot(reduced.grand.tib.cvals, aes(x = intConstantHhistBin, y = freq_this_bin, fill = intCategory)) +
   geom_bar(stat="identity", width = bin.step.size * .90) +
-  facet_grid(dose ~ null_model) +
+  facet_grid(~dose) +
   theme_classic()
 
 ggsave(paste0(output.file.prefix, "cval_grid_counts.svg"), plot = gridhistogramplot1, width = 18, height = 8.15)
@@ -262,10 +264,10 @@ ggsave(paste0(output.file.prefix, "cval_grid_frequencies.svg"), plot = gridhisto
 saveRDS(grand.tib.for.cval.plot.grid, file = paste0(output.file.prefix, "cval_grid_grand_tibble.rds"))
 
 # to do: print percent above c = 2 for each null distribution:
-c.cutoff <- 3
+c.cutoff <- 4
 for (dosage in c("low", "med", "high")) {
   for (model in c("additive", "multiplicative", "mixture")) {
-    freq.above.c.2 <- reduced.grand.tib %>%
+    freq.above.c.2 <- reduced.grand.tib.cvals %>%
       filter(null_model == model, dose == dosage) %>%
       filter(intConstantHhistBin >= c.cutoff) %>%
       pull("freq_this_bin") %>%

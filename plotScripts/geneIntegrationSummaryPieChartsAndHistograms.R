@@ -100,7 +100,7 @@ for (dosage in c("low", "med", "high")) {
 
   stackedBarTib  <- stackedBarRes[[2]]
   stackedBarTib[["dose"]] <- dosage
-  threshold.for.reporting.upper.end.of.histogram <- 2
+  threshold.for.reporting.upper.end.of.histogram <- 4
   reduced.tib <- stackedBarTib %>% 
   group_by(intConstantHhistBin, intCategory, dose) %>% 
     mutate(n_this_bin = n(), freq_this_bin = n_this_bin / nrow(stackedBarTib)) %>%
@@ -112,7 +112,7 @@ for (dosage in c("low", "med", "high")) {
     pull("freq_this_bin") %>%
     sum()
   
-  print(sprintf("%s %0.3f", dosage, freq.above.c.2))
+  print(sprintf("%s %0.4f", dosage, freq.above.c.2))
 
   ggsave(paste0(stackedBarHistogram.location.prefix, "upregGeneIntegrationConstants_", dosage, "_dose.svg"), plot = stackedBarHist, width = plot.width, height = plot.height)
 }
