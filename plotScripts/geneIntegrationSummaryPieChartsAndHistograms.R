@@ -3,8 +3,6 @@ library(here)
 
 source(here('extractionScripts', 'util.R'))
 
-use.common.scale <- F
-
 cmdargs = commandArgs(trailingOnly=TRUE)
 if (length(cmdargs) == 0) {
   siUpregGenes     <- read_tsv("/Users/emsanford/Dropbox (RajLab)/Shared_Eric/SIgnal_Integration/Analysis_SI2-SI4_github_testing/signal_integration_paper_scripts/extractedData/DeSeqOutputAllConds.annotated.upregulatedGeneSet.tsv")
@@ -65,7 +63,7 @@ mapCatsToReducesCatSet <- function(cat.values) {
 
 
 # first loop: get the maximum bin y value to standardize the y axis limits when making plots
-bin.step.size   <-  0.125
+bin.step.size   <-  0.20
 bin.leftmost    <- -3
 bin.rightmost   <-  5
 plot.width    <-   18
@@ -93,10 +91,6 @@ for (dosage in c("low", "med", "high")) {
                                              xlabel = "c-value", ylabel = "count", color.by.category = T)
   
   stackedBarHist <- stackedBarRes[[1]]
-  
-  if (use.common.scale) {
-    stackedBarHist <- stackedBarHist + ylim(0, max(max.bin.vals))
-  }
 
   stackedBarTib  <- stackedBarRes[[2]]
   stackedBarTib[["dose"]] <- dosage
@@ -107,13 +101,18 @@ for (dosage in c("low", "med", "high")) {
     ungroup() %>%
     unique()
   
-  freq.above.c.2 <- reduced.tib %>%
+  freq.above.upper.threshold <- reduced.tib %>%
     filter(intConstantHhistBin >= threshold.for.reporting.upper.end.of.histogram) %>%
     pull("freq_this_bin") %>%
     sum()
   
-  print(sprintf("%s %0.4f", dosage, freq.above.c.2))
+  print(sprintf("freq above upper threshold of %.2f: %s dose --> %0.4f", threshold.for.reporting.upper.end.of.histogram, dosage, freq.above.upper.threshold))
 
-  ggsave(paste0(stackedBarHistogram.location.prefix, "upregGeneIntegrationConstants_", dosage, "_dose.svg"), plot = stackedBarHist, width = plot.width, height = plot.height)
-}
+  ggsave(paste0(stackedBarHistogram.location.prefix, "upregGeneIntegrationConstants_", dosage, "_dose.svg"), plot = stackedBarHist + theme(legend.position = "none"), width = plot.width, height = plot.height)
+
+  # now plot the stacked bar histogram with a common scale, using the max. value of the center value
+  stackedBarHist <- stackedBarHist + ylim(0, max(max.bin.vals))
+  ggsave(paste0(stackedBarHistogram.location.prefix, "upregGeneIntegrationConstants_", dosage, "_dose_commonYaxis.svg"), plot = stackedBarHist + theme(legend.position = "none"), width = plot.width, height = plot.height)
+  
+  }
   

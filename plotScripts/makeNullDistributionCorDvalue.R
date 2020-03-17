@@ -198,22 +198,25 @@ for (add.vs.mult.null.model in c("additive", "multiplicative", "mixture")) {
     # make plot for c values
     bin.leftmost  <- -3
     bin.rightmost <-  5
-    bin.step.size <-  0.125
-    plot.width    <-  8
-    plot.height   <-  5
+    bin.step.size <-  0.20
+    plot.width    <-  18
+    plot.height   <-   8.15
      
     categorical.values <- selected.null.dists.all  # to do--add these if interested. could show which distribution they came from (add vs. mult)
     hist.values        <- new.cvals.all
-    cval_hist_output   <- makeHistogramOfValues(hist.values, categorical.values, bin.leftmost, bin.rightmost,
-                                                   bin.step.size, paste0(add.vs.mult.null.model, ", ", dose, " dose, c-values, addmixfrac = ", add.mult.mixture.frac.add), 
-                                                   xlabel = "c-value", ylabel = "counts", color.by.category = T, y.axis.units = "counts")
-    stackedBarHistTibCvals <- cval_hist_output[[1]]
-    cval.hist.tib          <- cval_hist_output[[2]]
+    
+    for (yAxisUnits in c("density", "counts")) {
+      cval_hist_output   <- makeHistogramOfValues(hist.values, categorical.values, bin.leftmost, bin.rightmost,
+                                                  bin.step.size, paste0(add.vs.mult.null.model, ", ", dose, " dose, c-values, addmixfrac = ", add.mult.mixture.frac.add), 
+                                                  xlabel = "c-value", ylabel = yAxisUnits, color.by.category = T, y.axis.units = yAxisUnits)
+      stackedBarHistTibCvals <- cval_hist_output[[1]]
+      ggsave(paste0(output.file.prefix, "cval_plot_", add.vs.mult.null.model, "_model_", yAxisUnits, "_units_", dose, "_dose.svg"), plot = stackedBarHistTibCvals + theme(legend.position = "none"), width = plot.width, height = plot.height)
+    }
+    
+    cval.hist.tib <- cval_hist_output[[2]]  # this operates on the counts, not the density
     cval.hist.tib[["dose"]] <- dose
     cval.hist.tib[["null_model"]] <- add.vs.mult.null.model
     grand.tib.for.cval.plot.grid <- rbind(grand.tib.for.cval.plot.grid, cval.hist.tib)
-    
-    ggsave(paste0(output.file.prefix, "cval_plot_", add.vs.mult.null.model, "_model_", dose, "_dose.svg"), plot = stackedBarHistTibCvals, width = plot.width, height = plot.height)
     
     # make plot for d values
     bin.step.size   <-  0.05
