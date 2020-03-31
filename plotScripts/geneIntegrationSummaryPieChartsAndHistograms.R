@@ -16,13 +16,17 @@ if (length(cmdargs) == 0) {
   output.folder    <- cmdargs[4]
 }
 
-filtSiUpregGenes <- siUpregGenes %>% 
-  filter(`addMultPredFcDiff-low` >= addPredFcDiffMin,
-         (`multPred-low` - `addPred-low`) >= minTpmDiff,
-         `addMultPredFcDiff-med` >= addPredFcDiffMin,
-         (`multPred-med` - `addPred-med`) >= minTpmDiff,
-         `addMultPredFcDiff-high` >= addPredFcDiffMin,
-         (`multPred-high` - `addPred-high`) >= minTpmDiff)
+if (addPredFcDiffMin == 0 & minTpmDiff == 0) {
+  filtSiUpregGenes <- siUpregGenes
+} else {
+  filtSiUpregGenes <- siUpregGenes %>% 
+    filter(`addMultPredFcDiff-low` >= addPredFcDiffMin,
+           (`multPred-low` - `addPred-low`) >= minTpmDiff,
+           `addMultPredFcDiff-med` >= addPredFcDiffMin,
+           (`multPred-med` - `addPred-med`) >= minTpmDiff,
+           `addMultPredFcDiff-high` >= addPredFcDiffMin,
+           (`multPred-high` - `addPred-high`) >= minTpmDiff)
+}
 
 piechart.location.prefix <- paste0(output.folder, '/gene_integration_mode_pie_chart_')
 stackedBarHistogram.location.prefix <- paste0(output.folder, '/gene_integration_mode_stackedBarHistogram_')
