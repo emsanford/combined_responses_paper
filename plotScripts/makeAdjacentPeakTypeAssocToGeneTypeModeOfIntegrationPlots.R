@@ -84,7 +84,11 @@ for (selected.peak.category.arg in c("subadditive", "additive", "superadditive",
         group_by(ensg) %>%
         mutate(num_ME_peaks_RA   = sum(PeakMutualExclusivityScoreAsymmetricAdditive > mutual.exclusivity.threshold)) %>%
         mutate(num_ME_peaks_TGFb = sum(PeakMutualExclusivityScoreAsymmetricAdditive < (1 - mutual.exclusivity.threshold))) %>%
-        mutate(num_ME_peak_pairs = min(num_ME_peaks_RA, num_ME_peaks_TGFb)) %>%
+        mutate(num_ME_peaks_RA_up     = sum((PeakMutualExclusivityScoreAsymmetricAdditive > mutual.exclusivity.threshold)        & (`RA-med-avgFoldchange`   > 1))) %>%
+        mutate(num_ME_peaks_TGFb_up   = sum((PeakMutualExclusivityScoreAsymmetricAdditive < (1 - mutual.exclusivity.threshold))  & (`TGFb-med-avgFoldchange` > 1))) %>%
+        mutate(num_ME_peaks_RA_down   = sum((PeakMutualExclusivityScoreAsymmetricAdditive > mutual.exclusivity.threshold)        & (`RA-med-avgFoldchange`   < 1))) %>%
+        mutate(num_ME_peaks_TGFb_down = sum((PeakMutualExclusivityScoreAsymmetricAdditive < (1 - mutual.exclusivity.threshold))  & (`TGFb-med-avgFoldchange` < 1))) %>%
+        mutate(num_ME_peak_pairs = min(num_ME_peaks_RA_up, num_ME_peaks_TGFb_up)) %>%
         mutate(numNearbyPeaksThisType = num_ME_peak_pairs) %>%
         mutate(modeOfIntegration = UQ(as.symbol(paste0("integrationCategory-", dosage, "-dose")))) %>%
         mutate(dose = dosage) %>%
