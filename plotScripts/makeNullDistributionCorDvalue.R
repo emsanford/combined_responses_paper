@@ -198,7 +198,7 @@ for (add.vs.mult.null.model in c("additive", "multiplicative", "mixture")) {
     # make plot for c values
     bin.leftmost  <- -3
     bin.rightmost <-  5
-    bin.step.size <-  0.20
+    bin.step.size <-  0.125
     plot.width    <-  18
     plot.height   <-   8.15
      
