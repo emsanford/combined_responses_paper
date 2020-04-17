@@ -117,6 +117,8 @@ for (dosage in c("low", "med", "high")) {
   # now plot the stacked bar histogram with a common scale, using the max. value of the center value
   stackedBarHist <- stackedBarHist + ylim(0, max(max.bin.vals))
   ggsave(paste0(stackedBarHistogram.location.prefix, "upregGeneIntegrationConstants_", dosage, "_dose_commonYaxis.svg"), plot = stackedBarHist + theme(legend.position = "none"), width = plot.width, height = plot.height)
-  
+  ggsave(paste0(stackedBarHistogram.location.prefix, "upregGeneIntegrationConstants_", dosage, "_dose_commonYaxis_noTickLabels.svg"), 
+         plot = stackedBarHist + theme(legend.position = "none", axis.text.x = element_blank(), axis.text.y = element_blank()),
+         width = plot.width, height = plot.height)
   }
   

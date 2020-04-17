@@ -211,6 +211,10 @@ for (add.vs.mult.null.model in c("additive", "multiplicative", "mixture")) {
                                                   xlabel = "c-value", ylabel = yAxisUnits, color.by.category = T, y.axis.units = yAxisUnits)
       stackedBarHistTibCvals <- cval_hist_output[[1]]
       ggsave(paste0(output.file.prefix, "cval_plot_", add.vs.mult.null.model, "_model_", yAxisUnits, "_units_", dose, "_dose.svg"), plot = stackedBarHistTibCvals + theme(legend.position = "none"), width = plot.width, height = plot.height)
+      ggsave(paste0(output.file.prefix, "cval_plot_", add.vs.mult.null.model, "_model_", yAxisUnits, "_units_", dose, "_dose_NoTickLabs.svg"), 
+             plot = stackedBarHistTibCvals + theme(legend.position = "none", axis.text.x = element_blank(), axis.text.y = element_blank()), 
+             width = plot.width, height = plot.height)
+
     }
     
     cval.hist.tib <- cval_hist_output[[2]]  # this operates on the counts, not the density
