@@ -1,9 +1,9 @@
 library(tidyverse)
 library(here)
-library(patchwork)
-
+library(Matching)
 source(here('extractionScripts', 'util.R'))
 
+# modified code from makeAdjacentPeakTypeAssocToGeneTypeModeOfIntegrationPlots.R
 
 superadditive.peak.categories <- c("between-add-and-mult", "multiplicative", "super-multiplicative")
 additive.peak.categories      <- c("additive", "ambiguous")
@@ -14,7 +14,6 @@ factor.order.gene.categories <- c("sub-additive", "additive", "multiplicative", 
 plot.these.gene.categories <- c("sub-additive", "additive", "multiplicative", "super-multiplicative", "ambiguous")
 
 mutual.exclusivity.threshold <- 0.90
-n.bootstrap.samples <- 10000
 
 cmdargs = commandArgs(trailingOnly=TRUE)
 if (length(cmdargs) == 0) {
@@ -49,11 +48,11 @@ for (selected.peak.category.arg in c("subadditive", "additive", "superadditive",
   } else if (selected.peak.category.arg == "mutualExclusivePairs") {
     plot.category.string   <- "mutualExclusivePairs"
   }
-
+  
   geneSet <- siUpregGenes$ensg
   upregPeaksNearGeneSet  <- siUpregJoinedUpregPeaks %>% filter(ensg %in% geneSet)
   allPeaksNearGeneSet    <- siUpregJoinedAllPeaks %>% filter(ensg %in% geneSet)
-    
+  
   genesWithUpregPeaksNearby   <- upregPeaksNearGeneSet$ensg %>% unique()
   genesWithNoUpregPeaksNearby <- setdiff(geneSet, genesWithUpregPeaksNearby)
   
@@ -114,8 +113,6 @@ for (selected.peak.category.arg in c("subadditive", "additive", "superadditive",
   longTibAllGenes[["modeOfIntegration"]] <- factor(longTibAllGenes[["modeOfIntegration"]], levels = factor.order.gene.categories)
   
   #### add bootstrap confidence intervals here, using longTibAllGenes
-  longTibAllGenes[["bootstrap_ci_0.05"]] <- NA
-  longTibAllGenes[["bootstrap_ci_0.95"]] <- NA
   longTibAllGenes[["n_genes_this_dose_and_intmode"]] <- NA
   set.seed(0)
   for (dosage in c("low", "med", "high")) {
@@ -125,104 +122,30 @@ for (selected.peak.category.arg in c("subadditive", "additive", "superadditive",
         pull(numNearbyPeaksThisType)
       n.genes.this.cat <- length(sample.of.n.peak.types.near.gene)
       sample.mean <- mean(sample.of.n.peak.types.near.gene)
-      bootstrap.deltas <- c()
-      for (ii in 1:n.bootstrap.samples) {
-        bootstrap.sample <- sample(sample.of.n.peak.types.near.gene, n.genes.this.cat, replace = TRUE)
-        this.bootstrap.mean  <- mean(bootstrap.sample)
-        this.bootstrap.delta <- this.bootstrap.mean - sample.mean
-        bootstrap.deltas <- c(bootstrap.deltas, this.bootstrap.delta)
-      }
-      lower.delta <- quantile(bootstrap.deltas, 0.05)
-      upper.delta <- quantile(bootstrap.deltas, 0.95)
-      ci.lower    <- sample.mean - upper.delta
-      ci.upper    <- sample.mean - lower.delta
-      longTibAllGenes[["bootstrap_ci_0.05"]][(longTibAllGenes$dose == dosage) & (longTibAllGenes$modeOfIntegration == intmode)] <- ci.lower
-      longTibAllGenes[["bootstrap_ci_0.95"]][(longTibAllGenes$dose == dosage) & (longTibAllGenes$modeOfIntegration == intmode)] <- ci.upper
+     
       longTibAllGenes[["n_genes_this_dose_and_intmode"]][(longTibAllGenes$dose == dosage) & (longTibAllGenes$modeOfIntegration == intmode)] <- n.genes.this.cat
     }
   }
   
+  # tibble used for plotting the bar graphs for each dose
   tfp <- longTibAllGenes %>%
     group_by(dose, modeOfIntegration) %>%
     mutate(freqNearbySuperaddPeak   = sum(numNearbyPeaksThisType >= 1) / n()) %>%
     mutate(avgnumNearbyPeaksThisType = mean(numNearbyPeaksThisType)) %>%
-    dplyr::select(dose, modeOfIntegration, freqNearbySuperaddPeak, avgnumNearbyPeaksThisType, bootstrap_ci_0.05, bootstrap_ci_0.95, n_genes_this_dose_and_intmode) %>%
+    dplyr::select(dose, modeOfIntegration, freqNearbySuperaddPeak, avgnumNearbyPeaksThisType, n_genes_this_dose_and_intmode) %>%
     ungroup() %>%
     unique()
   
-  p1 <- ggplot(tfp, aes(x= modeOfIntegration, y= freqNearbySuperaddPeak)) + 
-    geom_bar(stat = "identity", position = "dodge") + 
-    facet_wrap(~dose) + xlab("integration category") + ylab(paste0("Fraction of genes with >=1 ", plot.category.string, " peak")) + 
-    theme_classic(base_size = 12) + theme(axis.text.x = element_text(angle = 90, hjust=0.95, vjust = 0.4)) + 
-    ggtitle(paste0(plot.category.string, " peak frequency near genes by integration category"))
-  ggsave(paste0(outputloc.prefix, plot.category.string, "_freq_near_genecats.svg"), width = 8, height = 5, plot = p1)
-
-  if (selected.peak.category.arg == "mutualExclusivePairs") {
-    ylab.string <- paste0("Frequency of genes having at least one ", plot.category.string, " peak pair nearby")
-    ylab.filesuffix <- "_freq_peakPairs_near_genecats.svg"
-  } else {
-    ylab.string <- paste0("Average number of ", plot.category.string, " peaks nearby")
-    ylab.filesuffix <- "_avgNum_near_genecats.svg"
+  for (dosage in c("low", "med", "high")) {
+    comparison1 <- "additive"
+    comparison2 <- "multiplicative"
+    addNPeaksNearbyMedDose <- longTibAllGenes %>% filter(dose == dosage, modeOfIntegration == comparison1) %>% pull(numNearbyPeaksThisType)
+    multNPeaksNearbyMedDose <- longTibAllGenes %>% filter(dose == dosage, modeOfIntegration == comparison2) %>% pull(numNearbyPeaksThisType)
+    
+    print(sprintf("peak type = %s, dose = %s, comparison = %s vs. %s genes", selected.peak.category.arg, dosage, comparison1, comparison2))
+    print(t.test(addNPeaksNearbyMedDose, multNPeaksNearbyMedDose))
   }
-  
-  p2 <- ggplot(tfp, aes(x= modeOfIntegration, y = avgnumNearbyPeaksThisType, 
-                        ymin = bootstrap_ci_0.05, ymax = bootstrap_ci_0.95,
-                        fill = modeOfIntegration)) + 
-    geom_bar(stat = "identity", position = "dodge") + 
-    geom_errorbar(width = 0) + 
-    facet_wrap(~dose) + xlab("integration category") + ylab(ylab.string) + 
-    theme_classic(base_size = 12) + theme(axis.text.x = element_text(angle = 90, hjust=0.95, vjust = 0.4)) + 
-    ggtitle(paste0("Number of ", plot.category.string, " peaks near genes by integration category")) + guides(fill=FALSE)
-  ggsave(paste0(outputloc.prefix, plot.category.string, ylab.filesuffix), width = 8, height = 5, plot = p2)
-  
-  # now let's make individual plots so we can customize x-tick labels and compose them later with patchwork
-  single.avg.num.peaks.nearby.plot.list <- list()
-  counter <- 1
-  for (dosage in c('low', 'med', 'high')) {
-    filt.tfp <- tfp %>% 
-      filter(dose == dosage) %>%
-      arrange( modeOfIntegration)
-    p <- filt.tfp %>% 
-      ggplot(aes(x= modeOfIntegration, y = avgnumNearbyPeaksThisType, 
-                      ymin = bootstrap_ci_0.05, ymax = bootstrap_ci_0.95,
-                      fill = modeOfIntegration)) + 
-        geom_bar(stat = "identity", position = "dodge", width = 0.5) + 
-        geom_errorbar(width = 0) + 
-        xlab("") + ylab(paste0("Average number of ", plot.category.string, " peaks nearby"))  +
-        scale_x_discrete(labels= paste0(filt.tfp$modeOfIntegration, ", N = ", filt.tfp$n_genes_this_dose_and_intmode)) + 
-        theme_classic(base_size = 12) + theme(axis.text.x = element_text(angle = 45, hjust=1, vjust = 1)) + 
-        ggtitle(paste0(dosage, " dose")) + guides(fill=FALSE)
-    single.avg.num.peaks.nearby.plot.list[[counter]] <- p
-    counter <- counter + 1
-  }
-  # standardize y axes
-  std.ymax <- max(ggplot_build(single.avg.num.peaks.nearby.plot.list[[1]])$layout$panel_scales_y[[1]]$range$range[2],
-                  ggplot_build(single.avg.num.peaks.nearby.plot.list[[2]])$layout$panel_scales_y[[1]]$range$range[2],
-                  ggplot_build(single.avg.num.peaks.nearby.plot.list[[3]])$layout$panel_scales_y[[1]]$range$range[2])
-  for (ii in 1:3) {
-    single.avg.num.peaks.nearby.plot.list[[ii]] <- single.avg.num.peaks.nearby.plot.list[[ii]] + ylim(0, std.ymax)
-  }
-  grand.list.of.list.of.plots[[grand.counter]] <- single.avg.num.peaks.nearby.plot.list
-  grand.counter <- grand.counter + 1
-  
-  # filtLongTibAllGenes <- longTibAllGenes
-  p3 <- ggplot(longTibAllGenes, aes(x= modeOfIntegration, y= numNearbyPeaksThisType)) + 
-    geom_boxplot() + 
-    facet_wrap(~dose) + xlab("integration category") + ylab(paste0("number of ", plot.category.string, " peaks nearby")) + 
-    theme_classic(base_size = 12) + theme(axis.text.x = element_text(angle = 90, hjust=0.95, vjust = 0.4)) + 
-    ggtitle(paste0("Number of ", plot.category.string, " peaks near genes by integration category"))
-  ggsave(paste0(outputloc.prefix, plot.category.string, "_boxplots_numPeaks_near_genecats.svg"), width = 8, height = 5, plot = p3)
 }
-
-# make 3 x 3 grid with patchwork
-patchwork.plot <- (grand.list.of.list.of.plots[[1]][[1]] + grand.list.of.list.of.plots[[1]][[2]] + grand.list.of.list.of.plots[[1]][[3]]) /
-                  (grand.list.of.list.of.plots[[2]][[1]] + grand.list.of.list.of.plots[[2]][[2]] + grand.list.of.list.of.plots[[2]][[3]]) /
-                  (grand.list.of.list.of.plots[[3]][[1]] + grand.list.of.list.of.plots[[3]][[2]] + grand.list.of.list.of.plots[[3]][[3]])
-ggsave(paste0(outputloc.prefix, "patchwork_plot_avgNumPeakTypesNearGeneTypes.svg"), plot = patchwork.plot, width = 24, height = 16)
-
-patchwork.plot2 <- (grand.list.of.list.of.plots[[4]][[1]] + grand.list.of.list.of.plots[[4]][[2]] + grand.list.of.list.of.plots[[4]][[3]])
-ggsave(paste0(outputloc.prefix, "patchwork_plot_mePairsNearNearGeneTypes.svg"), plot = patchwork.plot2, width = 24, height = 16 / 3)
-
 
 
 
