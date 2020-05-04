@@ -52,7 +52,6 @@ ggsave(paste0(output_prefix, "EachDoseForSetOfGenes.svg"), plot = p, width = 24,
 ### make histograms of c value changes
 
 # all c values
-siUpregGenes <- tfp
 ld.cvals <- siUpregGenes$`integrationConstant-low`
 md.cvals <- siUpregGenes$`integrationConstant-med`
 hd.cvals <- siUpregGenes$`integrationConstant-high`
