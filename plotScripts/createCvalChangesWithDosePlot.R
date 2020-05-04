@@ -70,19 +70,19 @@ clipped.low.to.mid.cval.diff <- ifelse(low.to.mid.cval.diff > cval.hist.upperbou
 clipped.low.to.mid.cval.diff <- ifelse(clipped.low.to.mid.cval.diff < cval.hist.lowerbound, cval.hist.lowerbound, clipped.low.to.mid.cval.diff)
 n.gt.upperbound <- sum(low.to.mid.cval.diff > cval.hist.upperbound)
 n.lt.lowerbound <- sum(low.to.mid.cval.diff < cval.hist.lowerbound)
-phist1 <- qplot(clipped.low.to.mid.cval.diff, binwidth = bin.step.size) + theme_classic() + ggtitle(sprintf('low to med dose\n%d < lower bound\n%d > upper bound', n.lt.lowerbound, n.gt.upperbound)) + ylab("number of genes") + xlab("change in c value") + ylim(0, max.yval)
+phist1 <- qplot(clipped.low.to.mid.cval.diff, binwidth = bin.step.size) + theme_classic() + ggtitle(sprintf('low to med dose\n%d < lower bound\n%d > upper bound', n.lt.lowerbound, n.gt.upperbound)) + ylab("number of genes") + xlab("change in c value") + ylim(0, max.yval) + xlim(cval.hist.lowerbound, cval.hist.upperbound)
 
 clipped.mid.to.high.cval.diff <- ifelse(mid.to.high.cval.diff > cval.hist.upperbound, cval.hist.upperbound, mid.to.high.cval.diff)
 clipped.mid.to.high.cval.diff <- ifelse(clipped.mid.to.high.cval.diff < cval.hist.lowerbound, cval.hist.lowerbound, clipped.mid.to.high.cval.diff)
 n.gt.upperbound <- sum(mid.to.high.cval.diff > cval.hist.upperbound)
 n.lt.lowerbound <- sum(mid.to.high.cval.diff < cval.hist.lowerbound)
-phist2 <- qplot(clipped.mid.to.high.cval.diff, binwidth = bin.step.size) + theme_classic() + ggtitle(sprintf('med to high dose\n%d < lower bound\n%d > upper bound', n.lt.lowerbound, n.gt.upperbound)) + ylab("number of genes") + xlab("change in c value") + ylim(0, max.yval)
+phist2 <- qplot(clipped.mid.to.high.cval.diff, binwidth = bin.step.size) + theme_classic() + ggtitle(sprintf('med to high dose\n%d < lower bound\n%d > upper bound', n.lt.lowerbound, n.gt.upperbound)) + ylab("number of genes") + xlab("change in c value") + ylim(0, max.yval) + xlim(cval.hist.lowerbound, cval.hist.upperbound)
 
 clipped.low.to.high.cval.diff <- ifelse(low.to.high.cval.diff > cval.hist.upperbound, cval.hist.upperbound, low.to.high.cval.diff)
 clipped.low.to.high.cval.diff <- ifelse(clipped.low.to.high.cval.diff < cval.hist.lowerbound, cval.hist.lowerbound, clipped.low.to.high.cval.diff)
 n.gt.upperbound <- sum(low.to.high.cval.diff > cval.hist.upperbound)
 n.lt.lowerbound <- sum(low.to.high.cval.diff < cval.hist.lowerbound)
-phist3 <- qplot(clipped.low.to.high.cval.diff, binwidth = bin.step.size) + theme_classic() + ggtitle(sprintf('low to high dose\n%d < lower bound\n%d > upper bound', n.lt.lowerbound, n.gt.upperbound)) + ylab("number of genes") + xlab("change in c value") + ylim(0, max.yval)
+phist3 <- qplot(clipped.low.to.high.cval.diff, binwidth = bin.step.size) + theme_classic() + ggtitle(sprintf('low to high dose\n%d < lower bound\n%d > upper bound', n.lt.lowerbound, n.gt.upperbound)) + ylab("number of genes") + xlab("change in c value") + ylim(0, max.yval) + xlim(cval.hist.lowerbound, cval.hist.upperbound)
 
 patchworkplot <- phist1 + phist2 + phist3
 ggsave(paste0(output_prefix, "histogramsCvalChangesIncreasingDose.svg"), plot = patchworkplot, width = 18, height = 6)
@@ -107,19 +107,19 @@ clipped.low.to.mid.cval.diff <- ifelse(low.to.mid.cval.diff > cval.hist.upperbou
 clipped.low.to.mid.cval.diff <- ifelse(clipped.low.to.mid.cval.diff < cval.hist.lowerbound, cval.hist.lowerbound, clipped.low.to.mid.cval.diff)
 n.gt.upperbound <- sum(low.to.mid.cval.diff > cval.hist.upperbound)
 n.lt.lowerbound <- sum(low.to.mid.cval.diff < cval.hist.lowerbound)
-phist1 <- qplot(clipped.low.to.mid.cval.diff, binwidth = bin.step.size) + theme_classic() + ggtitle(sprintf('low to med dose\n%d < lower bound\n%d > upper bound', n.lt.lowerbound, n.gt.upperbound)) + ylab("number of genes") + xlab("change in c value") + ylim(0, max.yval)
+phist1 <- qplot(clipped.low.to.mid.cval.diff, binwidth = bin.step.size) + theme_classic() + ggtitle(sprintf('low to med dose\n%d < lower bound\n%d > upper bound', n.lt.lowerbound, n.gt.upperbound)) + ylab("number of genes") + xlab("change in c value") + ylim(0, max.yval) + xlim(cval.hist.lowerbound, cval.hist.upperbound)
 
 clipped.mid.to.high.cval.diff <- ifelse(mid.to.high.cval.diff > cval.hist.upperbound, cval.hist.upperbound, mid.to.high.cval.diff)
 clipped.mid.to.high.cval.diff <- ifelse(clipped.mid.to.high.cval.diff < cval.hist.lowerbound, cval.hist.lowerbound, clipped.mid.to.high.cval.diff)
 n.gt.upperbound <- sum(mid.to.high.cval.diff > cval.hist.upperbound)
 n.lt.lowerbound <- sum(mid.to.high.cval.diff < cval.hist.lowerbound)
-phist2 <- qplot(clipped.mid.to.high.cval.diff, binwidth = bin.step.size) + theme_classic() + ggtitle(sprintf('med to high dose\n%d < lower bound\n%d > upper bound', n.lt.lowerbound, n.gt.upperbound)) + ylab("number of genes") + xlab("change in c value") + ylim(0, max.yval)
+phist2 <- qplot(clipped.mid.to.high.cval.diff, binwidth = bin.step.size) + theme_classic() + ggtitle(sprintf('med to high dose\n%d < lower bound\n%d > upper bound', n.lt.lowerbound, n.gt.upperbound)) + ylab("number of genes") + xlab("change in c value") + ylim(0, max.yval) + xlim(cval.hist.lowerbound, cval.hist.upperbound)
 
 clipped.low.to.high.cval.diff <- ifelse(low.to.high.cval.diff > cval.hist.upperbound, cval.hist.upperbound, low.to.high.cval.diff)
 clipped.low.to.high.cval.diff <- ifelse(clipped.low.to.high.cval.diff < cval.hist.lowerbound, cval.hist.lowerbound, clipped.low.to.high.cval.diff)
 n.gt.upperbound <- sum(low.to.high.cval.diff > cval.hist.upperbound)
 n.lt.lowerbound <- sum(low.to.high.cval.diff < cval.hist.lowerbound)
-phist3 <- qplot(clipped.low.to.high.cval.diff, binwidth = bin.step.size) + theme_classic() + ggtitle(sprintf('low to high dose\n%d < lower bound\n%d > upper bound', n.lt.lowerbound, n.gt.upperbound)) + ylab("number of genes") + xlab("change in c value") + ylim(0, max.yval)
+phist3 <- qplot(clipped.low.to.high.cval.diff, binwidth = bin.step.size) + theme_classic() + ggtitle(sprintf('low to high dose\n%d < lower bound\n%d > upper bound', n.lt.lowerbound, n.gt.upperbound)) + ylab("number of genes") + xlab("change in c value") + ylim(0, max.yval) + xlim(cval.hist.lowerbound, cval.hist.upperbound)
 
 patchworkplot <- phist1 + phist2 + phist3
 ggsave(paste0(output_prefix, "histogramsCvalChangesIncreasingDose_Filtered.svg"), plot = patchworkplot, width = 18, height = 6)
