@@ -42,7 +42,7 @@ class ParamSet:
 		self.deseq_output_table                      = '"{0}"'.format(os.sep.join([extractedDataDir, "DeSeqOutputAllConds.tsv"]))
 		self.annotated_deseq_output_table            = '"{0}"'.format(os.sep.join([extractedDataDir, "DeSeqOutputAllConds.annotated.tsv"]))
 		self.upregulated_genes_table                 = '"{0}"'.format(os.sep.join([extractedDataDir, "DeSeqOutputAllConds.annotated.upregulatedGeneSet.tsv"]))
-		self.cValChangesWithDosePlot                 = '"{0}"'.format(os.sep.join([plotsDir, "cValChangesWithDosePlot.svg"]))
+		self.cValChangesWithDosePlot                 = '"{0}"'.format(os.sep.join([plotsDir, "cvals"]))
 
 		# paths to reference files
 		self.hg38_gtf_file                      = '"{0}"'.format(os.sep.join([refsDir, "hg38.gtf"]))                   # gtf file version: Homo_sapiens.GRCh38.90.gtf.gz
@@ -151,7 +151,7 @@ def main(param_obj, run_all_steps = False):
 														   '"{0}"'.format(param_obj.integration_summary_null_distribution_plots_dir))
 		run_command(cmd)
 
-	if run_all_steps or not os.path.exists(param_obj.cValChangesWithDosePlot[1:-1]):
+	if run_all_steps or not os.path.exists(param_obj.cValChangesWithDosePlot[1:-1] + "EachDoseForSetOfGenes.svg"):
 		cmd = 'Rscript {0} {1} {2} {3} {4}'.format(param_obj.path_to_createCvalChangesWithDosePlot,
 												   param_obj.upregulated_genes_table,
 												   param_obj.addPredFcDiffMin_cValByDoseGeneSetPlot,
