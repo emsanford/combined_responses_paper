@@ -21,15 +21,6 @@ if (length(cmdargs) == 0) {
   outputPlotPrefix        <- cmdargs[2]
 }
 
-# tf.factor.order <- c("RARA", "SMAD3", "SMAD4", "SMAD9", 
-#                      "JUN", "JUNB", "JUND", "JDP2", "FOS", "FOSB", "FOSL1", "FOSL2", 
-#                      "BACH1",  "BACH2", "BATF", "FOXA1", "FOXA2", "FOXA3", "FOXC2", "FOXD3", 
-#                      "HOXA13", "HOXB13", "HOXC10", "HOXC12", "HOXC13", "HOXD13", 
-#                      "NFKB1", "REL", "RELA", "SMARCC1", "CDX1",  "CDX2", 
-#                      "CTCF", "NFE2", "NFE2L2", "MAFF", "MAFK", "BCL11A", "BCL11B", 
-#                      "GRHL1", "SPI1", "SPIB", "SPIC", 
-#                      "EHF", "ELF1", "ELF2", "ELF3", "ELF4", "ELF5", "ELK4", "ETS2")
-
 n.bootstrap.samples <- 1000
 
 #use the selected PWM objects to test for motif deviations in a subset of the data: controls and TGFB only, controls and RA only
@@ -44,6 +35,7 @@ makeDeviationScorePlotTibs <- function(fragmentCountsDiffPeaks, motif_ix, TF.nam
   fragCountsRAandControls <- fragmentCountsDiffPeaks[, c(etohSampleNames, raSampleNames)]
   devRA <- computeDeviations(object = fragCountsRAandControls, annotations = motif_ix)
   variabilityRA <- computeVariability(devRA)
+  vplotRA <- plotVariability(variabilityRA, use_plotly = FALSE)
   tvarRA <- as.tibble(variabilityRA)
   devScoresEtOHconds <- (assays(devRA)$raw_deviations[, 1:9])
   devScoresRAconds   <- (assays(devRA)$raw_deviations[, 10:18])
@@ -60,6 +52,9 @@ makeDeviationScorePlotTibs <- function(fragmentCountsDiffPeaks, motif_ix, TF.nam
   for (tf.name.of.interest in TF.names.of.interest) {
     variabilityRank <- (raDevTib %>% mutate(varRank = rank(chromVARvariability)) %>% filter(tf_name == tf.name.of.interest) %>% pull(varRank))[1] 
     print(sprintf("%s: %d of %d (top %.3f frac)", tf.name.of.interest, variabilityRank, n.motifs, variabilityRank / n.motifs))
+    if (tf.name.of.interest == "RARA") {
+      vplotRA <- vplotRA + geom_vline(xintercept = n.motifs - variabilityRank + 1)
+    }
   }
   
   # calculate deviation scores looking just the TGFb condition and how it compares to the EtOH condition
@@ -67,6 +62,7 @@ makeDeviationScorePlotTibs <- function(fragmentCountsDiffPeaks, motif_ix, TF.nam
   devTGFb <- computeDeviations(object = fragCountsTGFbandControls, annotations = motif_ix)
   variabilityTGFb <- computeVariability(devTGFb)
   tvarTGFb <- as.tibble(variabilityTGFb)
+  vplotTGFb <- plotVariability(variabilityTGFb, use_plotly = F)
   devScoresEtOHconds <- (assays(devTGFb)$raw_deviations[, 1:9])
   devScoresTGFbconds   <- (assays(devTGFb)$raw_deviations[, 10:18])
   avgDevEtOH <- rowMeans(devScoresEtOHconds)
@@ -81,6 +77,9 @@ makeDeviationScorePlotTibs <- function(fragmentCountsDiffPeaks, motif_ix, TF.nam
   for (tf.name.of.interest in TF.names.of.interest) {
     variabilityRank <- (TGFbDevTib %>% mutate(varRank = rank(chromVARvariability)) %>% filter(tf_name == tf.name.of.interest) %>% pull(varRank))[1] 
     print(sprintf("%s: %d of %d (top %.3f frac)", tf.name.of.interest, variabilityRank, n.motifs, variabilityRank / n.motifs))
+    if (tf.name.of.interest %in% c("SMAD3", "SMAD4", "SMAD9")) {
+      vplotTGFb <- vplotTGFb + geom_vline(xintercept = n.motifs - variabilityRank + 1)
+    }
   }
   
   
@@ -88,6 +87,7 @@ makeDeviationScorePlotTibs <- function(fragmentCountsDiffPeaks, motif_ix, TF.nam
   fragCountsBothandControls <- fragmentCountsDiffPeaks[, c(etohSampleNames, BothSampleNames)]
   devBoth <- computeDeviations(object = fragCountsBothandControls, annotations = motif_ix)
   variabilityBoth <- computeVariability(devBoth)
+  vplotBoth <- plotVariability(variabilityBoth, use_plotly = F)
   tvarBoth <- as.tibble(variabilityBoth)
   devScoresEtOHconds <- (assays(devBoth)$raw_deviations[, 1:9])
   devScoresBothconds   <- (assays(devBoth)$raw_deviations[, 10:18])
@@ -103,14 +103,15 @@ makeDeviationScorePlotTibs <- function(fragmentCountsDiffPeaks, motif_ix, TF.nam
   for (tf.name.of.interest in TF.names.of.interest) {
     variabilityRank <- (BothDevTib %>% mutate(varRank = rank(chromVARvariability)) %>% filter(tf_name == tf.name.of.interest) %>% pull(varRank))[1] 
     print(sprintf("%s: %d of %d (top %.3f frac)", tf.name.of.interest, variabilityRank, n.motifs, variabilityRank / n.motifs))
+    vplotBoth <- vplotBoth + geom_vline(xintercept = n.motifs - variabilityRank + 1)
   }
-  
   
   combTib <- rbind(raDevTib, TGFbDevTib, BothDevTib) 
 
-  return(combTib)  
+  return(list(combTib, vplotRA, vplotTGFb, vplotBoth))
 }
 
+set.seed(2019) # seed used in chromVAR vignette and by the makeMostVariableMotifSet script
 fragmentCountsDiffPeaks <- addGCBias(fragmentCountsDiffPeaks, 
                                      genome = BSgenome.Hsapiens.UCSC.hg38)
 data("human_pwms_v2") #loads the curated cisBP motif set from the chromVar paper
@@ -122,7 +123,11 @@ motif_ix_all <- matchMotifs(motifSet, fragmentCountsDiffPeaks,
                            genome = BSgenome.Hsapiens.UCSC.hg38)
 
 
-devScoresTib <- makeDeviationScorePlotTibs(fragmentCountsDiffPeaks, motif_ix_all, TF.names.of.interest)
+devScoresResult <- makeDeviationScorePlotTibs(fragmentCountsDiffPeaks, motif_ix_all, TF.names.of.interest)
+devScoresTib <- devScoresResult[[1]]
+vplotRA   <- devScoresResult[[2]]
+vplotTGFb <- devScoresResult[[3]]
+vplotBoth <- devScoresResult[[4]]
 
 # add bootstrap confidence intervals
 set.seed(0)
@@ -132,7 +137,7 @@ for (ii in 1:n.bootstrap.samples) {
   this.sample.inds <- sample(1:n.peaks, n.peaks, replace = TRUE)
   fragCtsBootstrapSample <- fragmentCountsDiffPeaks[this.sample.inds, ]
   this.motif_ix <- motif_ix_all[this.sample.inds, ]
-  this.devScoreTib <- makeDeviationScorePlotTibs(fragCtsBootstrapSample, this.motif_ix, c())
+  this.devScoreTib <- makeDeviationScorePlotTibs(fragCtsBootstrapSample, this.motif_ix, c())[[1]]
   this.devScores <- this.devScoreTib$dev_score
   bootstrap.dev.scores.tib <- rbind(bootstrap.dev.scores.tib, this.devScores)
 }
@@ -170,4 +175,7 @@ devscore.plot.list[[3]] <- devscore.plot.list[[3]] + ylim(y_limits)
 patchplot1 <- devscore.plot.list[[1]] + devscore.plot.list[[2]] + devscore.plot.list[[3]]
 
 ggsave(paste0(outputPlotPrefix, "supp_motif_analysis_canonical_signal_TF_activity.svg"), plot = patchplot1, width = 12, height = 6)
+ggsave(paste0(outputPlotPrefix, "supp_motif_analysis_RA_conditions_variability_scores.svg"), plot = vplotRA, width = 12, height = 6)
+ggsave(paste0(outputPlotPrefix, "supp_motif_analysis_TGFb_conditions_variability_scores.svg"), plot = vplotTGFb, width = 12, height = 6)
+ggsave(paste0(outputPlotPrefix, "supp_motif_analysis_Both_conditions_variability_scores.svg"), plot = vplotBoth, width = 12, height = 6)
 

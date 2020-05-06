@@ -299,7 +299,7 @@ def main(param_obj, run_all_steps = False):
 
 	# make the supplemental motif analysis plot focusing on canonical TFs activated by each signal
 	motif_analysis_plots = glob.glob(param_obj.motif_analysis_plots_dir + os.sep + "*.svg")
-	if run_all_steps or len(motif_analysis_plots) != 3:
+	if run_all_steps or len(motif_analysis_plots) != 6:
 		cmd = "Rscript {0} {1} {2}".format(param_obj.path_to_supplemental_motif_analysis_plots,
 										   param_obj.final_merged_differential_atac_frag_count_rds_file,
 										   '"{0}{1}"'.format(param_obj.motif_analysis_plots_dir, os.sep))
