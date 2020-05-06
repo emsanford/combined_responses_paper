@@ -101,7 +101,7 @@ library(patchwork)
 cval.hist.lowerbound <- -4
 cval.hist.upperbound <-  4
 bin.step.size <-  0.125
-max.yval <- 100
+max.yval <- 50
 
 clipped.low.to.mid.cval.diff <- ifelse(low.to.mid.cval.diff > cval.hist.upperbound, cval.hist.upperbound, low.to.mid.cval.diff)
 clipped.low.to.mid.cval.diff <- ifelse(clipped.low.to.mid.cval.diff < cval.hist.lowerbound, cval.hist.lowerbound, clipped.low.to.mid.cval.diff)
