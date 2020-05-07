@@ -98,39 +98,39 @@ for (dosage in c("low", "med", "high")) {
 grand.plot.dvals <- output.fig.list[[1]] + output.fig.list[[2]] + output.fig.list[[3]] 
 ggsave(paste0(output.folder, "/dval_composed_histogram_", dosage, "_dose.svg"), width = plot.width * 3, height = plot.height, plot = grand.plot.dvals) 
 
-# uncomment this block of code to see similar plots but for the fold-change difference from the multiplicative prediction
-# for (dosage in c("low", "med", "high")) {
-#   categorical.values <- sapply(pull(siUpregPeaks, paste0("peak_integrationCategory-", dosage ,"-dose")), convertUpregCvalCatToDvalCat)
-#   hist.values        <- pull(siUpregPeaks, paste0("peakMultiplicativePredFcResidual-", dosage))
-#   
-#   stackedBarRes <- makeHistogramOfValues(hist.values, categorical.values, bin.leftmost, bin.rightmost,
-#                                          bin.step.size, paste0(dosage, " dose, d-values"), 
-#                                          xlabel = "d-value", ylabel = "count", color.by.category = T)
-#   
-#   stackedBarHist <- stackedBarRes[[1]]
-#   
-#   if (use.common.scale) {
-#     stackedBarHist <- stackedBarHist + ylim(0, standard.ylim)
-#   }
-#   
-#   stackedBarTib  <- stackedBarRes[[2]]
-#   stackedBarTib[["dose"]] <- dosage
-#   reduced.tib <- stackedBarTib %>% 
-#     group_by(intConstantHhistBin, intCategory, dose) %>% 
-#     mutate(n_this_bin = n(), freq_this_bin = n_this_bin / nrow(stackedBarTib)) %>%
-#     ungroup() %>%
-#     unique()
-#   
-#   freq.above.c.2 <- reduced.tib %>%
-#     filter(intConstantHhistBin >= threshold.for.reporting.upper.end.of.histogram) %>%
-#     pull("freq_this_bin") %>%
-#     sum()
-#   
-#   print(sprintf("%s %0.3f", dosage, freq.above.c.2))
-#   
-#   ggsave(paste0(output.folder, "/multPredDiff_histogram_", dosage, "_dose.svg"), width = plot.width, height = plot.height, plot = stackedBarHist)
-#   
-#   output.fig.list[[counter]] <- stackedBarHist
-#   counter <- counter + 1
-# }
+## uncomment this block of code to see similar plots but for the fold-change difference from the multiplicative prediction
+for (dosage in c("low", "med", "high")) {
+  categorical.values <- sapply(pull(siUpregPeaks, paste0("peak_integrationCategory-", dosage ,"-dose")), convertUpregCvalCatToDvalCat)
+  hist.values        <- pull(siUpregPeaks, paste0("peakMultiplicativePredFcResidual-", dosage))
+
+  stackedBarRes <- makeHistogramOfValues(hist.values, categorical.values, bin.leftmost, bin.rightmost,
+                                         bin.step.size, paste0(dosage, " dose, d-values"),
+                                         xlabel = "d-value", ylabel = "count", color.by.category = T)
+
+  stackedBarHist <- stackedBarRes[[1]]
+
+  if (use.common.scale) {
+    stackedBarHist <- stackedBarHist + ylim(0, standard.ylim)
+  }
+
+  stackedBarTib  <- stackedBarRes[[2]]
+  stackedBarTib[["dose"]] <- dosage
+  reduced.tib <- stackedBarTib %>%
+    group_by(intConstantHhistBin, intCategory, dose) %>%
+    mutate(n_this_bin = n(), freq_this_bin = n_this_bin / nrow(stackedBarTib)) %>%
+    ungroup() %>%
+    unique()
+
+  freq.above.c.2 <- reduced.tib %>%
+    filter(intConstantHhistBin >= threshold.for.reporting.upper.end.of.histogram) %>%
+    pull("freq_this_bin") %>%
+    sum()
+
+  print(sprintf("%s %0.3f", dosage, freq.above.c.2))
+
+  ggsave(paste0(output.folder, "/multPredDiff_histogram_", dosage, "_dose.svg"), width = plot.width, height = plot.height, plot = stackedBarHist)
+
+  output.fig.list[[counter]] <- stackedBarHist
+  counter <- counter + 1
+}
 
