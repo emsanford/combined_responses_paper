@@ -134,5 +134,5 @@ for (dosage in c("low", "med", "high")) {
   counter <- counter + 1
 }
 
-grand.plot.dvals <- output.fig.list[[1]] / output.fig.list[[2]] / output.fig.list[[3]] 
+grand.plot.dvals <- output.fig.list[[4]] / output.fig.list[[5]] / output.fig.list[[6]] 
 ggsave(paste0(output.folder, "/dval_multPredDiff_composed_histogram.svg"), width = plot.width, height = plot.height * 3, plot = grand.plot.dvals) 
