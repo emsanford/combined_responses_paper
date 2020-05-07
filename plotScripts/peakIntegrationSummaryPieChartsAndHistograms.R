@@ -95,8 +95,8 @@ for (dosage in c("low", "med", "high")) {
   counter <- counter + 1
 }
 
-grand.plot.dvals <- output.fig.list[[1]] + output.fig.list[[2]] + output.fig.list[[3]] 
-ggsave(paste0(output.folder, "/dval_addPredDiff_composed_histogram.svg"), width = plot.width * 3, height = plot.height, plot = grand.plot.dvals) 
+grand.plot.dvals <- output.fig.list[[1]] / output.fig.list[[2]] / output.fig.list[[3]] 
+ggsave(paste0(output.folder, "/dval_addPredDiff_composed_histogram.svg"), width = plot.width, height = plot.height * 3, plot = grand.plot.dvals) 
 
 ## uncomment this block of code to see similar plots but for the fold-change difference from the multiplicative prediction
 for (dosage in c("low", "med", "high")) {
@@ -134,5 +134,5 @@ for (dosage in c("low", "med", "high")) {
   counter <- counter + 1
 }
 
-grand.plot.dvals <- output.fig.list[[1]] + output.fig.list[[2]] + output.fig.list[[3]] 
-ggsave(paste0(output.folder, "/dval_multPredDiff_composed_histogram.svg"), width = plot.width * 3, height = plot.height, plot = grand.plot.dvals) 
+grand.plot.dvals <- output.fig.list[[1]] / output.fig.list[[2]] / output.fig.list[[3]] 
+ggsave(paste0(output.folder, "/dval_multPredDiff_composed_histogram.svg"), width = plot.width, height = plot.height * 3, plot = grand.plot.dvals) 
