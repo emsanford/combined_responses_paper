@@ -135,4 +135,4 @@ for (dosage in c("low", "med", "high")) {
 }
 
 grand.plot.dvals <- output.fig.list[[1]] + output.fig.list[[2]] + output.fig.list[[3]] 
-ggsave(paste0(output.folder, "/dval_muldPredDiff_composed_histogram.svg"), width = plot.width * 3, height = plot.height, plot = grand.plot.dvals) 
+ggsave(paste0(output.folder, "/dval_multPredDiff_composed_histogram.svg"), width = plot.width * 3, height = plot.height, plot = grand.plot.dvals) 
