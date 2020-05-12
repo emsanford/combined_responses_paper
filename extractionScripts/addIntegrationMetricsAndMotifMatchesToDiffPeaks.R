@@ -189,6 +189,7 @@ motif.names <- sapply(strsplit(colnames(selectedMotifsMatches), "_"), function (
 counter <- 1
 for (motif.name in motif.names) {
   dpOutputTib[[paste0(motif.name, '_motifMatchScore')]] <- motifScores(selectedMotifsMatches)[, counter]
+  dpOutputTib[[paste0(motif.name, '_numMotifMatches')]] <- motifCounts(selectedMotifsMatches)[, counter]
   counter <- counter + 1
 }
 

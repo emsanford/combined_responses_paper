@@ -112,7 +112,6 @@ for (selected.peak.category.arg in c("subadditive", "additive", "superadditive",
   longTibAllGenes[["dose"]] <- factor(longTibAllGenes[["dose"]], levels = c("low", "med", "high"))
   longTibAllGenes[["modeOfIntegration"]] <- factor(longTibAllGenes[["modeOfIntegration"]], levels = factor.order.gene.categories)
   
-  #### add bootstrap confidence intervals here, using longTibAllGenes
   longTibAllGenes[["n_genes_this_dose_and_intmode"]] <- NA
   set.seed(0)
   for (dosage in c("low", "med", "high")) {
