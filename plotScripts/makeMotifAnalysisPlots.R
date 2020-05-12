@@ -206,31 +206,34 @@ motif.d.scores.plot <- motif.d.scores.tib %>%
   theme_classic() + 
   theme(axis.text.x = element_text(angle = 45,  hjust = 1, vjust=0.5))
 
-##### make frequency of motif matches at different classes of peaks: sub-additive, additive, and super-additive
+##### make number of motif matches per 150bp at different classes of peaks: sub-additive, additive, and super-additive
 makeFracMotifMatchesByCategoryTib <- function(anno.peaks, motif.col.names, subadditive.peak.categories, additive.peak.categories, superadditive.peak.categories) {
   frac.motif.matches.by.category.tib    <- NULL
   for (motif.col.name in motif.col.names) {
     subadd.peaks <- anno.peaks %>% filter(`peak_integrationCategory-med-dose` %in% subadditive.peak.categories)
     n.subadd.peaks <- nrow(subadd.peaks)
-    subadd.motif.match.indices <- which(subadd.peaks[, motif.col.name] > 0)
-    subadd.frac.peaks.with.motif <- length(subadd.motif.match.indices) / n.subadd.peaks
+    n.subadd.motif.matches <- sum(subadd.peaks[, motif.col.name])
+    total.subadd.peak.sequence <- sum(subadd.peaks$endLocs - subadd.peaks$startLocs + 1)
+    subadd.num.motifs.per.150bp <- 150 * n.subadd.motif.matches / total.subadd.peak.sequence
     
     add.peaks <- anno.peaks %>% filter(`peak_integrationCategory-med-dose` %in% additive.peak.categories)
     n.add.peaks <- nrow(add.peaks)
-    add.motif.match.indices <- which(add.peaks[, motif.col.name] > 0)
-    add.frac.peaks.with.motif <- length(add.motif.match.indices) / n.add.peaks
+    n.add.motif.matches <- sum(add.peaks[, motif.col.name])
+    total.add.peak.sequence <- sum(add.peaks$endLocs - add.peaks$startLocs + 1)
+    add.num.motifs.per.150bp <- 150 * n.add.motif.matches / total.add.peak.sequence
     
     superadd.peaks <- anno.peaks %>% filter(`peak_integrationCategory-med-dose` %in% superadditive.peak.categories)
     n.superadd.peaks <- nrow(superadd.peaks)
-    superadd.motif.match.indices <- which(superadd.peaks[, motif.col.name] > 0)
-    superadd.frac.peaks.with.motif <- length(superadd.motif.match.indices) / n.superadd.peaks
+    n.superadd.motif.matches <- sum(superadd.peaks[, motif.col.name])
+    total.superadd.peak.sequence <- sum(superadd.peaks$endLocs - superadd.peaks$startLocs + 1)
+    superadd.num.motifs.per.150bp <- 150 * n.superadd.motif.matches / total.superadd.peak.sequence
     
     motif.name   <- factor(rep(strsplit(motif.col.name, "_")[[1]][1], 3), levels = tf.factor.order)
-    frac.peaks.with.motif.matches <- c(subadd.frac.peaks.with.motif, add.frac.peaks.with.motif, superadd.frac.peaks.with.motif)
+    num.motifs.per.150bp.matches <- c(subadd.num.motifs.per.150bp, add.num.motifs.per.150bp, superadd.num.motifs.per.150bp)
     peak.category <- factor(c('subadditive', 'additive', 'superadditive'), levels = c('subadditive', 'additive', 'superadditive'))
     peak.category.total.num.peaks <- c(n.subadd.peaks, n.add.peaks, n.superadd.peaks)
     
-    frac.motif.matches.by.category.tib <- rbind(frac.motif.matches.by.category.tib, tibble(motif.name, frac.peaks.with.motif.matches, peak.category, peak.category.total.num.peaks))
+    frac.motif.matches.by.category.tib <- rbind(frac.motif.matches.by.category.tib, tibble(motif.name, num.motifs.per.150bp.matches, peak.category, peak.category.total.num.peaks))
   }
   return(frac.motif.matches.by.category.tib)
 }
@@ -239,31 +242,32 @@ subadditive.peak.categories   <- c("sub-additive")
 additive.peak.categories      <- c("additive", "ambiguous")
 superadditive.peak.categories <- c("between-add-and-mult", "multiplicative", "super-multiplicative")
 
+motif.col.names     <- colnames(siUpregPeaks)[which(grepl("_numMotifMatches", colnames(siUpregPeaks)))]
 frac.motif.matches.by.category.tib <- makeFracMotifMatchesByCategoryTib(siUpregPeaks, motif.col.names, subadditive.peak.categories, additive.peak.categories, superadditive.peak.categories)
 
 # now do bootstrap error bars
 set.seed(0)
-frac.peaks.with.motif.match.tib <- NULL
+num.motifs.per.150bp.match.tib <- NULL
 for (ii in 1:n.bootstrap.samples) {
   siUpregPeaksBootstrapSample   <- sample_n(siUpregPeaks, nrow(siUpregPeaks), replace = TRUE)
   this.frac.motif.matches.by.category <- makeFracMotifMatchesByCategoryTib(siUpregPeaksBootstrapSample, motif.col.names, subadditive.peak.categories, additive.peak.categories, superadditive.peak.categories)
-  this.frac.peaks.with.motif.match <- this.frac.motif.matches.by.category$frac.peaks.with.motif.matches
-  frac.peaks.with.motif.match.tib <- rbind(frac.peaks.with.motif.match.tib, this.frac.peaks.with.motif.match)
+  this.num.motifs.per.150bp.match <- this.frac.motif.matches.by.category$num.motifs.per.150bp.matches
+  num.motifs.per.150bp.match.tib <- rbind(num.motifs.per.150bp.match.tib, this.num.motifs.per.150bp.match)
 }
-colnames(frac.peaks.with.motif.match.tib) <- paste0(this.frac.motif.matches.by.category$motif.name, "_", this.frac.motif.matches.by.category$peak.category)
-rownames(frac.peaks.with.motif.match.tib) <- NULL
+colnames(num.motifs.per.150bp.match.tib) <- paste0(this.frac.motif.matches.by.category$motif.name, "_", this.frac.motif.matches.by.category$peak.category)
+rownames(num.motifs.per.150bp.match.tib) <- NULL
 
 lower.bootstrap.quantiles <- c()
 upper.bootstrap.quantiles <- c()
-for (ii in 1:ncol(frac.peaks.with.motif.match.tib)) {
-  lower.bootstrap.quantiles <- c(lower.bootstrap.quantiles, quantile(frac.peaks.with.motif.match.tib[,ii], .05))
-  upper.bootstrap.quantiles <- c(upper.bootstrap.quantiles, quantile(frac.peaks.with.motif.match.tib[,ii], .95))
+for (ii in 1:ncol(num.motifs.per.150bp.match.tib)) {
+  lower.bootstrap.quantiles <- c(lower.bootstrap.quantiles, quantile(num.motifs.per.150bp.match.tib[,ii], .05))
+  upper.bootstrap.quantiles <- c(upper.bootstrap.quantiles, quantile(num.motifs.per.150bp.match.tib[,ii], .95))
 }
-frac.motif.matches.by.category.tib[["bootstrap_ci_lower"]] <- 2 * frac.motif.matches.by.category.tib$frac.peaks.with.motif.matches - upper.bootstrap.quantiles
-frac.motif.matches.by.category.tib[["bootstrap_ci_upper"]] <- 2 * frac.motif.matches.by.category.tib$frac.peaks.with.motif.matches - lower.bootstrap.quantiles
+frac.motif.matches.by.category.tib[["bootstrap_ci_lower"]] <- 2 * frac.motif.matches.by.category.tib$num.motifs.per.150bp.matches - upper.bootstrap.quantiles
+frac.motif.matches.by.category.tib[["bootstrap_ci_upper"]] <- 2 * frac.motif.matches.by.category.tib$num.motifs.per.150bp.matches - lower.bootstrap.quantiles
 
 frac.motif.matches.by.category.plot <- frac.motif.matches.by.category.tib %>% 
-  ggplot(aes(x = motif.name, y = frac.peaks.with.motif.matches, fill = peak.category,
+  ggplot(aes(x = motif.name, y = num.motifs.per.150bp.matches, fill = peak.category,
              ymin = bootstrap_ci_lower, ymax = bootstrap_ci_upper)) +
   geom_bar(stat = "identity", position = "dodge") +
   geom_errorbar( position = position_dodge(width=0.9), colour="black", width=0.0) +
