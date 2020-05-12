@@ -111,6 +111,8 @@ for (ii in 1:n.bootstrap.samples) {
   this.devScoreTib <- makeDeviationScorePlotTibs(fragCtsBootstrapSample, this.motif_ix)
   this.devScores <- this.devScoreTib$dev_score
   bootstrap.dev.scores.tib <- rbind(bootstrap.dev.scores.tib, this.devScores)
+  
+  print(sprintf("%d of %d bootstrap samples complete for motif enrichment by TF plot", ii, n.bootstrap.samples))
 }
 lower.bootstrap.quantiles <- c()
 upper.bootstrap.quantiles <- c()
