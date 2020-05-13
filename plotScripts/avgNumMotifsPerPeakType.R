@@ -136,6 +136,6 @@ p3 <- ggplot(result.tib.allmotifs, aes(y = avg_peak_size, x = peak_type,  ymin =
 # library(patchwork)
 # p3 + p1 + p2
 
-ggsave(paste0(outputPlotPrefix, "motifByPeakTypeDensityEnrichedMotifSet"), plot = p1, width = 12, height = 12)
-ggsave(paste0(outputPlotPrefix, "motifByPeakTypeDensityFullMotifSet"), plot = p2, width = 12, height = 12)
-ggsave(paste0(outputPlotPrefix, "avgPeakWidthByPeakType"), plot = p3, width = 12, height = 12)
+ggsave(paste0(outputPlotPrefix, "motifByPeakTypeDensityEnrichedMotifSet.svg"), plot = p1, width = 12, height = 12)
+ggsave(paste0(outputPlotPrefix, "motifByPeakTypeDensityFullMotifSet.svg"), plot = p2, width = 12, height = 12)
+ggsave(paste0(outputPlotPrefix, "avgPeakWidthByPeakType.svg"), plot = p3, width = 12, height = 12)
