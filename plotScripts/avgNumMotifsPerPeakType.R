@@ -14,7 +14,7 @@ if (length(cmdargs) == 0) {
   mostVariableMotifSet <- read_rds("/Users/emsanford/Dropbox (RajLab)/Shared_Eric/SIgnal_Integration/Analysis_SI2-SI4_github_testing/signal_integration_paper_scripts/extractedData/mostVariableMotifs_mergedist250_peakwidth150_minNormFrags30_minFoldChange1.5.rds")
   outputPlotPrefix     <- here("plots", "")
 } else {
-  upregpeaks           <- read_tsv(cmdargs[1])
+  upreg.peaks           <- read_tsv(cmdargs[1])
   mostVariableMotifSet <- read_rds(cmdargs[2])
   outputPlotPrefix     <- cmdargs[3]
 }
