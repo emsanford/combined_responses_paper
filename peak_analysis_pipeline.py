@@ -311,9 +311,9 @@ def main(param_obj, run_all_steps = False):
 	# make the expected vs. observed dual motif match rate plot
 	motif_analysis_plots = glob.glob(param_obj.motif_analysis_plots_dir + os.sep + "*.svg")
 	if run_all_steps or len(motif_analysis_plots) != 6:
-		cmd = "Rscript {0} {1} {2} {3}".format(param_obj.path_to_dual_motif_match_plot_script,
-											   param_obj.upregulated_diffpeaks_output_file,
-											   '"{0}{1}"'.format(param_obj.motif_analysis_plots_dir, os.sep))
+		cmd = "Rscript {0} {1} {2}".format(param_obj.path_to_dual_motif_match_plot_script,
+										   param_obj.upregulated_diffpeaks_output_file,
+										   '"{0}{1}"'.format(param_obj.motif_analysis_plots_dir, os.sep))
 		run_command(cmd)
 
 	# make the supplemental motif analysis plot focusing on canonical TFs activated by each signal
