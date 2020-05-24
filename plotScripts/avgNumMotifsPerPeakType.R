@@ -112,9 +112,6 @@ for (col.of.interest in c("avg_motifs_per_peak", "avg_peak_size")) {
   }
 }
 
-result.tib.topmotifs
-result.tib.allmotifs
-
 p1 <- ggplot(result.tib.topmotifs, aes(y = avg_motifs_per_peak, x = peak_type, ymin = avg_motifs_per_peak_bootstrap_ci_lower, ymax = avg_motifs_per_peak_bootstrap_ci_upper)) +
   geom_bar(stat = "identity") + ggtitle( "Enriched Motif Set") + 
   geom_errorbar(position = position_dodge(width=0.9), width = 0) +
