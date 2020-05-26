@@ -1,0 +1,11 @@
+^.*\.Rproj$
+^\.Rproj\.user$
+^README.md
+^docs$
+^_pkgdown.yml$
+^vignettes/Articles$
+^data-raw$
+^.Rhistory$
+^.RData$
+^.gitignore$
+^.travis.yml$

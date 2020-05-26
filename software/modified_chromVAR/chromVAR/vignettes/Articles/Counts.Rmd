@@ -1,0 +1,124 @@
+---
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Counts}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+# Counts
+
+This vignette covers the correct format for storing fragment counts for use in chromVAR. 
+
+```{r, message = FALSE}
+library(chromVAR)
+library(SummarizedExperiment)
+library(Matrix)
+```
+
+## chromVAR's method for getting fragment counts
+
+chromVAR includes a function `getCounts` for reading in fragment counts from bam or bed files.  
+
+```{r}
+peakfile <- system.file("extdata/test_bed.txt", package = "chromVAR")
+peaks <- getPeaks(peakfile, sort_peaks = TRUE)
+
+bamfile <- system.file("extdata/test_RG.bam", package = "chromVAR")
+fragment_counts <- getCounts(bamfile, 
+                             peaks, 
+                             paired =  TRUE, 
+                             by_rg = TRUE, 
+                             format = "bam", 
+                             colData = DataFrame(celltype = "GM"))
+```
+
+### RG tags
+
+The `by_rg` argument indicates that RG tags are used to distinguish reads from different cells or samples. If RG tags are not used and each bam file represents an individual sample, use `by_rg = FALSE`.  If the format of the files is "bed", use `format = bed` instead of `bam`. 
+
+### Paired vs single end data
+
+The `paired` argument should be set based on whether the data is paired end. With paired end data, fragments are counted once if either or both ends of the fragment map to a peak.  For single end data, a fragment is counted if the 5' end maps to the peak. 
+
+### Sample annotation
+
+The colData argument takes in a DataFrame with sample annotations. If `by_rg = TRUE` and the number of rows in the DataFrame is equal to the number of alignment files rather than the number of cells/samples indicated by the RG tags, then the annotations are propagated to all cells/samples in each alignment file. 
+
+### Sequencing depth
+
+When chromVAR reads in alignments to determine fragment counts per peak, it also reads in the overall sequencing depth for each sample.  This information is stored in the `colData` of the resulting SummarizedExperiment as the column "depth".
+
+## Using your own matrix of fragment counts
+
+If you have already computed a matrix of fragment counts per peaks and don't want to use chromVAR's `getCounts` function, then it is recommended to create your own RangedSummarizedExperiment object that matches the output one would get from `getCounts`. See the documentation for SummarizedExperiment for more information on the (Ranged)SummarizedExperiment constructor function. 
+
+```{r}
+counts_file <- system.file("extdata/counts_table.tsv", package = "chromVAR")
+my_counts_matrix <- as.matrix(read.delim(counts_file))
+
+fragment_counts <- SummarizedExperiment(assays = 
+                                          list(counts = my_counts_matrix),
+                                        rowRanges = peaks)
+```
+
+In order to be able to use the `filterSamples` function, a "depth" column with the total sequencing depth must be included in the `colData` in the SummarizedExperiment object.
+
+It is possible to instead use just a simple matrix or Matrix as input to the main `computeDeviations` function.  However, you will have to first compute background peaks using `getBackgroundPeaks` providing your own computed bias vector.
+
+
+## Adding GC content
+
+If your counts are stored as a RangedSummarizedExperiment, then gc bias can be added to rowRanges data. The GC content will be used for determining background peaks. The function `addGCBias` returns an updated RangedSummarizedExperiment with a new rowData column named "bias". The function requires an input of a genome sequence, which can be provided as a BSgenome, FaFile, or DNAStringSet object. Check out `available.genomes` from the BSgenome package for what genomes are available. For making your own BSgenome object, check out `BSgenomeForge`.  
+
+
+```{r, message = FALSE}
+library(BSgenome.Hsapiens.UCSC.hg19)
+data(example_counts)
+example_counts <- addGCBias(example_counts, genome = BSgenome.Hsapiens.UCSC.hg19)
+head(rowData(example_counts))
+```
+
+
+## Filtering cells 
+
+If working with single cell data, it is advisable to filter out samples with insufficient reads or a low proportion of reads in peaks as these may represent empty wells or dead cells. Two parameters are used for filtering -- min_in_peaks and min_depth.  If not provided (as above), these cutoffs are estimated based on the medians from the data.  min_in_peaks is set to 0.5 times the median proportion of fragments in peaks.  min_depth is set to the maximum of 500 or 10% of the median library size. 
+
+Unless `plot = FALSE` given as argument to function `filterSamples`, a plot will be generated.  
+
+```{r}
+counts_filtered <- filterSamples(example_counts, min_depth = 1500, 
+                                 min_in_peaks = 0.15, shiny = FALSE)
+```
+If shiny argument is set to TRUE (the default), a shiny gadget will pop up which allows you to play with the filtering parameters and see which cells pass filters or not.  
+
+To get just the plot of what is filtered, use `filterSamplesPlot`.  By default, the plot is interactive-- to set it as not interactive use `use_plotly = FALSE`.
+
+```{r filter_plot, fig.width = 6, fig.height = 6}
+filtering_plot <- filterSamplesPlot(example_counts, min_depth = 1500, 
+                                    min_in_peaks = 0.15, use_plotly = FALSE)
+filtering_plot
+```
+
+To instead return the indexes of the samples to keep instead of a new SummarizedExperiment object, use ix_return = TRUE.
+```{r}
+ix <- filterSamples(example_counts, ix_return = TRUE, shiny = FALSE)
+```
+
+## Filtering peaks
+
+For both bulk and single cell data, peaks should be filtered based on having at least a certain number of fragments. At minimum, each peak should have at least one fragment across all the samples (it might be possible to have peaks with zero reads due to using a peak set defined by other data). Otherwise, downstream functions won't work. The function `filterPeaks` will also reduce the peak set to non-overlapping peaks (keeping the peak with higher counts for peaks that overlap) if non_overlapping argument is set to TRUE (which is default). 
+
+```{r}
+counts_filtered <- filterPeaks(counts_filtered, non_overlapping = TRUE)
+```
+
+## Session Info
+
+```{r}
+Sys.Date()
+```
+
+```{r}
+sessionInfo()
+```
