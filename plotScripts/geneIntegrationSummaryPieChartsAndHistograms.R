@@ -51,74 +51,77 @@ print(pieplot.high)
 dev.off()
 
 
+
+# Oct 5 2020 update: comment out making the histograms here, because we no longer need to color them by their category within each bar.
+#                    It's easier to make these histograms in the subtractSimulatedAdditiveFromObservedCvalHistogram.R script
+
 ####### make stacked histogram plot showing signal integration constant & colored by frequency of each category in the plot
 
 # function: reassign weird categories that may come up when a specific dose integrates in a different direction to "uncategorized" 
-mapCatsToReducesCatSet <- function(cat.values) {
-  allowedCategories <- c("ambiguous", "sub-additive", "additive", "between-add-and-mult", "multiplicative", "super-multiplicative")
-  cat.values[! cat.values %in% allowedCategories] <- "uncategorized"
-  return(factor(cat.values, levels = rev(c("uncategorized", allowedCategories))))
-}
+# mapCatsToReducesCatSet <- function(cat.values) {
+#   allowedCategories <- c("ambiguous", "sub-additive", "additive", "between-add-and-mult", "multiplicative", "super-multiplicative")
+#   cat.values[! cat.values %in% allowedCategories] <- "uncategorized"
+#   return(factor(cat.values, levels = rev(c("uncategorized", allowedCategories))))
+# }
 
 # function: assign values to a bin
 # input -- a vector of integration contstants
 # output -- bin values for the vector. order of values in the vector doesn't change
 #   note: values outside the range get assigned to the lowest or highest bin available
 
-
-# first loop: get the maximum bin y value to standardize the y axis limits when making plots
-bin.step.size   <-  0.125
-bin.leftmost    <- -3
-bin.rightmost   <-  5
-plot.width    <-   18
-plot.height   <-    8.15
-bin.radius    <- bin.step.size / 2
-bin.midpoints <- seq(bin.leftmost + bin.step.size, bin.rightmost, by = bin.step.size) - bin.radius
-
-
-max.bin.vals <- c()
-for (dosage in c("low", "med", "high")) {
-  hist.values <- pull(filtSiUpregGenes, paste0("integrationConstant-", dosage))
-  bin.values  <- assignValuesToHistBin(hist.values, bin.midpoints, bin.radius)
-  max.bin.val <- max(table(bin.values)[2:(length(table(bin.values)) - 2)]) # do not select the edges for y limits, we will use "broken bars" to illustrate their N
-  max.bin.vals <- c(max.bin.vals, max.bin.val)
-}
-
-# second loop: make the stacked bar histograms
-for (dosage in c("low", "med", "high")) {
-  categorical.values <- pull(filtSiUpregGenes, paste0("integrationCategory-", dosage ,"-dose"))
-  hist.values        <- pull(filtSiUpregGenes, paste0("integrationConstant-", dosage))
-  mapped.categorical.values <- mapCatsToReducesCatSet(categorical.values)
-
-  stackedBarRes <- makeHistogramOfValues(hist.values, mapped.categorical.values, bin.leftmost, bin.rightmost,
-                                             bin.step.size, paste0(dosage, " dose, c-values"), 
-                                             xlabel = "c-value", ylabel = "count", color.by.category = T)
-  
-  stackedBarHist <- stackedBarRes[[1]]
-
-  stackedBarTib  <- stackedBarRes[[2]]
-  stackedBarTib[["dose"]] <- dosage
-  threshold.for.reporting.upper.end.of.histogram <- 4
-  reduced.tib <- stackedBarTib %>% 
-  group_by(intConstantHhistBin, intCategory, dose) %>% 
-    mutate(n_this_bin = n(), freq_this_bin = n_this_bin / nrow(stackedBarTib)) %>%
-    ungroup() %>%
-    unique()
-  
-  freq.above.upper.threshold <- reduced.tib %>%
-    filter(intConstantHhistBin >= threshold.for.reporting.upper.end.of.histogram) %>%
-    pull("freq_this_bin") %>%
-    sum()
-  
-  print(sprintf("freq above upper threshold of %.2f: %s dose --> %0.4f", threshold.for.reporting.upper.end.of.histogram, dosage, freq.above.upper.threshold))
-
-  ggsave(paste0(stackedBarHistogram.location.prefix, "upregGeneIntegrationConstants_", dosage, "_dose.svg"), plot = stackedBarHist + theme(legend.position = "none"), width = plot.width, height = plot.height)
-
-  # now plot the stacked bar histogram with a common scale, using the max. value of the center value
-  stackedBarHist <- stackedBarHist + ylim(0, max(max.bin.vals))
-  ggsave(paste0(stackedBarHistogram.location.prefix, "upregGeneIntegrationConstants_", dosage, "_dose_commonYaxis.svg"), plot = stackedBarHist + theme(legend.position = "none"), width = plot.width, height = plot.height)
-  ggsave(paste0(stackedBarHistogram.location.prefix, "upregGeneIntegrationConstants_", dosage, "_dose_commonYaxis_noTickLabels.svg"), 
-         plot = stackedBarHist + theme(legend.position = "none", axis.text.x = element_blank(), axis.text.y = element_blank()),
-         width = plot.width, height = plot.height)
-  }
-  
+# # first loop: get the maximum bin y value to standardize the y axis limits when making plots
+# bin.step.size   <-  0.125
+# bin.leftmost    <- -3
+# bin.rightmost   <-  5
+# plot.width    <-   18
+# plot.height   <-    8.15
+# bin.radius    <- bin.step.size / 2
+# bin.midpoints <- seq(bin.leftmost + bin.step.size, bin.rightmost, by = bin.step.size) - bin.radius
+# 
+# 
+# max.bin.vals <- c()
+# for (dosage in c("low", "med", "high")) {
+#   hist.values <- pull(filtSiUpregGenes, paste0("integrationConstant-", dosage))
+#   bin.values  <- assignValuesToHistBin(hist.values, bin.midpoints, bin.radius)
+#   max.bin.val <- max(table(bin.values)[2:(length(table(bin.values)) - 2)]) # do not select the edges for y limits, we will use "broken bars" to illustrate their N
+#   max.bin.vals <- c(max.bin.vals, max.bin.val)
+# }
+# 
+# # second loop: make the stacked bar histograms
+# for (dosage in c("low", "med", "high")) {
+#   categorical.values <- pull(filtSiUpregGenes, paste0("integrationCategory-", dosage ,"-dose"))
+#   hist.values        <- pull(filtSiUpregGenes, paste0("integrationConstant-", dosage))
+#   mapped.categorical.values <- mapCatsToReducesCatSet(categorical.values)
+# 
+#   stackedBarRes <- makeHistogramOfValues(hist.values, mapped.categorical.values, bin.leftmost, bin.rightmost,
+#                                              bin.step.size, paste0(dosage, " dose, c-values"), 
+#                                              xlabel = "c-value", ylabel = "count", color.by.category = T)
+#   
+#   stackedBarHist <- stackedBarRes[[1]]
+# 
+#   stackedBarTib  <- stackedBarRes[[2]]
+#   stackedBarTib[["dose"]] <- dosage
+#   threshold.for.reporting.upper.end.of.histogram <- 4
+#   reduced.tib <- stackedBarTib %>% 
+#   group_by(intConstantHhistBin, intCategory, dose) %>% 
+#     mutate(n_this_bin = n(), freq_this_bin = n_this_bin / nrow(stackedBarTib)) %>%
+#     ungroup() %>%
+#     unique()
+#   
+#   freq.above.upper.threshold <- reduced.tib %>%
+#     filter(intConstantHhistBin >= threshold.for.reporting.upper.end.of.histogram) %>%
+#     pull("freq_this_bin") %>%
+#     sum()
+#   
+#   print(sprintf("freq above upper threshold of %.2f: %s dose --> %0.4f", threshold.for.reporting.upper.end.of.histogram, dosage, freq.above.upper.threshold))
+# 
+#   ggsave(paste0(stackedBarHistogram.location.prefix, "upregGeneIntegrationConstants_", dosage, "_dose.svg"), plot = stackedBarHist + theme(legend.position = "none"), width = plot.width, height = plot.height)
+# 
+#   # now plot the stacked bar histogram with a common scale, using the max. value of the center value
+#   stackedBarHist <- stackedBarHist + ylim(0, max(max.bin.vals))
+#   ggsave(paste0(stackedBarHistogram.location.prefix, "upregGeneIntegrationConstants_", dosage, "_dose_commonYaxis.svg"), plot = stackedBarHist + theme(legend.position = "none"), width = plot.width, height = plot.height)
+#   ggsave(paste0(stackedBarHistogram.location.prefix, "upregGeneIntegrationConstants_", dosage, "_dose_commonYaxis_noTickLabels.svg"), 
+#          plot = stackedBarHist + theme(legend.position = "none", axis.text.x = element_blank(), axis.text.y = element_blank()),
+#          width = plot.width, height = plot.height)
+#   }
+#   

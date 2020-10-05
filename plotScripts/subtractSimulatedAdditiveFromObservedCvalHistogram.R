@@ -9,8 +9,6 @@ library(patchwork)
 cmdargs = commandArgs(trailingOnly=TRUE)
 if (length(cmdargs) == 0) {
   siUpregGenes     <- read_tsv("/Users/emsanford/Dropbox (RajLab)/Shared_Eric/SIgnal_Integration/Analysis_SI2-SI4_github_testing/signal_integration_paper_scripts/extractedData/DeSeqOutputAllConds.annotated.upregulatedGeneSet.tsv")
-  addPredFcDiffMin <- 0
-  minTpmDiff       <- 0
   output.folder    <- here('plots', 'secondary_c_value_peak_analysis_plots')
   output.folder2   <- here('plots', 'gene_integration_summary_plots')
 } else {
@@ -363,15 +361,15 @@ for (k in 1:3) {
     fitted.curve.tib <- tibble(fit.x = x.range.for.curve.plot, fit.y = predict(testfit, list(x = x.range.for.curve.plot)))
     
     # plot original data, simulated data, and subtracted data with gaussian fit overlaid
-    ylim_lower <- -0.01
-    ylim_upper <- 0.055
+    ylim_lower <- -0.0005
+    ylim_upper <- 0.041
     p1 <- ggplot(addModelSubtractedTib, aes(hist_bar_locations, measured_bar_values)) + geom_bar(stat="identity") + ylim(ylim_lower, ylim_upper) + geom_vline(xintercept = 1) + geom_vline(xintercept = 0) + ylab("measured frequency") + xlab("c value") + ggtitle(paste0("measured combined response factor values\n", dosage, " dose")) + theme_classic()
     p2 <- ggplot(addModelSubtractedTib, aes(hist_bar_locations, scaled_simulated_bar_values)) + geom_bar(stat="identity") + ylim(ylim_lower, ylim_upper) + geom_vline(xintercept = 1) + geom_vline(xintercept = 0) + ylab("simulated frequency (additive model, scaled)") + xlab("c value") + ggtitle(paste0("simulated c value distribution to subtract, ", simulated.distribution.to.subtract, "\n", dosage, " dose")) + theme_classic()
     p3 <- ggplot() + geom_bar(data = addModelSubtractedTib, aes(hist_bar_locations, diff_bar_values), stat="identity") + 
       geom_line(data = fitted.curve.tib, aes(x = fit.x, y = fit.y), color = "blue") +
       ylim(ylim_lower, ylim_upper) + geom_vline(xintercept = 1) + geom_vline(xintercept = 0) + 
       ylab("measured - simulated frequency") + xlab("c value") + theme_classic(base_size = 16) + 
-      ggtitle(paste0(dosage, " dose")) + ggtitle(paste0("measured c-val distribution\nafter subtracting simulated dist.\n", dosage, " dose\n", "fitted peak center = ", peak.center.string)) +
+      ggtitle(paste0(dosage, " dose")) + ggtitle(paste0("after subtracting simulated dist.\n", "fitted peak center = ", peak.center.string)) +
       theme_classic()
     #p4 <- ggplot(addModelSubtractedTib, aes(hist_bar_locations, scaled_mixture_model)) + geom_bar(stat="identity") + ylim(ylim_lower, ylim_upper) + geom_vline(xintercept = 1) + geom_vline(xintercept = 0) + ylab("scaled simulated add/mult mixture model") + xlab("c value") + theme_classic(base_size = 16) + ggtitle(paste0("scaled simulated add/mult mixture model", "\n", dosage, " dose")) + theme_classic()
     p5 <- ggplot(addMultMixtureTib, aes(x = hist_bar_locations, y = simulated_scaled_data, fill = simulated_data_component, order = simulated_data_component)) + geom_bar(stat = "identity") + geom_vline(xintercept = 1) + geom_vline(xintercept = 0) + theme_classic() + theme(legend.position = "none") + ylim(ylim_lower, ylim_upper) + ggtitle(paste0("scaled simulated add/mult mixture model", "\n", dosage, " dose"))
