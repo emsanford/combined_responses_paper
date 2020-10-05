@@ -140,12 +140,12 @@ def main(param_obj, run_all_steps = False):
 												   '"{0}"'.format(param_obj.integration_summary_plots_dir))
 		run_command(cmd)
 
-	integration_summary_plot_paths = glob.glob(param_obj.integration_summary_plots_dir + '/*.svg')
-	if run_all_steps or len(integration_summary_plot_paths) <= 3:
-		cmd = 'Rscript {0} {1} {2} {3} {4}'.format(param_obj.path_to_subtractSimAdditiveFromObservedCvalHistogram,
-												   param_obj.upregulated_genes_table,
-												   '"{0}"'.format(param_obj.secondary_cval_peak_plots_dir),
-												   '"{0}"'.format(param_obj.integration_summary_plots_dir))
+	secondary_peak_cval_analysis_plot_paths = glob.glob(param_obj.secondary_cval_peak_plots_dir + '/*.svg')
+	if run_all_steps or len(secondary_peak_cval_analysis_plot_paths) == 3:
+		cmd = 'Rscript {0} {1} {2} {3}'.format(param_obj.path_to_subtractSimAdditiveFromObservedCvalHistogram,
+											   param_obj.upregulated_genes_table,
+											   '"{0}"'.format(param_obj.secondary_cval_peak_plots_dir),
+											   '"{0}"'.format(param_obj.integration_summary_plots_dir))
 		run_command(cmd)	
 
 	# commented out Oct 5 2020 since it is more efficient to calculate these null distributions with the (new) preceding step
