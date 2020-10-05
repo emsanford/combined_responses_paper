@@ -22,7 +22,7 @@ makeHistogramOfValues <- function(data.vector, categories.vector, xlim_lower, xl
   bin.radius      <- bin.step.size / 2
   bin.midpoints   <- seq(xlim_lower + bin.step.size, xlim_upper, by = bin.step.size) - bin.radius
 
-  bin.values <- assignValuesToHistBin(hist.values, bin.midpoints, bin.radius)
+  bin.values <- assignValuesToHistBin(data.vector, bin.midpoints, bin.radius)
   
   stackedBarHistTib <- tibble(intConstantHhistBin = bin.values, intCategory = categories.vector)
   
@@ -57,7 +57,7 @@ makeHistogramOfValues <- function(data.vector, categories.vector, xlim_lower, xl
     geom_vline(xintercept = 0) + geom_vline(xintercept = 1) +
     xlim(min(bin.midpoints) - bin.radius, max(bin.midpoints) + bin.radius) 
   
-  return(list(stackedBarHist, stackedBarHistTib))
+  return(list(stackedBarHist, stackedBarHistTib, table(stackedBarHistTib$intConstantHhistBin)))
 }
 
 convertUpregCvalCatToDvalCat <- function(add.mult.spectrum.category.string) {
