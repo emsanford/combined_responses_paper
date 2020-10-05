@@ -141,7 +141,7 @@ def main(param_obj, run_all_steps = False):
 		run_command(cmd)
 
 	secondary_peak_cval_analysis_plot_paths = glob.glob(param_obj.secondary_cval_peak_plots_dir + '/*.svg')
-	if run_all_steps or len(secondary_peak_cval_analysis_plot_paths) == 3:
+	if run_all_steps or len(secondary_peak_cval_analysis_plot_paths) == 0:
 		cmd = 'Rscript {0} {1} {2} {3}'.format(param_obj.path_to_subtractSimAdditiveFromObservedCvalHistogram,
 											   param_obj.upregulated_genes_table,
 											   '"{0}"'.format(param_obj.secondary_cval_peak_plots_dir),
