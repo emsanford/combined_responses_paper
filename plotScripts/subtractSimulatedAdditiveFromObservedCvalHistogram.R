@@ -272,10 +272,6 @@ for (k in 1:3) {
     geom_bar(stat = "identity") + geom_vline(xintercept = 1) + geom_vline(xintercept = 0) + 
     ylim(0, 0.07) + ylab('frequency') + xlab("c value") + ggtitle(paste0("add/mult mixture model c vals", "\n", dosage, " dose")) + 
     theme_classic() + theme(legend.position = "none") 
-  
-  # plot panel of additive model, multiplicative model, mixture model, and observed data
-  p15 <- p12 + p13 + p14 + p11 + plot_layout(nrow = 1)
-  ggsave(paste0(output.folder2, '/composite_simulated_and_obs_cval_histograms_', dosage, '_dose.svg'), plot = p15, width = 16, height = 4)
 
   for (simulated.distribution.to.subtract in distributions.to.subtract) {
     
@@ -361,7 +357,7 @@ for (k in 1:3) {
     fitted.curve.tib <- tibble(fit.x = x.range.for.curve.plot, fit.y = predict(testfit, list(x = x.range.for.curve.plot)))
     
     # plot original data, simulated data, and subtracted data with gaussian fit overlaid
-    ylim_lower <- -0.0005
+    ylim_lower <- 0
     ylim_upper <- 0.041
     p1 <- ggplot(addModelSubtractedTib, aes(hist_bar_locations, measured_bar_values)) + geom_bar(stat="identity") + ylim(ylim_lower, ylim_upper) + geom_vline(xintercept = 1) + geom_vline(xintercept = 0) + ylab("measured frequency") + xlab("c value") + ggtitle(paste0("measured combined response factor values\n", dosage, " dose")) + theme_classic()
     p2 <- ggplot(addModelSubtractedTib, aes(hist_bar_locations, scaled_simulated_bar_values)) + geom_bar(stat="identity") + ylim(ylim_lower, ylim_upper) + geom_vline(xintercept = 1) + geom_vline(xintercept = 0) + ylab("simulated frequency (additive model, scaled)") + xlab("c value") + ggtitle(paste0("simulated c value distribution to subtract, ", simulated.distribution.to.subtract, "\n", dosage, " dose")) + theme_classic()
@@ -373,6 +369,10 @@ for (k in 1:3) {
       theme_classic()
     #p4 <- ggplot(addModelSubtractedTib, aes(hist_bar_locations, scaled_mixture_model)) + geom_bar(stat="identity") + ylim(ylim_lower, ylim_upper) + geom_vline(xintercept = 1) + geom_vline(xintercept = 0) + ylab("scaled simulated add/mult mixture model") + xlab("c value") + theme_classic(base_size = 16) + ggtitle(paste0("scaled simulated add/mult mixture model", "\n", dosage, " dose")) + theme_classic()
     p5 <- ggplot(addMultMixtureTib, aes(x = hist_bar_locations, y = simulated_scaled_data, fill = simulated_data_component, order = simulated_data_component)) + geom_bar(stat = "identity") + geom_vline(xintercept = 1) + geom_vline(xintercept = 0) + theme_classic() + theme(legend.position = "none") + ylim(ylim_lower, ylim_upper) + ggtitle(paste0("scaled simulated add/mult mixture model", "\n", dosage, " dose"))
+    
+    # plot panel of obserced data, additive model, multiplicative model, mixture model, and subtracted residual
+    p15 <- p11 + p12 + p13 + p5 + p3 + plot_layout(nrow = 1)
+    ggsave(paste0(output.folder2, '/composite_simulated_and_obs_cval_histograms_', dosage, '_dose.svg'), plot = p15, width = 20, height = 4)
     
     pcomposite <- p1 + p5 + p3 + plot_layout(nrow = 1)
     print(pcomposite)
