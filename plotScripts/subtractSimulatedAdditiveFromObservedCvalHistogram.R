@@ -241,14 +241,14 @@ for (k in 1:3) {
   
   p11 <- ggplot(tib.for.plotting.obs.data.and.single.models, aes(bar_locations, obs_data)) + 
     geom_bar(stat="identity") + 
-    ylim(0, 0.04) + 
+    ylim(0, 0.041) + 
     geom_vline(xintercept = 1) + 
     geom_vline(xintercept = 0) + 
     ylab("frequency") + xlab("c value") + 
     ggtitle(paste0("measured combined response factor values\n", dosage, " dose")) + theme_classic()
   p12 <- ggplot(tib.for.plotting.obs.data.and.single.models, aes(bar_locations, add_simdata)) + 
     geom_bar(stat="identity") + 
-    ylim(0, 0.10) + 
+    ylim(0, 0.102) + 
     geom_vline(xintercept = 1) + 
     geom_vline(xintercept = 0) + 
     ylab("frequency") + xlab("c value") + 
