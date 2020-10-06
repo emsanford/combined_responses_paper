@@ -446,14 +446,31 @@ for (mm in 1:3) {
   sim.additive.scaling.factor.model <- lm(formula = obs.values.to.match ~ 0 + additive.model.values.to.match)
   sim.additive.scaling.factor <- sim.additive.scaling.factor.model$coefficients
   
-  p8 <- ggplot(tibble(hist_bar_locations = bin.midpoints, simulated_bar_values = sim.additive.scaling.factor * simulated.additive.cvalTable.as.freqs), aes(hist_bar_locations, simulated_bar_values)) + geom_bar(stat="identity") + ylim(ylim_lower, ylim_upper) + geom_vline(xintercept = 0) + ylab("sim scaled add frequency") + xlab("c value") + ggtitle(paste0("best add model fit scaled\n", dosage, " dose")) + theme_classic()
+  p8 <- ggplot(tibble(hist_bar_locations = bin.midpoints, simulated_bar_values = sim.additive.scaling.factor * simulated.additive.cvalTable.as.freqs), 
+               aes(hist_bar_locations, simulated_bar_values)) + 
+    geom_bar(stat="identity") + 
+    ylim(ylim_lower, ylim_upper) + 
+    xlim(bin.leftmost, bin.rightmost) +
+    scale_x_continuous(breaks = bin.leftmost:bin.rightmost) +
+    geom_vline(xintercept = 0) + 
+    ylab("sim scaled add frequency") + 
+    xlab("c value") + 
+    ggtitle(paste0("best add model fit scaled\n", dosage, " dose")) + theme_classic()
   ggsave(paste0(output.folder, '/simulated_additive_model_peak_scaled_for_pval_calculations', dosage, '_dose.svg'), plot = p8, width = single.plot.width, height = single.plot.height)
   
   
   hist.values.measured <- pull(siUpregGenes, paste0("integrationConstant-", dosage))
   measured.cvalTable <- create.histogram.y.values(hist.values.measured, bin.midpoints)
   measured.cvalTable.as.freqs <- measured.cvalTable / sum(measured.cvalTable)
-  p9 <- ggplot(tibble(hist_bar_locations = bin.midpoints, observed_bar_values = measured.cvalTable.as.freqs), aes(hist_bar_locations, observed_bar_values)) + geom_bar(stat="identity") + ylim(ylim_lower, ylim_upper) + geom_vline(xintercept = 0) + ylab("observed frequency") + xlab("c value") + ggtitle(paste0("best add model fit scaled\n", dosage, " dose")) + theme_classic()
+  p9 <- ggplot(tibble(hist_bar_locations = bin.midpoints, observed_bar_values = measured.cvalTable.as.freqs), 
+               aes(hist_bar_locations, observed_bar_values)) + 
+    geom_bar(stat="identity") + 
+    ylim(ylim_lower, ylim_upper) + 
+    xlim(bin.leftmost, bin.rightmost) +
+    scale_x_continuous(breaks = bin.leftmost:bin.rightmost) +
+    geom_vline(xintercept = 0) + 
+    ylab("observed frequency") + xlab("c value") + 
+    ggtitle(paste0("best add model fit scaled\n", dosage, " dose")) + theme_classic()
   
   num.iterations.for.pval.calc <- 1000
   saved.cval.results <- list()
@@ -524,7 +541,10 @@ for (mm in 1:3) {
   p1 <- ggplot(tib.for.meanvarplot) + geom_line(mapping = aes(x = bin.midpoints, y=  bin_measured_means), color = "blue") +
     geom_line(mapping = aes(x = bin.midpoints, y = bin_measured_variances), color = "green") + ggtitle(dosage)
   
-  p2 <- qplot(non.edge.bin.midpoints, non.edge.pvals) + xlab("c value bin midpoint") + ylab("log p value estimate") + 
+  p2 <- qplot(non.edge.bin.midpoints, non.edge.pvals) + 
+    xlab("c value bin midpoint") + ylab("log p value estimate") + 
+    xlim(bin.leftmost, bin.rightmost) +
+    scale_x_continuous(breaks = bin.leftmost:bin.rightmost) +
     geom_vline(xintercept = 0) + geom_vline(xintercept = 1) + theme_classic(base_size = 16) + ggtitle(paste0("log p value for finding the measured number of counts\nat each bin in an additive model,\n", dosage," dose, poisson model"))
   
   print(p1)
