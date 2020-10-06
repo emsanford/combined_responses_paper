@@ -242,6 +242,8 @@ for (k in 1:3) {
   p11 <- ggplot(tib.for.plotting.obs.data.and.single.models, aes(bar_locations, obs_data)) + 
     geom_bar(stat="identity") + 
     ylim(0, 0.041) + 
+    xlim(bin.leftmost, bin.rightmost) +
+    scale_x_continuous(breaks = bin.leftmost:bin.rightmost) +
     geom_vline(xintercept = 1) + 
     geom_vline(xintercept = 0) + 
     ylab("frequency") + xlab("c value") + 
@@ -249,6 +251,8 @@ for (k in 1:3) {
   p12 <- ggplot(tib.for.plotting.obs.data.and.single.models, aes(bar_locations, add_simdata)) + 
     geom_bar(stat="identity") + 
     ylim(0, 0.102) + 
+    xlim(bin.leftmost, bin.rightmost) +
+    scale_x_continuous(breaks = bin.leftmost:bin.rightmost) +
     geom_vline(xintercept = 1) + 
     geom_vline(xintercept = 0) + 
     ylab("frequency") + xlab("c value") + 
@@ -256,6 +260,8 @@ for (k in 1:3) {
   p13 <- ggplot(tib.for.plotting.obs.data.and.single.models, aes(bar_locations, mult_simdata)) + 
     geom_bar(stat="identity") + 
     ylim(0, 0.10) + 
+    xlim(bin.leftmost, bin.rightmost) +
+    scale_x_continuous(breaks = bin.leftmost:bin.rightmost) +
     geom_vline(xintercept = 1) + 
     geom_vline(xintercept = 0) + 
     ylab("frequency") + xlab("c value") + 
@@ -271,6 +277,8 @@ for (k in 1:3) {
                                                      order = simulated_data_model)) + 
     geom_bar(stat = "identity") + geom_vline(xintercept = 1) + geom_vline(xintercept = 0) + 
     ylim(0, 0.07) + ylab('frequency') + xlab("c value") + ggtitle(paste0("add/mult mixture model c vals", "\n", dosage, " dose")) + 
+    xlim(bin.leftmost, bin.rightmost) +
+    scale_x_continuous(breaks = bin.leftmost:bin.rightmost) +
     theme_classic() + theme(legend.position = "none") 
 
   for (simulated.distribution.to.subtract in distributions.to.subtract) {
@@ -359,16 +367,41 @@ for (k in 1:3) {
     # plot original data, simulated data, and subtracted data with gaussian fit overlaid
     ylim_lower <- 0
     ylim_upper <- 0.041
-    p1 <- ggplot(addModelSubtractedTib, aes(hist_bar_locations, measured_bar_values)) + geom_bar(stat="identity") + ylim(ylim_lower, ylim_upper) + geom_vline(xintercept = 1) + geom_vline(xintercept = 0) + ylab("measured frequency") + xlab("c value") + ggtitle(paste0("measured combined response factor values\n", dosage, " dose")) + theme_classic()
-    p2 <- ggplot(addModelSubtractedTib, aes(hist_bar_locations, scaled_simulated_bar_values)) + geom_bar(stat="identity") + ylim(ylim_lower, ylim_upper) + geom_vline(xintercept = 1) + geom_vline(xintercept = 0) + ylab("simulated frequency (additive model, scaled)") + xlab("c value") + ggtitle(paste0("simulated c value distribution to subtract, ", simulated.distribution.to.subtract, "\n", dosage, " dose")) + theme_classic()
+    p1 <- ggplot(addModelSubtractedTib, aes(hist_bar_locations, measured_bar_values)) + 
+      geom_bar(stat="identity") + 
+      ylim(ylim_lower, ylim_upper) + 
+      xlim(bin.leftmost, bin.rightmost) +
+      scale_x_continuous(breaks = bin.leftmost:bin.rightmost) +
+      geom_vline(xintercept = 1) + 
+      geom_vline(xintercept = 0) + 
+      ylab("measured frequency") + xlab("c value") + 
+      ggtitle(paste0("measured combined response factor values\n", dosage, " dose")) + theme_classic()
+    p2 <- ggplot(addModelSubtractedTib, aes(hist_bar_locations, scaled_simulated_bar_values)) + 
+      geom_bar(stat="identity") + 
+      ylim(ylim_lower, ylim_upper) + 
+      xlim(bin.leftmost, bin.rightmost) +
+      scale_x_continuous(breaks = bin.leftmost:bin.rightmost) +
+      geom_vline(xintercept = 1) + geom_vline(xintercept = 0) + 
+      ylab("simulated frequency (additive model, scaled)") + xlab("c value") + 
+      ggtitle(paste0("simulated c value distribution to subtract, ", simulated.distribution.to.subtract, "\n", dosage, " dose")) + theme_classic()
     p3 <- ggplot() + geom_bar(data = addModelSubtractedTib, aes(hist_bar_locations, diff_bar_values), stat="identity") + 
       geom_line(data = fitted.curve.tib, aes(x = fit.x, y = fit.y), color = "blue") +
-      ylim(ylim_lower, ylim_upper) + geom_vline(xintercept = 1) + geom_vline(xintercept = 0) + 
+      ylim(ylim_lower, ylim_upper) + 
+      xlim(bin.leftmost, bin.rightmost) +
+      scale_x_continuous(breaks = bin.leftmost:bin.rightmost) +
+      geom_vline(xintercept = 1) + geom_vline(xintercept = 0) + 
       ylab("measured - simulated frequency") + xlab("c value") + theme_classic(base_size = 16) + 
       ggtitle(paste0(dosage, " dose")) + ggtitle(paste0("after subtracting simulated dist.\n", "fitted peak center = ", peak.center.string)) +
       theme_classic()
     #p4 <- ggplot(addModelSubtractedTib, aes(hist_bar_locations, scaled_mixture_model)) + geom_bar(stat="identity") + ylim(ylim_lower, ylim_upper) + geom_vline(xintercept = 1) + geom_vline(xintercept = 0) + ylab("scaled simulated add/mult mixture model") + xlab("c value") + theme_classic(base_size = 16) + ggtitle(paste0("scaled simulated add/mult mixture model", "\n", dosage, " dose")) + theme_classic()
-    p5 <- ggplot(addMultMixtureTib, aes(x = hist_bar_locations, y = simulated_scaled_data, fill = simulated_data_component, order = simulated_data_component)) + geom_bar(stat = "identity") + geom_vline(xintercept = 1) + geom_vline(xintercept = 0) + theme_classic() + theme(legend.position = "none") + ylim(ylim_lower, ylim_upper) + ggtitle(paste0("scaled simulated add/mult mixture model", "\n", dosage, " dose"))
+    p5 <- ggplot(addMultMixtureTib, aes(x = hist_bar_locations, y = simulated_scaled_data, fill = simulated_data_component, order = simulated_data_component)) + 
+      geom_bar(stat = "identity") + 
+      ylim(ylim_lower, ylim_upper) + 
+      xlim(bin.leftmost, bin.rightmost) +
+      scale_x_continuous(breaks = bin.leftmost:bin.rightmost) +
+      geom_vline(xintercept = 1) + geom_vline(xintercept = 0) + 
+      theme_classic() + theme(legend.position = "none") + 
+      ggtitle(paste0("scaled simulated add/mult mixture model", "\n", dosage, " dose"))
     
     # plot panel of obserced data, additive model, multiplicative model, mixture model, and subtracted residual
     p15 <- p11 + p12 + p13 + p5 + p3 + plot_layout(nrow = 1)
