@@ -33,6 +33,7 @@ plot.vertical.shrinkage.factor <- 0.60
 
 n.experiment.replicates <- 3
 max.n.sample.attempts.to.be.higher.than.control <- 1000
+num.iterations.for.pval.calc <- 1000
 
 stackedBarHistogram.location.prefix <- paste0(output.folder, '/gene_integration_mode_stackedBarHistogram_AddSimDataSubtracted')
 
@@ -472,7 +473,6 @@ for (mm in 1:3) {
     ylab("observed frequency") + xlab("c value") + 
     ggtitle(paste0("best add model fit scaled\n", dosage, " dose")) + theme_classic()
   
-  num.iterations.for.pval.calc <- 1000
   saved.cval.results <- list()
   for (ii in 1:num.iterations.for.pval.calc) {
     frac.add <- 1
@@ -490,6 +490,9 @@ for (mm in 1:3) {
   
   non.edge.pvals <- c()
   non.edge.bin.midpoints <- c()
+  
+  non.edge.means     <- c()
+  non.edge.variances <- c()
   
   for (bin.adjustment in c(0, 0.25, 0.5, 0.75)) {
     bin.midpoints <- seq(bin.leftmost + bin.step.size, bin.rightmost, by = bin.step.size) - bin.radius + bin.adjustment * bin.step.size
@@ -526,30 +529,43 @@ for (mm in 1:3) {
     
     non.edge.pvals <- c(non.edge.pvals, p.values)
     non.edge.bin.midpoints <- c(non.edge.bin.midpoints, bin.midpoints[2:(num.bins - 1)])
+    
+    # add mean / variance estimate for each bin
+    bin_mean_across_simulations     <- c()
+    bin_variance_across_simulations <- c()
+    for (ii in 1:ncol(histbin.matrix)) {
+      # print(sprintf("bin midpoint = %f, mean = %f, variance = %f", bin.midpoints[ii], mean(histbin.matrix[, ii]), var(histbin.matrix[, ii])))
+      bin_mean_across_simulations <- c(bin_mean_across_simulations, mean(histbin.matrix[, ii]))
+      bin_variance_across_simulations <- c(bin_variance_across_simulations, var(histbin.matrix[, ii]))
+    }
+    non.edge.means     <- c(non.edge.means, bin_mean_across_simulations[2:(num.bins - 1)])
+    non.edge.variances <- c(non.edge.variances, bin_variance_across_simulations[2:(num.bins - 1)])
   }
+  
+
+
   
   # see if mean and variance are about equal like in poisson
-  bin_measured_means     <- c()
-  bin_measured_variances <- c()
-  for (ii in 1:ncol(histbin.matrix)) {
-    print(sprintf("bin midpoint = %f, mean = %f, variance = %f", bin.midpoints[ii], mean(histbin.matrix[, ii]), var(histbin.matrix[, ii])))
-    bin_measured_means <- c(bin_measured_means, mean(histbin.matrix[, ii]))
-    bin_measured_variances <- c(bin_measured_variances, var(histbin.matrix[, ii]))
-  }
-  tib.for.meanvarplot <- tibble(bin.midpoints, bin_measured_means, bin_measured_variances)
+  tib.for.meanvarplot <- tibble(non.edge.bin.midpoints, non.edge.means, non.edge.variances)
   
-  p1 <- ggplot(tib.for.meanvarplot) + geom_line(mapping = aes(x = bin.midpoints, y=  bin_measured_means), color = "blue") +
-    geom_line(mapping = aes(x = bin.midpoints, y = bin_measured_variances), color = "green") + ggtitle(dosage)
+  p1 <- ggplot(tib.for.meanvarplot) + 
+    geom_line(mapping = aes(x = non.edge.bin.midpoints, y = non.edge.means), color = "blue") +
+    geom_line(mapping = aes(x = non.edge.bin.midpoints, y = non.edge.variances), color = "green") + 
+    xlim(bin.leftmost, bin.rightmost) +
+    scale_x_continuous(breaks = bin.leftmost:bin.rightmost) +
+    ggtitle(paste0(dosage, " dosage, blue = mean, green = variance")) +
+    theme_classic()
+    
   
   p2 <- qplot(non.edge.bin.midpoints, non.edge.pvals) + 
     xlab("c value bin midpoint") + ylab("log p value estimate") + 
     xlim(bin.leftmost, bin.rightmost) +
     scale_x_continuous(breaks = bin.leftmost:bin.rightmost) +
-    geom_vline(xintercept = 0) + geom_vline(xintercept = 1) + theme_classic(base_size = 16) + ggtitle(paste0("log p value for finding the measured number of counts\nat each bin in an additive model,\n", dosage," dose, poisson model"))
+    geom_vline(xintercept = 0) + geom_vline(xintercept = 1) + theme_classic() + ggtitle(paste0("log p value for finding the measured number of counts\nat each bin in an additive model,\n", dosage," dose, poisson model"))
   
   print(p1)
   print(p2)
-  ggsave(paste0(output.folder, '/binned_log_p_values_', dosage, '_dose.svg'),       plot = p2, width = single.plot.width, height = single.plot.height)
+  ggsave(paste0(output.folder, '/binned_log_p_values_', dosage, '_dose.svg'),       plot = p2, width = single.plot.width, height = single.plot.height * .75)
   ggsave(paste0(output.folder, '/mean_var_plot_across_bins_', dosage, '_dose.svg'), plot = p1, width = single.plot.width, height = single.plot.height)
   
   p.composite2 <- p9 + p8 + p2
