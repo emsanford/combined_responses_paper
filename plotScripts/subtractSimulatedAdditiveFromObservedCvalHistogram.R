@@ -542,9 +542,6 @@ for (mm in 1:3) {
     non.edge.variances <- c(non.edge.variances, bin_variance_across_simulations[2:(num.bins - 1)])
   }
   
-
-
-  
   # see if mean and variance are about equal like in poisson
   tib.for.meanvarplot <- tibble(non.edge.bin.midpoints, non.edge.means, non.edge.variances)
   
@@ -553,6 +550,7 @@ for (mm in 1:3) {
     geom_line(mapping = aes(x = non.edge.bin.midpoints, y = non.edge.variances), color = "green") + 
     xlim(bin.leftmost, bin.rightmost) +
     scale_x_continuous(breaks = bin.leftmost:bin.rightmost) +
+    geom_vline(xintercept = 0) + geom_vline(xintercept = 1) + 
     ggtitle(paste0(dosage, " dosage, blue = mean, green = variance")) +
     theme_classic()
     
@@ -565,11 +563,11 @@ for (mm in 1:3) {
   
   print(p1)
   print(p2)
-  ggsave(paste0(output.folder, '/binned_log_p_values_', dosage, '_dose.svg'),       plot = p2, width = single.plot.width, height = single.plot.height * .75)
-  ggsave(paste0(output.folder, '/mean_var_plot_across_bins_', dosage, '_dose.svg'), plot = p1, width = single.plot.width, height = single.plot.height)
+  ggsave(paste0(output.folder, '/binned_log_p_values_', dosage, '_dose.svg'),       plot = p2, width = single.plot.width, height = single.plot.height)
+  ggsave(paste0(output.folder, '/mean_var_plot_across_bins_', dosage, '_dose.svg'), plot = p1, width = single.plot.width, height = single.plot.height * plot.vertical.shrinkage.factor * 0.75)
   
   p.composite2 <- p9 + p8 + p2
-  ggsave(paste0(output.folder, '/composite_pval_plot_', dosage, '_dose.svg'), plot = p.composite2, width = single.plot.width * 3, height = single.plot.height * plot.vertical.shrinkage.factor)
+  ggsave(paste0(output.folder, '/composite_pval_plot_', dosage, '_dose.svg'), plot = p.composite2, width = single.plot.width * 3, height = single.plot.height * plot.vertical.shrinkage.factor * 0.75)
   
   saved.plot.list.logpvals[[length(saved.plot.list.logpvals) + 1]] <- p1
   saved.plot.list.logpvals[[length(saved.plot.list.logpvals) + 1]] <- p2
