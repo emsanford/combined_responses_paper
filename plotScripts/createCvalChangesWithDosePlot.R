@@ -1,5 +1,6 @@
 library(tidyverse)
 library(here)
+library(patchwork)
 
 cmdargs = commandArgs(trailingOnly=TRUE)
 if (length(cmdargs) == 0) {
@@ -14,6 +15,8 @@ if (length(cmdargs) == 0) {
   output_prefix <- cmdargs[4]
 }
 
+control.tpm.zero.rows <- which(siUpregGenes$`EtOH-nlDensity_avgTPM` == 0)
+siUpregGenes <- siUpregGenes[-control.tpm.zero.rows, ] # remove rows with control TPM = 0 because the erroneously estimate c to be zero
 
 tfp <- siUpregGenes %>% 
   filter(`addMultPredFcDiff-low` >= addPredFcDiffMin,
@@ -35,7 +38,9 @@ tfp2[["order"]][which(tfp2$origColName == "integrationConstant-high")] <- tfp2[[
 p <- ggplot(data = NULL)
   
 p <- p +
-  geom_point(data = filter(tfp2, origColName == "integrationConstant-high"), aes(order, c_value)) + 
+  geom_point(data = filter(tfp2, origColName == "integrationConstant-high"), aes(order, c_value), color = "#05106E") + 
+  geom_point(data = filter(tfp2, origColName == "integrationConstant-med"), aes(order, c_value), color = "#007DFF") + 
+  geom_point(data = filter(tfp2, origColName == "integrationConstant-low"), aes(order, c_value), color = "#0DE0FF") + 
   geom_hline(yintercept = 0) + geom_hline(yintercept = 1)
 
 for (gn in unique(tfp2$gene_name)) {
@@ -60,11 +65,10 @@ low.to.mid.cval.diff  <- md.cvals - ld.cvals
 mid.to.high.cval.diff <- hd.cvals - md.cvals
 low.to.high.cval.diff <- hd.cvals - ld.cvals
 
-library(patchwork)
 cval.hist.lowerbound <- -4
 cval.hist.upperbound <-  4
 bin.step.size <-  0.125
-max.yval <- 100
+max.yval <- 80
 
 clipped.low.to.mid.cval.diff <- ifelse(low.to.mid.cval.diff > cval.hist.upperbound, cval.hist.upperbound, low.to.mid.cval.diff)
 clipped.low.to.mid.cval.diff <- ifelse(clipped.low.to.mid.cval.diff < cval.hist.lowerbound, cval.hist.lowerbound, clipped.low.to.mid.cval.diff)
@@ -97,11 +101,10 @@ low.to.mid.cval.diff  <- md.cvals - ld.cvals
 mid.to.high.cval.diff <- hd.cvals - md.cvals
 low.to.high.cval.diff <- hd.cvals - ld.cvals
 
-library(patchwork)
 cval.hist.lowerbound <- -4
 cval.hist.upperbound <-  4
 bin.step.size <-  0.125
-max.yval <- 50
+max.yval <- 20
 
 clipped.low.to.mid.cval.diff <- ifelse(low.to.mid.cval.diff > cval.hist.upperbound, cval.hist.upperbound, low.to.mid.cval.diff)
 clipped.low.to.mid.cval.diff <- ifelse(clipped.low.to.mid.cval.diff < cval.hist.lowerbound, cval.hist.lowerbound, clipped.low.to.mid.cval.diff)
