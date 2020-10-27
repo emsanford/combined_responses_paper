@@ -22,6 +22,36 @@ siUpregGenes <- geneTibAnno %>% filter(`TGFb-and-RA-low_isDeGene` | `TGFb-and-RA
 write_tsv(siUpregGenes, outputLoc, col_names = T)
 
 
+# how does the requirement of indiviudal increases in expression affect the number of genes in the master set?
+mastersetgeneIDs <- siUpregGenes$ensg
+
+ra.diff.gene.ids <- filter(geneTibAnno, `RA-low_isDeGene` | `RA-med_isDeGene` | `RA-high_isDeGene`) %>% pull("ensg")
+ra.upreg.gene.ids <- filter(geneTibAnno, `RA-low_isDeGene` | `RA-med_isDeGene` | `RA-high_isDeGene`, `RA-high_log2fc` > 0) %>% pull("ensg") 
+
+tgfb.diff.gene.ids <- filter(geneTibAnno, `TGFb-low_isDeGene` | `TGFb-med_isDeGene` | `TGFb-high_isDeGene`) %>% pull("ensg")
+tgfb.upreg.gene.ids <- filter(geneTibAnno, `TGFb-low_isDeGene` | `TGFb-med_isDeGene` | `TGFb-high_isDeGene`, `TGFb-high_log2fc` > 0) %>% pull("ensg") 
+
+both.diff.gene.ids <- filter(geneTibAnno, `TGFb-and-RA-low_isDeGene` | `TGFb-and-RA-med_isDeGene` | `TGFb-and-RA-high_isDeGene`) %>% pull("ensg")
+both.upreg.gene.ids <- filter(geneTibAnno, `TGFb-and-RA-low_isDeGene` | `TGFb-and-RA-med_isDeGene` | `TGFb-and-RA-high_isDeGene`, `TGFb-and-RA-high_log2fc` > 0) %>% pull("ensg") 
+downreg.both.gene.ids <- setdiff(both.diff.gene.ids, both.upreg.gene.ids)
+intersect(mastersetgeneIDs, both.upreg.gene.ids) %>% length
+intersect(mastersetgeneIDs, downreg.both.gene.ids) %>% length
+
+tgfb.and.ra.up <- intersect(tgfb.upreg.gene.ids, intersect(ra.upreg.gene.ids, both.upreg.gene.ids))
+tgfb.and.both.up <- setdiff(intersect(tgfb.upreg.gene.ids, both.upreg.gene.ids), ra.upreg.gene.ids)
+ra.and.both.up <- setdiff(intersect(ra.upreg.gene.ids, both.upreg.gene.ids), tgfb.upreg.gene.ids)
+both.up.only <- setdiff(both.upreg.gene.ids, union_all(tgfb.and.ra.up, tgfb.and.both.up, ra.and.both.up))
+
+num.genes.in.upreg.venn.diagram <- length(tgfb.and.ra.up) + length(tgfb.and.both.up) + length(ra.and.both.up) + length(both.up.only)
+num.genes.in.master.set <- length(mastersetgeneIDs)
+percent.genes.removed <- 100 * (1 - (num.genes.in.master.set)/num.genes.in.upreg.venn.diagram)
+print(sprintf("percent genes removed = %.2f", percent.genes.removed))
+
+# #number in each category removed
+# setdiff(tgfb.and.ra.up, mastersetgeneIDs) %>% length
+# setdiff(tgfb.and.both.up, mastersetgeneIDs) %>% length
+# setdiff(ra.and.both.up, mastersetgeneIDs) %>% length
+# setdiff(both.up.only, mastersetgeneIDs) %>% length
 
 ######### uncomment this section to see how different definitions of upregulated genes affects the final set of upregulated genes
 # # filter out diff peaks for which to do signal integration analysis on

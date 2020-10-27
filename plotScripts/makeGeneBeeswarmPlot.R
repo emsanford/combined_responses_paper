@@ -110,7 +110,9 @@ replicate.spacing <- 0.15
 tibforplot[tibforplot[["replicate"]] == "rep1", "order"] <- tibforplot[tibforplot[["replicate"]] == "rep1", "order"] - replicate.spacing
 tibforplot[tibforplot[["replicate"]] == "rep3", "order"] <- tibforplot[tibforplot[["replicate"]] == "rep3", "order"] + replicate.spacing
 
-genes.to.plot <- c('EPHB2', 'MAP3K1', 'GPRC5A', 'RIPK4', 'ZNF469', 'PFKFB3', 'RND1', 'LINC01116') 
+genes.to.plot <- c('EPHB2', 'MAP3K1', 'GPRC5A', 'RIPK4', 'ZNF469', 'PFKFB3', 'RND1', 'LINC01116', 'ZNF385A', 'PRKCD', 'LIMCH1') 
+# genes.to.plot <- genes.of.interest  # i cheat here. uncomment this block and define genes.of.interest in another script in Rstudio to explore random categories of genes
+
 for (gene.to.plot in genes.to.plot) {
   outputLoc <- paste0(outputFolder, '/', paste0(gene.to.plot, "_beeswarm.svg"))
   p <- makeCompositeBeeswarmPlot(gene.to.plot, geneTib, tibforplot)
@@ -119,7 +121,6 @@ for (gene.to.plot in genes.to.plot) {
   ggsave(outputLoc, plot = p, width = 5.25, height = 4)
 }
 
-# genes.to.plot <- genes.of.interest  # i cheat here. uncomment this block and define genes.of.interest in another script in Rstudio to explore random categories of genes
 # for (gene.to.plot in genes.to.plot) {
 #   outputLoc <- paste0(outputFolder, paste0(gene.to.plot, "_beeswarm.svg"))
 #   p <- makeCompositeBeeswarmPlot(gene.to.plot, geneTib, tibforplot)
